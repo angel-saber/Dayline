@@ -53,3 +53,9 @@ Still required: final app icon and screenshots, privacy policy/support URL, accu
 ## Verification record
 
 The authoring environment is Linux without Swift or Xcode, so the native source has not been compiled locally. It can check XML, repository wiring, and existing JavaScript logic. `Apple app checks` runs SwiftPM unit tests and builds both unsigned simulator schemes on GitHub's macOS runner. Record actual CI and device results separately; do not infer success from merely adding a workflow.
+
+### Verified macOS CI result — 2026-10-19
+
+At commit `c9684a60b41dc8857b05dfa69ffdc194066b0754`, all 9 Swift core tests passed and Xcode successfully built both the local-only and optional iCloud simulator configurations with code signing disabled. The project/plist validation also passed. See [the successful Apple app check](https://github.com/angel-saber/Dayline/actions/runs/39248417683).
+
+The web prototype's 32 automated tests and JavaScript syntax checks also passed in the authoring environment. No interactive simulator session, physical-device test, live iCloud container transfer, signed archive, or App Store submission was performed. Those remain the next acceptance milestones.
