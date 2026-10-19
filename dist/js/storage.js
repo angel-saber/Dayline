@@ -5,6 +5,8 @@ export function validState(value) {
   const days={};
   for(const [key,entries] of Object.entries(value.days)) {
     if(!/^\d{4}-\d{2}-\d{2}$/.test(key) || !Array.isArray(entries)) throw new Error('Invalid day in backup.');
+    const calendarDate=new Date(`${key}T12:00:00Z`);
+    if(!Number.isFinite(calendarDate.getTime()) || calendarDate.toISOString().slice(0,10)!==key) throw new Error('Invalid calendar day in backup.');
     const seen=new Set();
     days[key]=entries.map(e=>{
       if(!e || typeof e.id!=='string' || seen.has(e.id) || typeof e.text!=='string' || !Number.isInteger(e.minute) || e.minute<0 || e.minute>=1440 || typeof e.done!=='boolean') throw new Error('Invalid entry in backup.');

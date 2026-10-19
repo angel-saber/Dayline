@@ -60,4 +60,5 @@ test('malformed backups fail safely',()=>{
   assert.throws(()=>validState({version:1,days:{'2026-10-19':[note('a',1440)]}}));
   assert.throws(()=>validState({version:1,days:{'2026-10-19':[note('a',1),note('a',2)]}}));
   assert.throws(()=>validState({version:1,days:{},settings:{interval:0}}));
+  assert.throws(()=>validState({version:1,days:{'2026-02-30':[]}}));
 });

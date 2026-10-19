@@ -2,14 +2,15 @@ import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,timeLabel} from './mod
 import {load,save,validState} from './storage.js';
 import {attachGestures} from './gestures.js';
 import {Reminders} from './reminders.js';
+import {setupAccounts} from './accounts.js';
 const $=s=>document.querySelector(s);
-let state,readFailed=false,selected=dayKey(),view='daily',undo=null,editor=null,moveId=null,pendingImport=null;
+let state,readFailed=false,selected=dayKey(),view='daily',undo=null,editor=null,moveId=null,pendingImport=null,accounts=null;
 try{state=load();}catch{readFailed=true;state={version:1,days:{},settings:{interval:60,clock:'12',notifications:false,sound:false}};}
 const announce=text=>{$('#announcer').textContent=text;};
 function toast(text,withUndo=false){$('#toast-text').textContent=text;$('#undo').hidden=!withUndo;$('#toast').hidden=false;announce(text);}
 function persist(){
   if(readFailed){$('#save-status').textContent='● Saving paused';toast('Stored data could not be read. Export a recovery copy or restore a valid backup before saving.');return false;}
-  try{save(state);$('#save-status').textContent='● Saved on this device';return true;}
+  try{if(accounts)accounts.persist(state);else save(state);if(!accounts?.isSignedIn())$('#save-status').textContent='● Saved on this device';return true;}
   catch{$('#save-status').textContent='● Not saved';toast('Your browser could not save this change. Download a backup in Settings to keep your notes.');return false;}
 }
 function entries(){return state.days[selected]||[];}
@@ -19,7 +20,7 @@ function commit(next,message){
 function complete(id){const e=entries().find(e=>e.id===id);if(e)commit(entries().map(e=>e.id===id?{...e,done:!e.done}:e),e.done?'Note reopened':'A little progress. Note completed.');}
 function remove(id){commit(entries().filter(e=>e.id!==id),'Note deleted');}
 function move(id,minute){commit(moveEntry(entries(),id,minute,state.settings.interval),`Note moved to ${timeLabel(minute,state.settings.clock)}`);}
-const reminders=new Reminders(()=>state,e=>toast(`It’s time · ${e.text}`),toast);
+const reminders=new Reminders(()=>accounts?.isLoginVisible()?{...state,settings:{...state.settings,notifications:false}}:state,e=>toast(`It’s time · ${e.text}`),toast);
 document.addEventListener('pointerdown',()=>{if(state.settings.sound)reminders.unlockAudio().catch(()=>{});},{once:true});
 function node(tag,className,text){const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;}
 function button(text,label,fn,className=''){const b=node('button',className,text);b.type='button';b.setAttribute('aria-label',label);b.addEventListener('click',fn);return b;}
@@ -101,7 +102,7 @@ $('#today-top').onclick=()=>{navigate(dayKey());jumpNow();};
 $('#date-picker').onchange=e=>{if(/^\d{4}-\d{2}-\d{2}$/.test(e.target.value))navigate(e.target.value);};
 function jumpNow(){const row=$('#timeline .current');row?.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});}
 $('#jump-now').onclick=jumpNow;
-function switchView(next){flushEditor();view=next;$('#daily-view').hidden=next!=='daily';$('#settings-view').hidden=next!=='settings';$('#date-footer').hidden=next!=='daily';for(const v of ['daily','settings']){$(`#${v}-tab`).classList.toggle('active',v===next);$(`#${v}-tab`).setAttribute('aria-selected',v===next);}if(next==='settings')renderSettings();else renderTimeline();window.scrollTo({top:0});}
+function switchView(next){flushEditor();view=next;$('#daily-view').hidden=next!=='daily';$('#settings-view').hidden=next!=='settings';$('#date-footer').hidden=next!=='daily'||accounts?.isLoginVisible();for(const v of ['daily','settings']){$(`#${v}-tab`).classList.toggle('active',v===next);$(`#${v}-tab`).setAttribute('aria-selected',v===next);}if(next==='settings')renderSettings();else renderTimeline();accounts?.refreshView();window.scrollTo({top:0});}
 $('#daily-tab').onclick=()=>switchView('daily');$('#settings-tab').onclick=()=>switchView('settings');$('#interval-shortcut').onclick=()=>switchView('settings');
 function renderSettings(){const s=state.settings,isPreset=[15,30,60,120,240].includes(s.interval);$('#interval').value=isPreset?s.interval:'custom';$('#custom-field').hidden=isPreset;$('#custom-minutes').value=s.interval;$('#clock').value=s.clock;$('#notifications').checked=s.notifications;$('#sound').checked=s.sound;notificationStatus();}
 function notificationStatus(){let status='Keep Dayline open for reminders. Closed-app alerts aren’t supported in this version. Device settings may silence sound.';if(!globalThis.Notification)status+=' System notifications are unavailable here; in-app reminders still work.';else if(Notification.permission==='denied')status+=' System notifications are blocked in browser settings; in-app reminders still work.';$('#notification-status').textContent=status;}
@@ -132,12 +133,28 @@ $('#restore-dialog').addEventListener('close',()=>{
   if($('#restore-dialog').returnValue==='restore'&&pendingImport){
     // Permission and audio must be enabled deliberately on each new device.
     pendingImport.settings.notifications=false;pendingImport.settings.sound=false;
-    try{save(pendingImport);state=pendingImport;readFailed=false;undo=null;renderSettings();toast('Backup restored. Enable reminders again when you’re ready.');}
+    try{if(accounts)accounts.persist(pendingImport);else save(pendingImport);state=pendingImport;readFailed=false;undo=null;renderSettings();toast('Backup restored. Enable reminders again when you’re ready.');}
     catch{toast('Your browser could not save the backup. Existing data was kept.');}
   }pendingImport=null;
 });
 window.addEventListener('pagehide',flushEditor);
-window.addEventListener('storage',event=>{if(event.key==='dayline.v1'){try{state=load();readFailed=false;undo=null;if(!editor){if(view==='daily')renderTimeline();else renderSettings();}toast('Notes updated from another tab.');}catch{toast('Another tab saved data that could not be read.');}}});
+window.addEventListener('storage',event=>{if(event.key==='dayline.v1'&&!accounts?.isSignedIn()){try{state=load();readFailed=false;undo=null;if(!editor){if(view==='daily')renderTimeline();else renderSettings();}toast('Notes updated from another tab.');}catch{toast('Another tab saved data that could not be read.');}}});
 setInterval(()=>{if(view==='daily'&&!editor){const current=$('#timeline .current'),now=new Date(),minute=now.getHours()*60+now.getMinutes();if(selected===dayKey()&&Number(current?.dataset.minute)!==Math.floor(minute/state.settings.interval)*state.settings.interval)renderTimeline();}},30000);
 renderTimeline();
+accounts=setupAccounts({
+  getState:()=>state, flushEditor, toast,
+  setState(next,options={}){
+    const changed=JSON.stringify(state.days[selected]||[])!==JSON.stringify(next.days[selected]||[]);
+    state=next;readFailed=options.readFailed??readFailed;
+    if(changed){undo=null;editor=null;renderTimeline();}
+    else if(!editor&&view==='daily')renderTimeline();
+    if(view==='settings')renderSettings();
+    $('#restore-explanation').textContent=accounts?.isSignedIn()?'This replaces this account’s notes across devices. Download a backup first if you want to keep them.':'This replaces all notes and settings on this device. Download your current backup first if you want to keep it.';
+  },
+  onStatus(status,error){
+    const labels={local:'● Saved on this device',pending:'● Saved here · waiting to sync',syncing:'● Syncing your notes…',synced:'● Synced across devices',error:'● Not synced · saved here'};
+    $('#save-status').textContent=labels[status]||labels.error;
+    $('#account-sync-status').textContent=error?.message||labels[status]||'';
+  },
+});
 if(readFailed)toast('Stored data could not be read. Saving is paused to protect it. Open Settings to export a recovery copy or restore a backup.');

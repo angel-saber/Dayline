@@ -1,1 +1,11 @@
-{"name":"dayline","version":"1.0.0","private":true,"type":"module","scripts":{"test":"node --test","check":"node --check dist/js/app.js && node --check dist/js/model.js && node --check dist/js/storage.js && node --check dist/js/gestures.js && node --check dist/js/reminders.js","start":"python3 -m http.server 8080 --directory dist"}}
+{
+  "name": "dayline",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "check": "node scripts/check.mjs",
+    "start": "python3 -m http.server 8080 --directory dist"
+  }
+}

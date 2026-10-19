@@ -8,7 +8,7 @@ Open Settings → select 15 minutes, 30 minutes, 1 hour, 2 hours, 4 hours, or a 
 
 ## Clean code structure
 
-No framework or runtime dependencies. Static files run on GitHub Pages with relative asset paths. `model.js` holds pure date, interval, grouping, insertion, and reminder-selection functions. `storage.js` owns validation and versioned local persistence. `gestures.js` owns pointer interactions. `reminders.js` owns notification scheduling and audio. `app.js` binds application state and DOM views. Styles live in one CSS file. There are no network calls, secrets, user accounts, or analytics.
+No framework or runtime dependencies. Static files run on GitHub Pages with relative asset paths. `model.js` holds pure date, interval, grouping, insertion, and reminder-selection functions. `storage.js` owns validation and versioned local persistence. `gestures.js` owns pointer interactions. `reminders.js` owns notification scheduling and audio. `app.js` binds application state and DOM views. Styles live in one CSS file. Guest mode remains local. Optional account mode uses `cloud.js` for Supabase HTTP calls, `sync.js` for revisioned day synchronization, and `accounts.js` for account lifecycle and sign-in UI. Only a public project URL/publishable key belong in the frontend; no privileged database keys or analytics are included.
 
 ## Feature sequence and acceptance criteria
 
@@ -23,7 +23,7 @@ No framework or runtime dependencies. Static files run on GitHub Pages with rela
 
 ## Deliberately deferred
 
-Cross-device sync, accounts, server-backed push, native mobile packaging, recurrence, and collaboration. Reliable notifications when the app is closed require a server/push or native scheduling design; this version does not imply those exist.
+Server-backed push, native mobile packaging, recurrence, and collaboration. Accounts and cross-device note sync are now implemented; activation depends on configuring the real Supabase backend. Reliable notifications when the app is closed require a server/push or native scheduling design; this version does not imply those exist.
 
 ## Manual browser checks before a release
 
@@ -38,3 +38,13 @@ Cross-device sync, accounts, server-backed push, native mobile packaging, recurr
 - Confirm visible keyboard focus, zoomed text, narrow screens, and reduced-motion preference.
 
 Automated tests cover pure logic and persistence. Browser/device interaction checks must be reported separately from unit tests.
+
+## Account workflow
+
+Sign-in page → email address → request code → verify emailed code → load only this account’s days → use planner → local draft is cached immediately → revision-checked server save → “Synced across devices.” Another signed-in device polls for updates. Settings and sound permissions stay on each device.
+
+Guest notes are separate. An explicit import adds them to the currently signed-in account without removing either original dataset. Account sign-out waits for synchronization before revoking the current session and removing account draft caches. Recoverable abandoned-tab caches are replayed after loading the latest server state.
+
+The database selects rows with an owner policy. Writes use an authenticated function that derives ownership from `auth.uid()`, validates note payloads, locks the row, and rejects stale revisions. No user ID is accepted from the client as write ownership. Conflicts are merged against an acknowledged baseline; both changed versions are preserved. Settings, logout, backups, and initial load are separate from sync state.
+
+See ACCOUNTS_SETUP.md for activation and live acceptance checks. Email delivery, SQL migration execution, and real cross-account isolation need a configured test project; unit mocks alone are not proof of those integrations.
