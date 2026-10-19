@@ -49,7 +49,7 @@ struct SettingsView: View {
                     }))
                     Toggle("Play a sound", isOn: $store.settings.sound)
                     Button("Test sound", systemImage: "speaker.wave.2") { reminders.testSound() }
-                    Text(reminders.description).font(.footnote).foregroundStyle(.secondary)
+                    Text(reminders.statusText).font(.footnote).foregroundStyle(.secondary)
                     Text("Reminders cover the next 60 occupied intervals. Opening Dayline refreshes the schedule. Silent mode, Focus, and notification settings can silence alerts.").font(.footnote).foregroundStyle(.secondary)
                     Button("Device notification settings") {
                         if let url = URL(string: UIApplication.openNotificationSettingsURLString) { UIApplication.shared.open(url) }

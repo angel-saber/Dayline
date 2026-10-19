@@ -6,7 +6,7 @@ import DaylineCore
 
 @MainActor
 final class ReminderScheduler: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
-    @Published var description = "Reminders are off"
+    @Published var statusText = "Reminders are off"
     private let center = UNUserNotificationCenter.current()
     private var queued: (days: [String: [PlannerNote]], settings: PlannerSettings)?
     private var isRunning = false
@@ -19,9 +19,9 @@ final class ReminderScheduler: NSObject, ObservableObject, UNUserNotificationCen
     func requestPermission() async -> Bool {
         do {
             let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
-            if !granted { description = "Allow notifications in device Settings to enable reminders." }
+            if !granted { statusText = "Allow notifications in device Settings to enable reminders." }
             return granted
-        } catch { description = error.localizedDescription; return false }
+        } catch { statusText = error.localizedDescription; return false }
     }
 
     func testSound() { AudioServicesPlaySystemSound(1007) }
@@ -37,10 +37,10 @@ final class ReminderScheduler: NSObject, ObservableObject, UNUserNotificationCen
             queued = nil
             let pending = await center.pendingNotificationRequests()
             center.removePendingNotificationRequests(withIdentifiers: pending.map(\.identifier).filter { $0.hasPrefix("dayline-") })
-            guard next.settings.notifications else { description = "Reminders are off"; continue }
+            guard next.settings.notifications else { statusText = "Reminders are off"; continue }
             let permission = await center.notificationSettings()
             guard permission.authorizationStatus == .authorized || permission.authorizationStatus == .provisional else {
-                description = "Notifications are blocked in device Settings. Your notes still save normally."
+                statusText = "Notifications are blocked in device Settings. Your notes still save normally."
                 continue
             }
             let plans = Planner.reminders(days: next.days, interval: next.settings.interval, after: Date())
@@ -55,8 +55,8 @@ final class ReminderScheduler: NSObject, ObservableObject, UNUserNotificationCen
                     let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
                     try await center.add(UNNotificationRequest(identifier: plan.id, content: content, trigger: trigger))
                 }
-                description = plans.isEmpty ? "No upcoming unfinished notes to remind you about." : "\(plans.count) upcoming intervals scheduled. Open Dayline regularly to refill reminders."
-            } catch { description = "Some reminders could not be scheduled: \(error.localizedDescription)" }
+                statusText = plans.isEmpty ? "No upcoming unfinished notes to remind you about." : "\(plans.count) upcoming intervals scheduled. Open Dayline regularly to refill reminders."
+            } catch { statusText = "Some reminders could not be scheduled: \(error.localizedDescription)" }
         }
     }
 

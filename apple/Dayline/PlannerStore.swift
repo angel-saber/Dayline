@@ -134,9 +134,9 @@ final class PlannerStore: ObservableObject {
     func refresh() {
         guard isReady else { return }
         do {
-            let records = try records()
+            let fetched = try records()
             var rebuilt: [String: [PlannerNote]] = [:]
-            for record in records where !record.noteID.isEmpty && Planner.date(for: record.day) != nil {
+            for record in fetched where !record.noteID.isEmpty && Planner.date(for: record.day) != nil {
                 // The persistent object identity disambiguates records if two
                 // devices independently import an identical backup while offline.
                 let key = record.objectID.uriRepresentation().absoluteString
