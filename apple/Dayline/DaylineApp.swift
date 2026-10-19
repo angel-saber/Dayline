@@ -16,6 +16,7 @@ struct DaylineApp: App {
                 .environmentObject(reminders)
                 .tint(DaylineTheme.green)
                 .task { await reschedule() }
+                .onChange(of: store.isReady) { _, ready in if ready { Task { await reschedule() } } }
                 .onChange(of: store.days) { _, _ in Task { await reschedule() } }
                 .onChange(of: store.settings) { _, _ in Task { await reschedule() } }
                 .onChange(of: phase) { _, value in

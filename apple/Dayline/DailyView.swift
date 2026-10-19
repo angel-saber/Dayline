@@ -186,7 +186,7 @@ private struct NoteEditor: View {
             VStack(alignment: .leading, spacing: 16) {
                 Text(date.formatted(date: .abbreviated, time: .omitted)).font(.caption).foregroundStyle(.secondary)
                 TextEditor(text: $text).focused($focused).scrollContentBackground(.hidden).frame(minHeight: 160)
-                Text("Saved as you write, on this device.").font(.caption).foregroundStyle(.secondary)
+                Text(store.saveDescription).font(.caption).foregroundStyle(.secondary)
             }.padding(24).background(DaylineTheme.paper)
                 .navigationTitle(Planner.label(minute, clock: store.settings.clock)).navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
