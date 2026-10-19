@@ -43,7 +43,7 @@ Automated tests cover pure logic and persistence. Browser/device interaction che
 
 Sign-in page → email address → request code → verify emailed code → load only this account’s days → use planner → local draft is cached immediately → revision-checked server save → “Synced across devices.” Another signed-in device polls for updates. Settings and sound permissions stay on each device.
 
-Guest notes are separate. An explicit import adds them to the currently signed-in account without removing either original dataset. Account sign-out waits for synchronization before revoking the current session and removing account draft caches. Recoverable abandoned-tab caches are replayed after loading the latest server state.
+Guest notes are separate. An explicit import adds them to the currently signed-in account without removing either original dataset. Account sign-out waits for synchronization before revoking the current session and removing synced account draft caches; unsent work from other tabs is retained for the next sign-in. Recoverable abandoned-tab caches are replayed after loading the latest server state.
 
 The database selects rows with an owner policy. Writes use an authenticated function that derives ownership from `auth.uid()`, validates note payloads, locks the row, and rejects stale revisions. No user ID is accepted from the client as write ownership. Conflicts are merged against an acknowledged baseline; both changed versions are preserved. Settings, logout, backups, and initial load are separate from sync state.
 

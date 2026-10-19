@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mergeEntries, mergeGuestDays, SyncEngine } from '../dist/js/sync.js';
+import { mergeEntries, mergeGuestDays, clearSyncedDrafts, SyncEngine } from '../dist/js/sync.js';
 const day = '2026-10-19';
 const note = (id, text = id, minute = 540) => ({ id, text, minute, done: false });
 function storage() {
@@ -131,4 +131,14 @@ test('replaying a conflicting draft does not duplicate a previously recovered ve
   const once = mergeEntries(base, local, remote).entries;
   const twice = mergeEntries(base, local, once).entries;
   assert.deepEqual(twice, once);
+});
+test('sign-out clears synced caches but keeps another tab’s unsent work and other accounts', () => {
+  const cache = storage();
+  cache.setItem('dayline.drafts:user-a:synced', JSON.stringify({ [day]: { entries: [note('a')], base: [note('a')], revision: 1 } }));
+  cache.setItem('dayline.drafts:user-a:pending', JSON.stringify({ [day]: { entries: [note('a', 'unsent')], base: [note('a')], revision: 1 } }));
+  cache.setItem('dayline.drafts:user-b:synced', JSON.stringify({ [day]: { entries: [note('b')], base: [note('b')], revision: 1 } }));
+  clearSyncedDrafts(cache, 'dayline.drafts:user-a:');
+  assert.equal(cache.getItem('dayline.drafts:user-a:synced'), null);
+  assert.ok(cache.getItem('dayline.drafts:user-a:pending'));
+  assert.ok(cache.getItem('dayline.drafts:user-b:synced'));
 });

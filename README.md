@@ -64,7 +64,7 @@ After activation, sign in with the same email on another device. Notes, completi
 
 Synchronization runs after edits and about every 15 seconds while the app is open, on window focus, and after reconnecting. Changes to separate notes are merged. If the same note changes in two places, both versions are kept and a message explains the conflict. Empty days retain server revisions so deletions propagate. Offline writes stay pending rather than appearing as synced. A 1 MB limit applies to a single day’s account notes.
 
-Local drafts include private notes. Sign out after synchronization on a shared device; this clears that account’s draft caches in this browser and revokes the current session. Other devices stay signed in. Normal web sessions remain stored in the browser between visits. Keep guest-note backups and restore them only to the intended account.
+Local drafts include private notes. Sign out after synchronization on a shared device; this clears synced account caches in this browser while retaining any unsent drafts from other tabs for the next sign-in and revokes the current session. Other devices stay signed in. Normal web sessions remain stored in the browser between visits. Keep guest-note backups and restore them only to the intended account.
 
 ## Validation
 

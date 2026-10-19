@@ -54,6 +54,23 @@ export function mergeGuestDays(accountDays, guestDays, newId = () => crypto.rand
   return days;
 }
 
+export function clearSyncedDrafts(storage, prefix) {
+  const keys = [];
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i);
+    if (key?.startsWith(prefix) && !key.endsWith(':lease')) keys.push(key);
+  }
+  for (const key of keys) {
+    try {
+      const records = JSON.parse(storage.getItem(key));
+      if (!records || typeof records !== 'object' || Array.isArray(records)) continue;
+      const clean = Object.values(records).every(row => Array.isArray(row?.entries) && Array.isArray(row?.base) && equal(row.entries, row.base));
+      // Signing out in one tab must not erase another tab's unsent work.
+      if (clean) { storage.removeItem(key); storage.removeItem(`${key}:lease`); }
+    } catch { /* Preserve unreadable caches for recovery rather than deleting. */ }
+  }
+}
+
 export class SyncEngine {
   constructor({ cloud, userId, storage = localStorage, cacheId = 'default', onDays, onStatus, onConflict }) {
     Object.assign(this, { cloud, storage, onDays, onStatus, onConflict });

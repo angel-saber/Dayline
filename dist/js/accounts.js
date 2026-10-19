@@ -1,6 +1,6 @@
 import { cloudConfig } from './config.js';
 import { CloudClient } from './cloud.js';
-import { SyncEngine, mergeGuestDays } from './sync.js';
+import { SyncEngine, mergeGuestDays, clearSyncedDrafts } from './sync.js';
 import { load, save, validState } from './storage.js';
 
 const $ = selector => document.querySelector(selector);
@@ -137,11 +137,7 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
 
   function leaveAccount() {
     ++generation; engine?.stop();
-    if (engine) {
-      const keys = [];
-      for (let i = 0; i < localStorage.length; i++) { const key = localStorage.key(i); if (key?.startsWith(engine.userPrefix)) keys.push(key); }
-      keys.forEach(key => localStorage.removeItem(key));
-    }
+    if (engine) clearSyncedDrafts(localStorage, engine.userPrefix);
     engine = null; user = null;
     try { setState(load(), { readFailed: false }); } catch { setState({ version: 1, days: {}, settings: getState().settings }, { readFailed: true }); }
     accountView(); showLogin(true); onStatus('local');
