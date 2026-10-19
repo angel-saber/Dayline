@@ -1,0 +1,25 @@
+name: Apple app checks
+on:
+  push:
+    paths: ['apple/**', '.github/workflows/apple.yml']
+  pull_request:
+    paths: ['apple/**', '.github/workflows/apple.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  apple:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test scheduling and backup logic
+        run: swift test --package-path apple
+      - name: Validate project configuration
+        run: |
+          plutil -lint apple/Dayline.xcodeproj/project.pbxproj
+          plutil -lint apple/Dayline/Info.plist apple/Dayline/CloudInfo.plist apple/Dayline/Dayline.entitlements apple/Dayline/PrivacyInfo.xcprivacy
+      - name: Build local-only app without signing or a paid account
+        run: xcodebuild -project apple/Dayline.xcodeproj -scheme Dayline -configuration Debug -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/dayline-local build CODE_SIGNING_ALLOWED=NO
+      - name: Compile optional iCloud configuration without signing
+        run: xcodebuild -project apple/Dayline.xcodeproj -scheme Dayline-iCloud -configuration CloudDebug -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/dayline-cloud build CODE_SIGNING_ALLOWED=NO

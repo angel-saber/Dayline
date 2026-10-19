@@ -2,31 +2,28 @@
 
 A calm daily planner and time log. Write into time intervals, cross off what is done, and rearrange the day as plans change.
 
-## Features
+## Current direction: Apple-first, no hosting subscription
 
-- Full daily timeline with 15-minute, 30-minute, 1-hour, 2-hour, 4-hour, and custom intervals.
-- Multiline text; automatic saving on this browser/device.
-- Swipe right to complete/reopen, left to delete; one-step undo.
-- Hold a note’s six-dot handle and drag to insert it into another interval, shifting affected notes. A Move button supports keyboard and non-drag use.
-- Previous/next day, Today, date picker, and completion progress.
-- In-app reminders, optional browser notifications, optional chime, 12/24-hour time.
-- JSON backup and restore.
-- Email-code sign-in and private account notes across devices once the Supabase backend is configured.
-- Automatic sync, offline draft recovery, and conflict preservation for edits on multiple devices.
+Dayline's native Apple app lives in [`apple/`](apple/). It saves on-device using Core Data and has optional private iCloud mirroring. It does not use a Dayline login, Supabase, an email service, or a server that the app owner pays to host. Each person's private iCloud storage is used when enabled. Device-local use remains available without iCloud.
 
-## Run locally
+The default **Dayline** Xcode scheme has no cloud entitlements. Use it for local development and limited personal-device testing with a free Apple account. The separate **Dayline-iCloud** scheme includes CloudKit configuration for later entitlement provisioning and multi-device testing. Apple's developer membership fee for App Store distribution is separate from hosting; no membership purchase or backend provisioning is performed by this repository.
 
-Install Node.js 24+ for checks; Python 3 is used for the local static server. No npm install is required.
+See [apple/README.md](apple/README.md) to open the Xcode project and [docs/APPLE_RELEASE_PLAN.md](docs/APPLE_RELEASE_PLAN.md) for the remaining release work and validation limits. The iOS source is a development build, not an App Store-ready binary.
 
-```sh
-npm run check
-npm test
-npm start
-```
+## Native app features
 
-Open http://localhost:8080. Serve the app over HTTP rather than opening index.html as a file. On hosting, use HTTPS for browser notification permission.
+- Full midnight-to-midnight timeline; 15/30/60/120/240-minute and custom intervals.
+- Text editing that saves as you type into an on-device SQLite store.
+- Right swipe to complete/reopen, left swipe to delete; one-step undo.
+- Hold and drag to insert a note into another interval and shift affected entries; Move picker and accessibility actions as alternatives.
+- Date arrows, date picker, Today, progress, and 12/24-hour time.
+- Native scheduled notifications with optional sound; a rolling window of 60 occupied intervals.
+- JSON backup export and additive import, compatible with web-prototype backups.
+- Optional private iCloud mirroring in a separately provisioned build; no new Dayline account.
 
-## Work on this repository
+## Web prototype
+
+The original browser version remains in `dist`. With its current empty cloud configuration it opens directly into device-local mode. Its browser timers and storage are separate from the native app. Transfer notes using JSON backup/export.
 
 ```sh
 git clone https://github.com/angel-saber/Dayline.git
@@ -36,36 +33,19 @@ npm test
 npm start
 ```
 
-Create a feature branch for each change, commit the changes, and open a pull request into `main`. GitHub Actions runs the automated checks. Do not commit exported planner backups containing private notes.
+Node.js 24+ runs the checks; Python 3 serves the static files at http://localhost:8080. No npm install is required.
 
-## Host on GitHub Pages
+The earlier Supabase account experiment is retained as unconfigured source (`dist/js/cloud.js`, `sync.js`, `accounts.js`, `supabase/`). It is **not** the chosen Apple-app architecture, and no Supabase project was created. Its older activation instructions in `docs/ACCOUNTS_SETUP.md` are optional reference material, not launch requirements.
 
-In the repository, open **Settings → Pages → Build and deployment → Source → GitHub Actions**. Then open **Actions → Deploy GitHub Pages → Run workflow**. The provided workflow checks the app and publishes `dist`. It is manual so uploading code does not unexpectedly publish it.
+## Host the optional web prototype
 
-GitHub Pages visibility depends on your account and repository settings; check access before using it for sensitive notes. The app saves notes on the current browser origin. Notes on a preview URL, localhost, and GitHub Pages are separate; use backup/restore to transfer them.
-
-## Architecture and workflow
-
-See [docs/WORKFLOW.md](docs/WORKFLOW.md) for implementation order, acceptance criteria, reordering rules, and manual release checks. Each behavior is isolated in an ES module under `dist/js`; no third-party runtime scripts or build pipeline are needed. `cloud.js` isolates the Supabase REST API, `sync.js` owns revision-aware merging, and `accounts.js` owns the sign-in screen and account lifecycle. GitHub Actions runs syntax and unit checks on pushes and pull requests.
-
-## Reminders and storage limits
-
-Reminders run while the app is open. Browsers may delay timers in background tabs or on sleeping devices. Closed-app reminders are not implemented. Some mobile browsers do not support the Notification constructor; in-app reminders still work. Sound requires an initial user gesture and can be blocked by browser or system settings. Test sound after reopening the app.
-
-Changing interval lengths preserves all notes at their original stored times. If multiple notes fall into one longer interval, they appear together; reminders follow the displayed interval start. Dragging shifts intervening interval buckets toward the space left by the source, without discarding text. Undo is one step and is not retained after reload.
-
-Without signing in, browser storage stays device-local. Signed-in notes sync to a configured Supabase project; drafts are cached by account and tab until the server acknowledges them. Download backups regularly. Restoring replaces the current account’s notes across devices (or device-local notes in guest mode) and disables reminders/sound until enabled again. No service worker or offline installation is included.
-
-## Accounts and cross-device notes
-
-The login page supports email sign-in codes for new and returning users. To activate it, follow [docs/ACCOUNTS_SETUP.md](docs/ACCOUNTS_SETUP.md). The checked-in `dist/js/config.js` is deliberately empty until a real project is configured; guest mode remains usable in the meantime. No backend is provisioned merely by uploading this code.
-
-After activation, sign in with the same email on another device. Notes, completion, deletion, and moves sync automatically. Settings remain device-specific. In **Settings → Your account**, use **Add this device’s notes to my account** to migrate existing notes deliberately. Accounts never automatically receive another device user’s guest notes.
-
-Synchronization runs after edits and about every 15 seconds while the app is open, on window focus, and after reconnecting. Changes to separate notes are merged. If the same note changes in two places, both versions are kept and a message explains the conflict. Empty days retain server revisions so deletions propagate. Offline writes stay pending rather than appearing as synced. A 1 MB limit applies to a single day’s account notes.
-
-Local drafts include private notes. Sign out after synchronization on a shared device; this clears synced account caches in this browser while retaining any unsent drafts from other tabs for the next sign-in and revokes the current session. Other devices stay signed in. Normal web sessions remain stored in the browser between visits. Keep guest-note backups and restore them only to the intended account.
+In the repository, choose **Settings → Pages → Source → GitHub Actions**, then **Actions → Deploy GitHub Pages → Run workflow**. This manually publishes `dist`; it does not package or publish the Apple app. The included public-repository workflows require no project secrets or paid Apple membership to compile the simulator configuration.
 
 ## Validation
 
-Run `npm run check` and `npm test`. The suite includes mocked authentication and two-device sync tests. Device/browser gestures, audio, permissions, responsive layout, live email delivery, and database access controls also require the manual checks listed in the workflow and account setup documents. Mocked tests do not verify a deployed backend.
+- `npm run check` and `npm test` check the web prototype.
+- `swift test --package-path apple` checks shared native scheduling, reminders, and backup logic on a machine with Swift.
+- `Apple app checks` on GitHub uses macOS to run the Swift tests and compile both simulator configurations without code signing.
+- Real-device gestures, persistence, notification delivery, CloudKit entitlement provisioning, two-device sync, and App Store submission require the acceptance checks in the Apple release plan. A successful simulator build does not validate live iCloud behavior.
+
+Create a feature branch for each change, commit it, and open a pull request into `main`. Do not commit private planner backups, signing credentials, certificates, or account tokens.

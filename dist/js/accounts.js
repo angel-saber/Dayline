@@ -27,7 +27,7 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
   function accountView() {
     $('#account-email').textContent = user?.email || 'Using this device';
     $('#account-explanation').textContent = user ? 'Your notes sync with this account. Time intervals and reminder preferences stay on each device.' : 'Sign in to keep your notes with you across devices.';
-    $('#sign-in-button').hidden = !!user;
+    $('#sign-in-button').hidden = !!user || !cloud?.config;
     $('#sign-out-button').hidden = !user;
     $('#sync-now').hidden = !user;
     let hasGuest = false;
@@ -167,7 +167,7 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
       setState({ ...getState(), settings: preferences });
     }
   } catch { /* Invalid optional preferences do not affect the notes. */ }
-  showLogin(true); accountView();
+  showLogin(!!cloud?.config); accountView();
   try {
     const session = cloud?.config && cloud.readSession();
     if (session) enterAccount(session);
