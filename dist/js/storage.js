@@ -1,0 +1,22 @@
+import { DEFAULT_SETTINGS } from './model.js';
+const KEY='dayline.v1';
+export function validState(value) {
+  if(!value || value.version!==1 || !value.days || typeof value.days!=='object' || Array.isArray(value.days)) throw new Error('This is not a Dayline backup.');
+  const days={};
+  for(const [key,entries] of Object.entries(value.days)) {
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(key) || !Array.isArray(entries)) throw new Error('Invalid day in backup.');
+    const seen=new Set();
+    days[key]=entries.map(e=>{
+      if(!e || typeof e.id!=='string' || seen.has(e.id) || typeof e.text!=='string' || !Number.isInteger(e.minute) || e.minute<0 || e.minute>=1440 || typeof e.done!=='boolean') throw new Error('Invalid entry in backup.');
+      seen.add(e.id); return {id:e.id,text:e.text,minute:e.minute,done:e.done};
+    });
+  }
+  const s={...DEFAULT_SETTINGS,...value.settings};
+  if(!Number.isInteger(s.interval) || s.interval<1 || s.interval>1440) throw new Error('Invalid interval.');
+  return {version:1,days,settings:{interval:s.interval,clock:s.clock==='24'?'24':'12',notifications:s.notifications===true,sound:s.sound===true}};
+}
+export function load(storage=localStorage) {
+  const raw=storage.getItem(KEY);
+  return raw?validState(JSON.parse(raw)):{version:1,days:{},settings:{...DEFAULT_SETTINGS}};
+}
+export function save(state, storage=localStorage) { storage.setItem(KEY,JSON.stringify(state)); }

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f5f4ef"><meta name="description" content="A quiet space to plan your day, one interval at a time."><title>Dayline — A little room for your day</title><link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="stylesheet" href="./styles.css"></head>
+<body>
+<header class="topbar"><a class="brand" href="./" aria-label="Dayline home"><span class="brand-icon">◒</span> dayline<span class="brand-dot">.</span></a><nav aria-label="Main navigation"><button id="daily-tab" class="tab active" aria-selected="true">Daily</button><button id="settings-tab" class="tab" aria-selected="false">Settings</button></nav><span class="save-status" id="save-status" role="status">● Saved on this device</span></header>
+<main>
+<section id="daily-view" aria-labelledby="day-heading">
+<div class="eyebrow" id="relative-day">YOUR DAY, AT YOUR PACE</div>
+<div class="date-heading"><h1 id="day-heading"></h1><button id="today-top" class="pill">Today <span>↗</span></button></div>
+<p class="intro">Make a little room for what matters.</p>
+<div class="day-summary"><div><span class="status-dot"></span><span id="summary">A fresh page for your day</span></div><button id="interval-shortcut" class="text-button">1-hour intervals <span>⌄</span></button></div>
+<div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
+<div class="timeline-top"><span>TIME</span><span>YOUR PLANS & LITTLE NOTES</span><button class="text-button" id="jump-now">Jump to now ↓</button></div>
+<div id="timeline" class="timeline"></div>
+<div class="day-end"><span>✧</span> A day doesn’t have to be full to be a good one.</div>
+<div class="gesture-guide"><span>→ swipe to complete</span><span>← swipe to delete</span><span>⠿ hold handle to move</span></div>
+</section>
+<section id="settings-view" hidden aria-labelledby="settings-heading"><div class="eyebrow">MAKE IT YOURS</div><h1 id="settings-heading">A rhythm that fits.</h1><p class="intro">A few small settings for your kind of day.</p>
+<div class="settings-card"><h2>Your timeline</h2><label for="interval">Time intervals</label><p class="field-hint">Give your day as much structure as you like.</p><select id="interval"><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60">1 hour</option><option value="120">2 hours</option><option value="240">4 hours</option><option value="custom">Custom</option></select><div id="custom-field" hidden><label for="custom-minutes">Custom interval in minutes</label><div class="inline"><input id="custom-minutes" type="number" min="1" max="1440" step="1"><button id="apply-custom" class="primary">Apply</button></div></div><p class="field-hint">Changing intervals keeps every note. Notes in the same interval appear together.</p><label for="clock">Time format</label><select id="clock"><option value="12">12-hour · 9:00 AM</option><option value="24">24-hour · 09:00</option></select></div>
+<div class="settings-card"><h2>A gentle nudge</h2><div class="setting-row"><div><label for="notifications">Time reminders</label><p class="field-hint">For intervals with an unfinished note.</p></div><input id="notifications" type="checkbox" class="switch" role="switch"></div><div class="setting-row"><div><label for="sound">Play a sound</label><p class="field-hint">A soft chime when it’s time.</p></div><input id="sound" type="checkbox" class="switch" role="switch"></div><button id="test-sound" class="secondary">♫ Test sound</button><p class="notice" id="notification-status">Keep Dayline open for reminders. Closed-app alerts aren’t supported in this version. Device settings may silence sound.</p></div>
+<div class="settings-card"><h2>Your notes, kept close</h2><p class="field-hint">Saved automatically in this browser, on this device. Download a backup before clearing browser data or switching devices.</p><div class="inline"><button id="export" class="secondary">↓ Download backup</button><button id="import" class="secondary">↑ Restore backup</button><input id="import-file" type="file" accept="application/json,.json" hidden></div></div>
+</section>
+</main>
+<footer id="date-footer"><button id="previous-day" aria-label="Previous day">← <span id="previous-label">Yesterday</span></button><div><label class="date-picker-label" for="date-picker"><span id="footer-date"></span><span aria-hidden="true">⌄</span></label><input id="date-picker" type="date" aria-label="Go to date"></div><button id="next-day" aria-label="Next day"><span id="next-label">Tomorrow</span> →</button></footer>
+<div id="toast" class="toast" role="status" hidden><span id="toast-text"></span><button id="undo" hidden>Undo</button><button id="dismiss-toast" aria-label="Dismiss message">×</button></div>
+<dialog id="move-dialog"><form method="dialog"><div class="eyebrow">A CHANGE OF PLANS</div><h2>Move to a new time</h2><label for="move-time">Time interval</label><select id="move-time"></select><p class="field-hint">Other entries shift toward the space you leave.</p><div class="inline"><button value="cancel" class="secondary">Cancel</button><button id="confirm-move" value="move" class="primary">Move note</button></div></form></dialog>
+<dialog id="restore-dialog"><form method="dialog"><h2>Restore this backup?</h2><p>This replaces all notes and settings on this device. Download your current backup first if you want to keep it.</p><div class="inline"><button value="cancel" class="secondary">Cancel</button><button value="restore" class="primary">Restore backup</button></div></form></dialog>
+<div class="sr-only" id="announcer" aria-live="polite"></div>
+<script type="module" src="./js/app.js"></script>
+</body></html>
