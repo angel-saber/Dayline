@@ -1,5 +1,6 @@
 import { DEFAULT_SETTINGS } from './model.js';
-import {validFormat} from './format.js';
+import {validFormat} from './format.js?v=line-tasks-1';
+import {validTasks} from './tasks.js?v=line-tasks-1';
 const KEY='dayline.v1';
 export function validState(value) {
   if(!value || value.version!==1 || !value.days || typeof value.days!=='object' || Array.isArray(value.days)) throw new Error('This is not a Dayline backup.');
@@ -14,6 +15,7 @@ export function validState(value) {
       seen.add(e.id);
       const result={id:e.id,text:e.text,minute:e.minute,done:e.done};
       if(e.format!==undefined)result.format=validFormat(e.format,e.text);
+      if(e.tasks!==undefined)result.tasks=validTasks(e.tasks,e.text);
       if(e.task!==undefined){if(typeof e.task!=='boolean')throw new Error('Invalid checkbox task.');result.task=e.task;}
       return result;
     });

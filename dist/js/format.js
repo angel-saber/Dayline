@@ -1,3 +1,4 @@
+import {lineRange} from './tasks.js?v=line-tasks-1';
 // Formatting is stored as plain-text ranges, never as executable HTML.
 export const HIGHLIGHTS={blue:'#cde7ff',yellow:'#fff0a6',green:'#d6edcc',red:'#ffd3d3'};
 const FLAGS=['bold','italic','underline'];
@@ -29,8 +30,8 @@ function compact(marks){
   },[]);
 }
 export function toggleFormat(text,format,start,end,key,value=true){
-  if(start===end){start=0;end=text.length;}
-  if(!text.length)return format;
+  if(start===end){({start,end}=lineRange(text,start));}
+  if(start===end)return format;
   const split=segments(text,[...format,{start,end}]);
   const remove=split.filter(m=>m.start>=start&&m.end<=end).every(m=>m[key]===value);
   return compact(split.map(m=>{
@@ -49,7 +50,7 @@ export function editFormat(before,after,format){
     if(m.end>oldEnd)marks.push({...m,start:Math.max(oldEnd,m.start)+delta,end:m.end+delta});
   }
   // New text inherits the style at the caret (the preceding character at an edge).
-  const source=segments(before,format).find(m=>m.start<=Math.max(0,start-1)&&m.end>Math.max(0,start-1));
+  const source=before[start-1]==='\n'?undefined:segments(before,format).find(m=>m.start<=Math.max(0,start-1)&&m.end>Math.max(0,start-1));
   if(source&&newEnd>start)marks.push({...source,start,end:newEnd});
   return compact(marks.sort((a,b)=>a.start-b.start));
 }

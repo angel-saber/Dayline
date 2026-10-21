@@ -1,10 +1,11 @@
 import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,timeLabel} from './model.js';
-import {load,save,validState} from './storage.js';
+import {load,save,validState} from './storage.js?v=line-tasks-1';
 import {attachGestures} from './gestures.js';
 import {Reminders} from './reminders.js';
-import {setupAccounts} from './accounts.js';
+import {setupAccounts} from './accounts.js?v=line-tasks-1';
 import {dailyQuote} from './quotes.js';
-import {HIGHLIGHTS,toggleFormat,editFormat,renderFormatted} from './format.js';
+import {HIGHLIGHTS,toggleFormat,editFormat,renderFormatted} from './format.js?v=line-tasks-1';
+import {lineRange,noteTasks,toggleTask,editTasks} from './tasks.js?v=line-tasks-1';
 const $=s=>document.querySelector(s);
 let state,readFailed=false,selected=dayKey(),view='daily',undo=null,editor=null,moveId=null,pendingImport=null,accounts=null;
 try{state=load();}catch{readFailed=true;state={version:1,days:{},settings:{interval:60,clock:'12',notifications:false,sound:false}};}
@@ -58,12 +59,11 @@ function renderTimeline(){
     const notes=node('div','slot-notes');
     for(const e of slot.entries){
       const card=node('article',`entry${e.done?' done':''}`);card.dataset.id=e.id;
-      if(e.task!==false){
-        const check=button(e.done?'✓':'',e.done?'Reopen task':'Complete task',()=>complete(e.id),'check');
-        check.setAttribute('role','checkbox');check.setAttribute('aria-checked',String(e.done));card.append(check);
-      }
-      const textButton=button('',`Edit note: ${e.text}`,()=>openEditor(notes,slot.minute,e),'note-text');
-      renderFormatted(textButton,e.text,e.format);card.append(textButton);
+      const content=node('div','note-content');
+      renderNoteLines(content,e.text,e.format,noteTasks(e),start=>{
+        const tasks=noteTasks(e).map(t=>t.start===start?{...t,done:!t.done}:t);
+        commit(entries().map(item=>item.id===e.id?{...item,tasks,task:false}:item),'Task updated');
+      },()=>openEditor(notes,slot.minute,e));card.append(content);
       const tools=node('div','entry-tools');
       tools.append(button('↗','Move note to a different time',()=>openMove(e.id),'move-note'),button('×','Delete note',()=>remove(e.id),'delete-note'));
       const handle=node('span','drag-handle','⠿');handle.tabIndex=0;handle.setAttribute('role','button');handle.setAttribute('aria-label','Hold and drag to move, or press Enter to choose a time');
@@ -77,54 +77,86 @@ function renderTimeline(){
   const invitation=$('#timeline .current .empty-add')||$('#timeline .empty-add');
   if(invitation){invitation.append(node('span','','+'),document.createTextNode('What would you like to make time for?'));}
 }
+// Render line controls beside text; never nest a checkbox inside an edit button.
+function renderNoteLines(container,text,format=[],tasks=[],onCheck,onEdit){
+  container.replaceChildren();let start=0;
+  for(const line of text.split('\n')){
+    const row=node('div','note-line'),task=tasks.find(t=>t.start===start),anchor=start;
+    if(task){
+      const check=node('input','line-checkbox');check.type='checkbox';check.checked=task.done;
+      check.setAttribute('aria-label',`Complete task: ${line||'Empty line'}`);
+      check.addEventListener('change',()=>onCheck(anchor));row.append(check);
+    }
+    const textNode=onEdit?button('',`Edit note: ${line||'Empty line'}`,onEdit,'note-text'):node('span','note-text');
+    const marks=format.filter(m=>m.start<start+line.length&&m.end>start).map(m=>({...m,start:Math.max(0,m.start-start),end:Math.min(line.length,m.end-start)}));
+    renderFormatted(textNode,line,marks);if(!line)textNode.append(document.createTextNode('\u200b'));
+    textNode.classList.toggle('task-completed',!!task?.done);row.append(textNode);container.append(row);
+    start+=line.length+1;
+  }
+}
 function openEditor(container,minute,entry){
   if(editor){flushEditor();renderTimeline();container=$(`#timeline .slot[data-minute="${minute}"] .slot-notes`);}
   const wrapper=node('div','editor'),input=node('textarea');input.placeholder='A plan, a thought, a little reminder…';input.value=entry?.text||'';input.setAttribute('aria-label','Note for '+timeLabel(minute,state.settings.clock));
   const controls=node('div','editor-actions');controls.append(node('small','','Saves as you write · Ctrl/⌘ + Enter to close'));
-  let id=entry?.id,format=structuredClone(entry?.format||[]),previous=input.value,task=entry?entry.task!==false:false,done=entry?.done||false;
+  let id=entry?.id,format=structuredClone(entry?.format||[]),previous=input.value,tasks=noteTasks(entry),pendingStyle={},pendingLine=null,textChange=null;
   const toolbar=node('div','format-toolbar');toolbar.setAttribute('role','group');toolbar.setAttribute('aria-label','Note formatting');
-  const hint=node('small','format-hint','Select text to format, or apply to the whole note. Checkbox turns the whole note into a task.');
+  const hint=node('small','format-hint','Format selected text or the current line. Checkbox applies only to the line your cursor is on.');
   const preview=node('div','format-preview');preview.setAttribute('aria-label','Formatted note preview');
   function refreshPreview(){
-    preview.replaceChildren();preview.hidden=!task&&!format.length;
-    if(task){
-      const check=node('input','preview-checkbox');check.type='checkbox';check.checked=done;
-      check.setAttribute('aria-label','Mark task complete');
-      check.addEventListener('change',()=>{done=check.checked;sync();});preview.append(check);
-    }
-    const text=node('div','preview-text');renderFormatted(text,input.value||'Your task will appear here',format);
-    text.classList.toggle('task-completed',task&&done);preview.append(text);
+    preview.hidden=!tasks.length&&!format.length;
+    renderNoteLines(preview,input.value,format,tasks,start=>{
+      tasks=tasks.map(t=>t.start===start?{...t,done:!t.done}:t);sync();
+    });
   }
   function apply(key,value=true){
-    const start=input.selectionStart,end=input.selectionEnd;
-    format=toggleFormat(input.value,format,start,end,key,value);
+    const start=input.selectionStart,end=input.selectionEnd,range=lineRange(input.value,start);
+    if(start===end&&range.start===range.end){
+      if(pendingLine!==range.start)pendingStyle={};pendingLine=range.start;
+      if(pendingStyle[key]===value)delete pendingStyle[key];else pendingStyle[key]=value;
+    }else format=toggleFormat(input.value,format,start,end,key,value);
     sync();input.focus();input.setSelectionRange(start,end);
   }
   for(const [label,key] of [['Bold','bold'],['Italic','italic'],['Underline','underline']]){
-    const control=button(label,label+' selected text or whole note',()=>apply(key),'format-'+key);toolbar.append(control);
+    const control=button(label,label+' selected text or current line',()=>apply(key),'format-'+key);toolbar.append(control);
   }
   for(const color of Object.keys(HIGHLIGHTS)){
     const control=button(color[0].toUpperCase()+color.slice(1),'Highlight '+color,()=>apply('highlight',color),'format-highlight');
     control.style.setProperty('--highlight',HIGHLIGHTS[color]);toolbar.append(control);
   }
   function refreshTaskButton(){
+    const task=tasks.some(t=>t.start===lineRange(input.value,input.selectionStart).start);
     const label=task?'Remove checkbox':'Add checkbox';taskButton.textContent=label;
     taskButton.setAttribute('aria-label',label);taskButton.setAttribute('aria-pressed',String(task));
   }
-  const taskButton=button('','',()=>{task=!task;refreshTaskButton();sync();},'format-task');
+  const taskButton=button('','',()=>{
+    const start=input.selectionStart,end=input.selectionEnd;
+    tasks=toggleTask(input.value,tasks,start);sync();input.focus();input.setSelectionRange(start,end);refreshTaskButton();
+  },'format-task');
+  for(const event of ['click','keyup','select'])input.addEventListener(event,refreshTaskButton);
   refreshTaskButton();toolbar.append(taskButton);
   refreshPreview();
   const date=selected;
   function sync(){
     const text=input.value,list=state.days[date]||[];
-    format=editFormat(previous,text,format);previous=text;refreshPreview();
+    format=editFormat(previous,text,format);tasks=editTasks(previous,text,tasks,textChange);textChange=null;
+    if(previous!==text&&pendingLine!==null){
+      const range=lineRange(text,Math.min(pendingLine,text.length));
+      if(range.start===pendingLine&&range.end>range.start){
+        format.push({...range,...pendingStyle});pendingStyle={};pendingLine=null;
+      }
+    }
+    previous=text;refreshPreview();refreshTaskButton();
     // Undo snapshots must never overwrite text written after the last action.
     undo=null;$('#undo').hidden=true;
     if(!text.trim()){if(id)state.days[date]=list.filter(e=>e.id!==id);}
-    else if(id&&list.some(e=>e.id===id)){state.days[date]=list.map(e=>e.id===id?{...e,text,format,task,done}:e);}
-    else{id=crypto.randomUUID();state.days[date]=[...list,{id,text,minute,done,format,task}].sort((a,b)=>a.minute-b.minute);}
+    else if(id&&list.some(e=>e.id===id)){state.days[date]=list.map(e=>e.id===id?{...e,text,format,tasks,task:false}:e);}
+    else{id=crypto.randomUUID();state.days[date]=[...list,{id,text,minute,done:false,format,tasks,task:false}].sort((a,b)=>a.minute-b.minute);}
     persist();renderSummary();
   }
+  input.addEventListener('beforeinput',event=>{
+    const start=input.selectionStart,end=input.selectionEnd;
+    textChange=start!==end||event.inputType.startsWith('insert')?{start,end}:null;
+  });
   input.addEventListener('input',sync);
   controls.append(button('Done','Close note editor',()=>{sync();renderTimeline();},'primary'));
   input.addEventListener('keydown',e=>{

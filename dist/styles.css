@@ -36,3 +36,9 @@
 .preview-text{flex:1;min-width:0}
 .task-completed{text-decoration:line-through;color:var(--muted)}
 .check[role=checkbox]{border-radius:3px}
+
+.note-content{flex:1;min-width:0}
+.note-line{display:flex;align-items:flex-start;gap:9px;min-height:1.6em}
+.line-checkbox{flex:none;width:17px;height:17px;margin:1px 0 0;accent-color:var(--green);cursor:pointer}
+.format-preview{display:block}
+.note-line .note-text{display:block}

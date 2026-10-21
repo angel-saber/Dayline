@@ -52,3 +52,13 @@ test('formatted rendering uses literal text nodes, never HTML from notes',()=>{
     assert.equal(children[0].textContent,text);assert.equal(children[0].innerHTML,undefined);assert.equal(children[0].style.fontWeight,'700');
   }finally{globalThis.document=original;}
 });
+
+test('a collapsed formatting selection affects only the cursor line',()=>{
+  const text='First line\nSecond line\nThird line';
+  for(const [key,value] of [['bold',true],['italic',true],['underline',true],['highlight','green']]){
+    const marks=toggleFormat(text,[],15,15,key,value);
+    assert.deepEqual(marks,[{start:11,end:22,[key]:value}]);
+    assert.deepEqual(toggleFormat(text,marks,15,15,key,value),[]);
+  }
+  assert.deepEqual(toggleFormat('one\n\nthree',[],4,4,'bold'),[]);
+});
