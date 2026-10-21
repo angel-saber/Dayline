@@ -17,3 +17,16 @@
 .account-email { overflow-wrap: anywhere; font-size: 13px; }
 .migration-button { margin-top: 22px; }
 @media (max-width: 600px) { .auth-view { margin-top: 0; } .auth-view h1 { font-size: 46px; } .auth-card { padding: 23px; } }
+
+/* Note formatting stays separate from timeline and gesture styling. */
+.format-toolbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.format-toolbar button{border:1px solid var(--line,#dce3db);border-radius:5px;padding:7px 9px;font-size:11px;min-height:34px;background:#f7f9f5;color:#293b30}
+.format-toolbar button:focus-visible{outline:2px solid #50785b;outline-offset:2px}
+.format-toolbar .format-bold{font-weight:700}
+.format-toolbar .format-italic{font-style:italic}
+.format-toolbar .format-underline{text-decoration:underline}
+.format-toolbar .format-highlight{background:var(--highlight)}
+.format-toolbar .format-task[aria-pressed=true]{background:#d6edcc;border-color:#6b8967}
+.format-hint{display:block;font-size:10px;color:#667367;margin:3px 0 10px;line-height:1.5}
+.format-preview{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.6;padding:10px;background:#f7f9f5;border-radius:5px;margin-bottom:10px}
+.editor textarea{border-top:1px solid #e4e9e0;padding-top:10px}

@@ -4,6 +4,7 @@ import {attachGestures} from './gestures.js';
 import {Reminders} from './reminders.js';
 import {setupAccounts} from './accounts.js';
 import {dailyQuote} from './quotes.js';
+import {HIGHLIGHTS,toggleFormat,editFormat,renderFormatted} from './format.js';
 const $=s=>document.querySelector(s);
 let state,readFailed=false,selected=dayKey(),view='daily',undo=null,editor=null,moveId=null,pendingImport=null,accounts=null;
 try{state=load();}catch{readFailed=true;state={version:1,days:{},settings:{interval:60,clock:'12',notifications:false,sound:false}};}
@@ -57,8 +58,12 @@ function renderTimeline(){
     const notes=node('div','slot-notes');
     for(const e of slot.entries){
       const card=node('article',`entry${e.done?' done':''}`);card.dataset.id=e.id;
-      card.append(button(e.done?'✓':'',e.done?'Reopen note':'Complete note',()=>complete(e.id),'check'));
-      card.append(button(e.text,`Edit note: ${e.text}`,()=>openEditor(notes,slot.minute,e),'note-text'));
+      if(e.task!==false){
+        const check=button(e.done?'✓':'',e.done?'Reopen task':'Complete task',()=>complete(e.id),'check');
+        check.setAttribute('role','checkbox');check.setAttribute('aria-checked',String(e.done));card.append(check);
+      }
+      const textButton=button('',`Edit note: ${e.text}`,()=>openEditor(notes,slot.minute,e),'note-text');
+      renderFormatted(textButton,e.text,e.format);card.append(textButton);
       const tools=node('div','entry-tools');
       tools.append(button('↗','Move note to a different time',()=>openMove(e.id),'move-note'),button('×','Delete note',()=>remove(e.id),'delete-note'));
       const handle=node('span','drag-handle','⠿');handle.tabIndex=0;handle.setAttribute('role','button');handle.setAttribute('aria-label','Hold and drag to move, or press Enter to choose a time');
@@ -76,21 +81,43 @@ function openEditor(container,minute,entry){
   if(editor){flushEditor();renderTimeline();container=$(`#timeline .slot[data-minute="${minute}"] .slot-notes`);}
   const wrapper=node('div','editor'),input=node('textarea');input.placeholder='A plan, a thought, a little reminder…';input.value=entry?.text||'';input.setAttribute('aria-label','Note for '+timeLabel(minute,state.settings.clock));
   const controls=node('div','editor-actions');controls.append(node('small','','Saves as you write · Ctrl/⌘ + Enter to close'));
-  let id=entry?.id;
+  let id=entry?.id,format=structuredClone(entry?.format||[]),previous=input.value,task=entry?entry.task!==false:false;
+  const toolbar=node('div','format-toolbar');toolbar.setAttribute('role','group');toolbar.setAttribute('aria-label','Note formatting');
+  const hint=node('small','format-hint','Select text to format, or apply to the whole note. Tap again to remove.');
+  const preview=node('div','format-preview');preview.setAttribute('aria-label','Formatted note preview');
+  function refreshPreview(){renderFormatted(preview,input.value,format);preview.hidden=!format.length;}
+  function apply(key,value=true){
+    const start=input.selectionStart,end=input.selectionEnd;
+    format=toggleFormat(input.value,format,start,end,key,value);
+    sync();input.focus();input.setSelectionRange(start,end);
+  }
+  for(const [label,key] of [['Bold','bold'],['Italic','italic'],['Underline','underline']]){
+    const control=button(label,label+' selected text or whole note',()=>apply(key),'format-'+key);toolbar.append(control);
+  }
+  for(const color of Object.keys(HIGHLIGHTS)){
+    const control=button(color[0].toUpperCase()+color.slice(1),'Highlight '+color,()=>apply('highlight',color),'format-highlight');
+    control.style.setProperty('--highlight',HIGHLIGHTS[color]);toolbar.append(control);
+  }
+  const taskButton=button('☐ Task','Toggle checkbox task',()=>{task=!task;taskButton.setAttribute('aria-pressed',String(task));sync();},'format-task');
+  taskButton.setAttribute('aria-pressed',String(task));toolbar.append(taskButton);
+  refreshPreview();
   const date=selected;
   function sync(){
     const text=input.value,list=state.days[date]||[];
+    format=editFormat(previous,text,format);previous=text;refreshPreview();
     // Undo snapshots must never overwrite text written after the last action.
-    if(text!==(list.find(e=>e.id===id)?.text||'')){undo=null;$('#undo').hidden=true;}
+    undo=null;$('#undo').hidden=true;
     if(!text.trim()){if(id)state.days[date]=list.filter(e=>e.id!==id);}
-    else if(id&&list.some(e=>e.id===id)){state.days[date]=list.map(e=>e.id===id?{...e,text}:e);}
-    else{id=crypto.randomUUID();state.days[date]=[...list,{id,text,minute,done:false}].sort((a,b)=>a.minute-b.minute);}
+    else if(id&&list.some(e=>e.id===id)){state.days[date]=list.map(e=>e.id===id?{...e,text,format,task}:e);}
+    else{id=crypto.randomUUID();state.days[date]=[...list,{id,text,minute,done:false,format,task}].sort((a,b)=>a.minute-b.minute);}
     persist();renderSummary();
   }
   input.addEventListener('input',sync);
   controls.append(button('Done','Close note editor',()=>{sync();renderTimeline();},'primary'));
-  input.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'||e.key==='Escape'){e.preventDefault();sync();renderTimeline();}});
-  wrapper.append(input,controls);container.querySelector('.empty-add')?.remove();
+  input.addEventListener('keydown',e=>{
+    if((e.ctrlKey||e.metaKey)&&!e.altKey&&['b','i','u'].includes(e.key.toLowerCase())){e.preventDefault();apply({b:'bold',i:'italic',u:'underline'}[e.key.toLowerCase()]);return;}
+    if((e.ctrlKey||e.metaKey)&&e.key==='Enter'||e.key==='Escape'){e.preventDefault();sync();renderTimeline();}});
+  wrapper.append(toolbar,hint,preview,input,controls);container.querySelector('.empty-add')?.remove();
   if(entry)container.querySelector(`[data-id="${CSS.escape(entry.id)}"]`)?.replaceWith(wrapper);else container.append(wrapper);
   editor={sync};input.focus();
 }

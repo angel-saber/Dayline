@@ -1,4 +1,5 @@
 import { DEFAULT_SETTINGS } from './model.js';
+import {validFormat} from './format.js';
 const KEY='dayline.v1';
 export function validState(value) {
   if(!value || value.version!==1 || !value.days || typeof value.days!=='object' || Array.isArray(value.days)) throw new Error('This is not a Dayline backup.');
@@ -10,7 +11,11 @@ export function validState(value) {
     const seen=new Set();
     days[key]=entries.map(e=>{
       if(!e || typeof e.id!=='string' || seen.has(e.id) || typeof e.text!=='string' || !Number.isInteger(e.minute) || e.minute<0 || e.minute>=1440 || typeof e.done!=='boolean') throw new Error('Invalid entry in backup.');
-      seen.add(e.id); return {id:e.id,text:e.text,minute:e.minute,done:e.done};
+      seen.add(e.id);
+      const result={id:e.id,text:e.text,minute:e.minute,done:e.done};
+      if(e.format!==undefined)result.format=validFormat(e.format,e.text);
+      if(e.task!==undefined){if(typeof e.task!=='boolean')throw new Error('Invalid checkbox task.');result.task=e.task;}
+      return result;
     });
   }
   const s={...DEFAULT_SETTINGS,...value.settings};
