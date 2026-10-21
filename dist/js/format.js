@@ -39,11 +39,12 @@ export function toggleFormat(text,format,start,end,key,value=true){
     return m;
   }));
 }
-export function editFormat(before,after,format){
+export function editFormat(before,after,format,change){
   let start=0;
   while(start<before.length&&start<after.length&&before[start]===after[start])start++;
   let oldEnd=before.length,newEnd=after.length;
   while(oldEnd>start&&newEnd>start&&before[oldEnd-1]===after[newEnd-1]){oldEnd--;newEnd--;}
+  if(change){start=change.start;oldEnd=change.end;newEnd=oldEnd+after.length-before.length;}
   const delta=newEnd-oldEnd,marks=[];
   for(const m of segments(before,format)){
     if(m.start<start)marks.push({...m,end:Math.min(start,m.end)});
