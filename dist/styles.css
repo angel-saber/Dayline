@@ -30,3 +30,9 @@
 .format-hint{display:block;font-size:10px;color:#667367;margin:3px 0 10px;line-height:1.5}
 .format-preview{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.6;padding:10px;background:#f7f9f5;border-radius:5px;margin-bottom:10px}
 .editor textarea{border-top:1px solid #e4e9e0;padding-top:10px}
+
+.format-preview{display:flex;align-items:flex-start;gap:10px}
+.preview-checkbox{flex:none;width:17px;height:17px;margin:1px 0 0;accent-color:var(--green);cursor:pointer}
+.preview-text{flex:1;min-width:0}
+.task-completed{text-decoration:line-through;color:var(--muted)}
+.check[role=checkbox]{border-radius:3px}

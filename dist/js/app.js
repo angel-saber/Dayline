@@ -81,11 +81,20 @@ function openEditor(container,minute,entry){
   if(editor){flushEditor();renderTimeline();container=$(`#timeline .slot[data-minute="${minute}"] .slot-notes`);}
   const wrapper=node('div','editor'),input=node('textarea');input.placeholder='A plan, a thought, a little reminder…';input.value=entry?.text||'';input.setAttribute('aria-label','Note for '+timeLabel(minute,state.settings.clock));
   const controls=node('div','editor-actions');controls.append(node('small','','Saves as you write · Ctrl/⌘ + Enter to close'));
-  let id=entry?.id,format=structuredClone(entry?.format||[]),previous=input.value,task=entry?entry.task!==false:false;
+  let id=entry?.id,format=structuredClone(entry?.format||[]),previous=input.value,task=entry?entry.task!==false:false,done=entry?.done||false;
   const toolbar=node('div','format-toolbar');toolbar.setAttribute('role','group');toolbar.setAttribute('aria-label','Note formatting');
-  const hint=node('small','format-hint','Select text to format, or apply to the whole note. Tap again to remove.');
+  const hint=node('small','format-hint','Select text to format, or apply to the whole note. Checkbox turns the whole note into a task.');
   const preview=node('div','format-preview');preview.setAttribute('aria-label','Formatted note preview');
-  function refreshPreview(){renderFormatted(preview,input.value,format);preview.hidden=!format.length;}
+  function refreshPreview(){
+    preview.replaceChildren();preview.hidden=!task&&!format.length;
+    if(task){
+      const check=node('input','preview-checkbox');check.type='checkbox';check.checked=done;
+      check.setAttribute('aria-label','Mark task complete');
+      check.addEventListener('change',()=>{done=check.checked;sync();});preview.append(check);
+    }
+    const text=node('div','preview-text');renderFormatted(text,input.value||'Your task will appear here',format);
+    text.classList.toggle('task-completed',task&&done);preview.append(text);
+  }
   function apply(key,value=true){
     const start=input.selectionStart,end=input.selectionEnd;
     format=toggleFormat(input.value,format,start,end,key,value);
@@ -98,8 +107,12 @@ function openEditor(container,minute,entry){
     const control=button(color[0].toUpperCase()+color.slice(1),'Highlight '+color,()=>apply('highlight',color),'format-highlight');
     control.style.setProperty('--highlight',HIGHLIGHTS[color]);toolbar.append(control);
   }
-  const taskButton=button('☐ Task','Toggle checkbox task',()=>{task=!task;taskButton.setAttribute('aria-pressed',String(task));sync();},'format-task');
-  taskButton.setAttribute('aria-pressed',String(task));toolbar.append(taskButton);
+  function refreshTaskButton(){
+    const label=task?'Remove checkbox':'Add checkbox';taskButton.textContent=label;
+    taskButton.setAttribute('aria-label',label);taskButton.setAttribute('aria-pressed',String(task));
+  }
+  const taskButton=button('','',()=>{task=!task;refreshTaskButton();sync();},'format-task');
+  refreshTaskButton();toolbar.append(taskButton);
   refreshPreview();
   const date=selected;
   function sync(){
@@ -108,8 +121,8 @@ function openEditor(container,minute,entry){
     // Undo snapshots must never overwrite text written after the last action.
     undo=null;$('#undo').hidden=true;
     if(!text.trim()){if(id)state.days[date]=list.filter(e=>e.id!==id);}
-    else if(id&&list.some(e=>e.id===id)){state.days[date]=list.map(e=>e.id===id?{...e,text,format,task}:e);}
-    else{id=crypto.randomUUID();state.days[date]=[...list,{id,text,minute,done:false,format,task}].sort((a,b)=>a.minute-b.minute);}
+    else if(id&&list.some(e=>e.id===id)){state.days[date]=list.map(e=>e.id===id?{...e,text,format,task,done}:e);}
+    else{id=crypto.randomUUID();state.days[date]=[...list,{id,text,minute,done,format,task}].sort((a,b)=>a.minute-b.minute);}
     persist();renderSummary();
   }
   input.addEventListener('input',sync);
