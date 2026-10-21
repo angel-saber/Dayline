@@ -3,6 +3,7 @@ import {load,save,validState} from './storage.js';
 import {attachGestures} from './gestures.js';
 import {Reminders} from './reminders.js';
 import {setupAccounts} from './accounts.js';
+import {dailyQuote} from './quotes.js';
 const $=s=>document.querySelector(s);
 let state,readFailed=false,selected=dayKey(),view='daily',undo=null,editor=null,moveId=null,pendingImport=null,accounts=null;
 try{state=load();}catch{readFailed=true;state={version:1,days:{},settings:{interval:60,clock:'12',notifications:false,sound:false}};}
@@ -25,6 +26,7 @@ document.addEventListener('pointerdown',()=>{if(state.settings.sound)reminders.u
 function node(tag,className,text){const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;}
 function button(text,label,fn,className=''){const b=node('button',className,text);b.type='button';b.setAttribute('aria-label',label);b.addEventListener('click',fn);return b;}
 function renderHeader(){
+  renderDailyQuote();
   const d=parseDay(selected),today=dayKey(),isToday=selected===today;
   $('#relative-day').textContent=isToday?'YOUR DAY, AT YOUR PACE':selected===offsetDay(today,-1)?'A LITTLE LOOK BACK':selected===offsetDay(today,1)?'A LITTLE LOOK AHEAD':'ONE DAY AT A TIME';
   $('#day-heading').textContent=`${d.toLocaleDateString(undefined,{weekday:'long'})}, `;
@@ -34,6 +36,10 @@ function renderHeader(){
   $('#previous-label').textContent=isToday?'Yesterday':'Previous day';$('#next-label').textContent=isToday?'Tomorrow':'Next day';
   $('#interval-shortcut').firstChild.textContent=`${state.settings.interval%60===0?`${state.settings.interval/60}-hour`:`${state.settings.interval}-minute`} intervals `;
   $('#jump-now').hidden=!isToday;
+}
+function renderDailyQuote(){
+  const quote=dailyQuote();
+  if($('#daily-quote').textContent!==quote)$('#daily-quote').textContent=quote;
 }
 function renderSummary(){
   const list=entries(),done=list.filter(e=>e.done).length;
@@ -139,7 +145,9 @@ $('#restore-dialog').addEventListener('close',()=>{
 });
 window.addEventListener('pagehide',flushEditor);
 window.addEventListener('storage',event=>{if(event.key==='dayline.v1'&&!accounts?.isSignedIn()){try{state=load();readFailed=false;undo=null;if(!editor){if(view==='daily')renderTimeline();else renderSettings();}toast('Notes updated from another tab.');}catch{toast('Another tab saved data that could not be read.');}}});
-setInterval(()=>{if(view==='daily'&&!editor){const current=$('#timeline .current'),now=new Date(),minute=now.getHours()*60+now.getMinutes();if(selected===dayKey()&&Number(current?.dataset.minute)!==Math.floor(minute/state.settings.interval)*state.settings.interval)renderTimeline();}},30000);
+setInterval(()=>{renderDailyQuote();if(view==='daily'&&!editor){const current=$('#timeline .current'),now=new Date(),minute=now.getHours()*60+now.getMinutes();if(selected===dayKey()&&Number(current?.dataset.minute)!==Math.floor(minute/state.settings.interval)*state.settings.interval)renderTimeline();}},30000);
+window.addEventListener('focus',renderDailyQuote);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderDailyQuote();});
 renderTimeline();
 accounts=setupAccounts({
   getState:()=>state, flushEditor, toast,
