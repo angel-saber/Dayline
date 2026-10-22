@@ -5,6 +5,7 @@
   try{const saved=localStorage.getItem(key);if(layouts.includes(saved))current=saved;}catch{}
   function apply(value){
     document.documentElement.dataset.layout=value;
+    window.dispatchEvent(new Event('dayline:appearance'));
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content',({zen:'#f5f4ef',builder:'#0b111b',founder:'#eee5d6'})[value]);
   }
   apply(current);

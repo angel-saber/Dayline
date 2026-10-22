@@ -1,14 +1,15 @@
-import {setupFocus} from './focus.js?v=focus-audio-guide-3';
+import {voice,personality,applyPersonality} from './personality.js?v=personality-1';
+import {setupFocus} from './focus.js?v=personality-1';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
 import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=focus-1';
-import {setupMonthly} from './monthly.js?v=quick-add-1';
+import {setupMonthly} from './monthly.js?v=personality-1';
 import {moveToDay,quickNote} from './month-model.js?v=quick-add-1';
 import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,timeLabel} from './model.js?v=monthly-1';
 import {load,save,validState} from './storage.js?v=focus-1';
 import {attachGestures} from './gestures.js';
 import {Reminders} from './reminders.js?v=monthly-1';
 import {setupAccounts} from './accounts.js?v=focus-1';
-import {dailyQuote} from './quotes.js';
+import {dailyQuote} from './quotes.js?v=personality-1';
 import {renderFormatted} from './format.js?v=direct-edit-1';
 import {createNoteEditor} from './note-editor.js?v=monthly-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
@@ -36,7 +37,7 @@ function button(text,label,fn,className=''){const b=node('button',className,text
 function renderHeader(){
   renderDailyQuote();
   const d=parseDay(selected),today=dayKey(),isToday=selected===today;
-  $('#relative-day').textContent=isToday?'YOUR DAY, AT YOUR PACE':selected===offsetDay(today,-1)?'A LITTLE LOOK BACK':selected===offsetDay(today,1)?'A LITTLE LOOK AHEAD':'ONE DAY AT A TIME';
+  $('#relative-day').textContent=isToday?voice("YOUR DAY, AT YOUR PACE"):selected===offsetDay(today,-1)?voice("A LITTLE LOOK BACK"):selected===offsetDay(today,1)?voice("A LITTLE LOOK AHEAD"):voice("ONE DAY AT A TIME");
   $('#day-heading').textContent=`${d.toLocaleDateString(undefined,{weekday:'long'})}, `;
   $('#day-heading').append(node('span','date-number',d.toLocaleDateString(undefined,{month:'short',day:'numeric'})));
   $('#footer-date').textContent=d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
@@ -46,12 +47,12 @@ function renderHeader(){
   $('#jump-now').hidden=!isToday;
 }
 function renderDailyQuote(){
-  const quote=dailyQuote();
+  const quote=dailyQuote(new Date(),personality());
   if($('#daily-quote').textContent!==quote)$('#daily-quote').textContent=quote;
 }
 function renderSummary(){
   const list=entries(),done=list.filter(e=>e.done).length;
-  $('#summary').textContent=list.length?`${done} of ${list.length} ${list.length===1?'note':'notes'} completed`:'A fresh page for your day';
+  $('#summary').textContent=list.length?`${done} of ${list.length} ${list.length===1?'note':'notes'} completed`:voice("A fresh page for your day");
   $('#progress').style.width=`${list.length?done/list.length*100:0}%`;
 }
 function renderTimeline(){
@@ -83,7 +84,7 @@ function renderTimeline(){
   $('#timeline').replaceChildren(fragment);
   // Keep most empty rows quiet; the current/first visible invitation explains the action.
   const invitation=$('#timeline .current .empty-add')||$('#timeline .empty-add');
-  if(invitation){invitation.append(node('span','','+'),document.createTextNode('What would you like to make time for?'));}
+  if(invitation){invitation.append(node('span','','+'),document.createTextNode(voice("What would you like to make time for?")));}
 }
 // Render line controls beside text; never nest a checkbox inside an edit button.
 function renderNoteLines(container,text,format=[],tasks=[],onCheck,onEdit){
@@ -251,3 +252,6 @@ const focus=setupFocus({
   },
 });
 if(readFailed)toast('Stored data could not be read. Saving is paused to protect it. Open Settings to export a recovery copy or restore a backup.');
+
+applyPersonality();
+window.addEventListener('dayline:appearance',()=>{applyPersonality();if(view==='daily'&&!editor)renderTimeline();else{renderHeader();renderSummary();}if(view==='monthly')monthly.show(selected);});

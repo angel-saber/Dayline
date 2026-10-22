@@ -1,3 +1,4 @@
+import {voice,focusMantras,focusIdeas} from './personality.js?v=personality-1';
 import {dateActions} from './date-actions.js?v=quick-add-1';
 import {dayKey,parseDay,timeLabel} from './model.js';
 import {monthWeeks,offsetMonth,noteTitle} from './month-model.js?v=monthly-1';
@@ -39,7 +40,7 @@ export function setupMonthly({root,getState,onOpen,onMove,onAdd,announce}){
     const previous=button('←','Previous month',()=>shift(-1)),next=button('→','Next month',()=>shift(1));previous.dataset.monthStep=-1;next.dataset.monthStep=1;
     const picker=node('input');picker.type='month';picker.value=month;picker.setAttribute('aria-label','Go to month');picker.addEventListener('change',()=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(picker.value)){month=picker.value;render();}});
     nav.append(previous,picker,next,button('This month','Go to this month',()=>{month=dayKey().slice(0,7);render();}));head.append(heading,nav);
-    content.append(node('div','eyebrow','A LITTLE ROOM TO SEE AHEAD'),head,node('p','intro','Click or tap a date to add a title and time. Double-click or double-tap to open its day. Drag titles to reschedule.'));
+    content.append(node('div','eyebrow',voice("A LITTLE ROOM TO SEE AHEAD")),head,node('p','intro','Click or tap a date to add a title and time. Double-click or double-tap to open its day. Drag titles to reschedule.'));
     for(const week of monthWeeks(month)){
       const section=node('section','month-week');const weekHeading=node('h2','',`Week of ${parseDay(week[0]).toLocaleDateString(undefined,{month:'short',day:'numeric'})}`);section.append(weekHeading);
       const grid=node('div','month-grid');

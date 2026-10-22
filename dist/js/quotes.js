@@ -1,3 +1,4 @@
+import {VOICE_QUOTES} from './personality.js?v=personality-1';
 // Original Dayline quotes. Keep this local: no API, tracking, or network access.
 const quotes = Object.freeze([
   'A small beginning is still a beginning.',
@@ -62,9 +63,10 @@ const quotes = Object.freeze([
   'There is still something good you can make room for today.',
 ]);
 
-export function dailyQuote(date = new Date()) {
+export function dailyQuote(date = new Date(), mode = 'zen') {
   // Use local calendar components, then UTC for day arithmetic. This keeps the
   // choice stable through daylight-saving changes and refreshes on local days.
   const day = Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000);
-  return quotes[((day % quotes.length) + quotes.length) % quotes.length];
+  const pool=VOICE_QUOTES[mode]||quotes;
+  return pool[((day % pool.length) + pool.length) % pool.length];
 }
