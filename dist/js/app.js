@@ -2,7 +2,7 @@ import {setupActivities,renderGuidedReports} from './activities.js?v=activities-
 import {attachGuidedPlan} from './activities-model.js?v=activities-2';
 import {setupWelcome} from './welcome.js?v=zen-name-1';
 import {voice,personality,applyPersonality} from './personality.js?v=intention-labels-3';
-import {setupFocus} from './focus.js?v=speaker-playback-1';
+import {setupFocus} from './focus.js?v=notification-links-1';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
 import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=focus-1';
 import {setupMonthly} from './monthly.js?v=intention-labels-3';
@@ -10,7 +10,7 @@ import {moveToDay,quickNote} from './month-model.js?v=quick-add-1';
 import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,timeLabel} from './model.js?v=monthly-1';
 import {load,save,validState} from './storage.js?v=activities-2';
 import {attachGestures} from './gestures.js';
-import {Reminders} from './reminders.js?v=monthly-1';
+import {Reminders,resolveReminder} from './reminders.js?v=notification-links-1';
 import {setupAccounts} from './accounts.js?v=activities-2';
 import {dailyQuote} from './quotes.js?v=intention-labels-3';
 import {renderFormatted} from './format.js?v=direct-edit-1';
@@ -33,7 +33,7 @@ function commit(next,message){
 function complete(id){const e=entries().find(e=>e.id===id);if(e)commit(entries().map(e=>e.id===id?{...e,done:!e.done}:e),e.done?'Note reopened':'A little progress. Note completed.');}
 function remove(id){commit(entries().filter(e=>e.id!==id),'Note deleted');}
 function move(id,minute){commit(moveEntry(entries(),id,minute,state.settings.interval),`Note moved to ${timeLabel(minute,state.settings.clock)}`);}
-const reminders=new Reminders(()=>accounts?.isLoginVisible()?{...state,settings:{...state.settings,notifications:false}}:state,e=>toast(`It’s time · ${e.title||e.text}`),toast);
+const reminders=new Reminders(()=>accounts?.isLoginVisible()?{...state,settings:{...state.settings,notifications:false}}:state,e=>toast(`It’s time · ${e.title||e.text}`),toast,openReminder);
 document.addEventListener('pointerdown',()=>{if(state.settings.sound)reminders.unlockAudio().catch(()=>{});},{once:true});
 function node(tag,className,text){const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;}
 function button(text,label,fn,className=''){const b=node('button',className,text);b.type='button';b.setAttribute('aria-label',label);b.addEventListener('click',fn);return b;}
@@ -133,6 +133,19 @@ function openMove(id){
 }
 $('#move-dialog').addEventListener('close',()=>{if($('#move-dialog').returnValue==='move')move(moveId,Number($('#move-time').value));});
 attachGestures($('#timeline'),{complete,remove,move,announce});
+function openReminder(target){
+  if(accounts?.isLoginVisible()){toast('Continue past sign-in to open your planned note.');return;}
+  flushEditor();focus.minimize();
+  for(const dialog of document.querySelectorAll('dialog[open]'))dialog.close('cancel');
+  const destination=resolveReminder(state.days,target,state.settings.interval);
+  selected=destination.date;switchView('daily');
+  const row=$(`#timeline .slot[data-minute="${destination.minute}"]`);
+  const note=destination.found?row?.querySelector(`[data-id="${CSS.escape(destination.id)}"]`):null;
+  const destinationNode=note||row;
+  destinationNode?.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+  if(destinationNode){destinationNode.tabIndex=-1;destinationNode.focus({preventScroll:true});}
+  if(!destination.found)toast('This note is no longer available. Its original interval is shown.');
+}
 function navigate(date){flushEditor();selected=date;renderTimeline();window.scrollTo({top:0});}
 $('#previous-day').onclick=()=>navigate(offsetDay(selected,-1));$('#next-day').onclick=()=>navigate(offsetDay(selected,1));
 $('#today-top').onclick=()=>{navigate(dayKey());jumpNow();};

@@ -1,7 +1,7 @@
-import { dayKey, dueEntries } from './model.js?v=monthly-1';
+import { dayKey, dueEntries, bucket } from './model.js?v=monthly-1';
 export class Reminders {
-  constructor(getState, onDue, onError) {
-    this.getState=getState; this.onDue=onDue; this.onError=onError;
+  constructor(getState, onDue, onError, onOpen=()=>{}) {
+    this.getState=getState; this.onDue=onDue; this.onError=onError; this.onOpen=onOpen;
     this.last=Date.now(); this.fired=new Set();
     this.timer=setInterval(()=>this.tick(),1000);
   }
@@ -28,11 +28,24 @@ export class Reminders {
     for(const entry of dueEntries(state.days[key]||[],key,state.settings.interval,from,now)) {
       const token=`${key}:${entry.id}:${Math.floor(entry.minute/state.settings.interval)*state.settings.interval}`;
       if(this.fired.has(token)) continue; this.fired.add(token);
-      this.onDue(entry);
+      const target={date:key,id:entry.id,minute:entry.minute};
+      this.onDue(entry,target);
       if(globalThis.Notification?.permission==='granted') {
-        try { new Notification('Dayline · It’s time',{body:entry.title?`${entry.title}\n${entry.text}`:entry.text,tag:token}); } catch { /* In-app reminder remains available. */ }
+        try {
+          const notification=new Notification('Dayline · It’s time',{body:entry.title?`${entry.title}\n${entry.text}`:entry.text,tag:token});
+          notification.onclick=()=>{notification.close();globalThis.focus?.();this.onOpen(target);};
+        } catch { /* In-app reminder remains available. */ }
       }
       if(state.settings.sound) this.chime().catch(()=>this.onError('Tap “Test sound” in Settings to enable audio for this session.'));
     }
   }
+}
+
+// Resolve again at click time: a note may have moved or intervals may have changed.
+export function resolveReminder(days,target,interval){
+  for(const date of [target.date,...Object.keys(days).filter(date=>date!==target.date)]){
+    const entry=days[date]?.find(entry=>entry.id===target.id);
+    if(entry)return {date,id:entry.id,minute:bucket(entry.minute,interval),found:true};
+  }
+  return {...target,minute:bucket(target.minute,interval),found:false};
 }

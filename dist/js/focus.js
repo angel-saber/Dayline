@@ -222,5 +222,5 @@ export function setupFocus(api){
     }catch{error='A focus draft from another tab could not be read.';status();}
   });
   window.addEventListener('dayline:appearance',()=>{if(audio.playing)audio.play({...audioSettings,layout:personality()}).catch(e=>{error=e.message;status();});if(session&&dialog.open&&!transition)render();});
-  buttons();return {refresh:buttons};
+  buttons();return {refresh:buttons,minimize};
 }
