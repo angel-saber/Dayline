@@ -1,4 +1,4 @@
-import {voice,focusMantras,focusIdeas} from './personality.js?v=personality-1';
+import {voice,focusMantras,focusIdeas} from './personality.js?v=plan-labels-2';
 import {dateActions} from './date-actions.js?v=quick-add-1';
 import {dayKey,parseDay,timeLabel} from './model.js';
 import {monthWeeks,offsetMonth,noteTitle} from './month-model.js?v=monthly-1';
