@@ -21,14 +21,16 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
     $('#planner').hidden = show;
     $('#planner-nav').hidden = show;
     $('#date-footer').hidden = show || $('#daily-view').hidden;
+    $('#reopen-welcome').hidden=show;
     if (show) $('#auth-email').focus();
+    window.dispatchEvent(new Event('dayline:entry-view'));
   }
 
   function accountView() {
     $('#account-email').textContent = user?.email || 'Using this device';
     $('#account-explanation').textContent = user ? 'Your notes sync with this account. Time intervals and reminder preferences stay on each device.' : cloud?.config ? 'Sign in to keep your notes with you across devices.' : 'Use Dayline without an account. Account access is not available yet.';
     $('#sign-in-button').hidden = !!user;
-    $('#reopen-welcome').hidden = !user;
+    $('#reopen-welcome').hidden = viewIsLogin;
     $('#sign-out-button').hidden = !user;
     $('#sync-now').hidden = !user;
     let hasGuest = false;

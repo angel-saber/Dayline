@@ -2,7 +2,7 @@
 
 ## 1. Finish the website
 
-Validate daily and monthly planning, rich formatting, checkbox behavior, drag and swipe interactions, interval settings, personalities, quotes, reminders, Focus Mode, audio layers and presets, reflection reports, backups, and introduction behavior after sign-in. Verify keyboard and touch interactions, narrow screens, reduced motion, and storage/network failures.
+Validate daily and monthly planning, rich formatting, checkbox behavior, drag and swipe interactions, interval settings, personalities, quotes, reminders, Focus Mode, audio layers and presets, reflection reports, backups, and introduction behavior after leaving the sign-in page through either sign-in or the guest option. Verify keyboard and touch interactions, narrow screens, reduced motion, and storage/network failures.
 
 Keep core guest use independent of an account service. Account creation remains optional; email sign-in and cross-device sync are unavailable until the existing integration is configured and tested.
 

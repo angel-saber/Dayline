@@ -1,7 +1,7 @@
 // First-visit setup stays separate from planner data and personality presentation.
 const KEY='dayline.welcome.v1';
-export function needsWelcome(storage,signedIn=false){
-  if(!signedIn)return false;
+export function needsWelcome(storage,entryComplete=false,loginVisible=true){
+  if(!entryComplete||loginVisible)return false;
   try{return storage.getItem(KEY)!=='done';}catch{return true;}
 }
 export function setupWelcome(api){
@@ -30,7 +30,8 @@ export function setupWelcome(api){
   interval.addEventListener('change',()=>{$('#welcome-custom-wrap').hidden=interval.value!=='custom';});
   dialog.querySelectorAll('input[name="welcome-personality"]').forEach(input=>input.addEventListener('change',preview));
   function open(revisit=false){
-    if(dialog.open||closing||!api.isSignedIn())return;
+    if(dialog.open||closing||!api.canOpen())return;
+    if(!revisit)api.showDaily();
     manual=revisit;original=document.documentElement.dataset.layout||'zen';
     const minutes=revisit?api.getState().settings.interval:60;
     interval.value=[15,30,60,120,240].includes(minutes)?String(minutes):'custom';custom.value=minutes;$('#welcome-custom-wrap').hidden=interval.value!=='custom';
@@ -52,14 +53,14 @@ export function setupWelcome(api){
     if(matchMedia('(prefers-reduced-motion: reduce)').matches)finish();else setTimeout(finish,420);
   });
   document.querySelector('#reopen-welcome').addEventListener('click',()=>open(true));
-  function checkAccount(){
-    if(!api.isSignedIn()){
+  function checkEntry(){
+    if(!api.canOpen()){
       if(dialog.open){window.dispatchEvent(new CustomEvent('dayline:preview-layout',{detail:original}));dialog.close();}
       return;
     }
-    try{if(needsWelcome(localStorage,true))open();}catch{open();}
+    try{if(needsWelcome(localStorage,true,false))open();}catch{open();}
   }
-  window.addEventListener('dayline:account',checkAccount);
-  checkAccount();
+  window.addEventListener('dayline:entry-view',checkEntry);
+  checkEntry();
   return {open};
 }

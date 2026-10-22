@@ -12,7 +12,7 @@ Dayline is a browser-based daily planner and focus workspace. Plan in time inter
 - Focus Mode with a commitment, editable interval notes, generated music, separate ambient/binaural/metronome layers, audio presets, inspiration, interruption logs, optional reflection, and saved session reports.
 - Minimize Focus Mode using its button or by clicking outside the window; audio continues while the page remains open.
 - Automatic device-local saving, JSON backup export/restore, and optional browser reminders with sound.
-- Optional account creation and a guest path. The introduction appears after sign-in, with interval setup and live personality previews.
+- Optional account creation and a guest path. First-time users start at the sign-in page. After sign-in or choosing to continue without an account, the introduction appears over Daily with interval setup and live personality previews.
 
 ## Run locally
 

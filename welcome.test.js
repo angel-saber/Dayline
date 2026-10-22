@@ -2,19 +2,21 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {needsWelcome} from './dist/js/welcome.js';
 const storage=values=>({getItem:key=>values[key]??null});
-test('introduction waits for sign-in, then completed setup stays dismissed',()=>{
-  assert.equal(needsWelcome(storage({}),false),false);
-  assert.equal(needsWelcome(storage({}),true),true);
-  assert.equal(needsWelcome(storage({'dayline.welcome.v1':'done'}),true),false);
+test('introduction never opens over sign-in, including during a session transition',()=>{
+  assert.equal(needsWelcome(storage({})),false);
+  assert.equal(needsWelcome(storage({}),false,true),false);
+  assert.equal(needsWelcome(storage({}),true,true),false);
+  assert.equal(needsWelcome(storage({}),false,false),false);
 });
-test('guest notes do not consume the introduction before a first sign-in',()=>{
-  for(const key of ['dayline.v1','dayline.appearance.v1','dayline.focus.v1']){
-    assert.equal(needsWelcome(storage({[key]:'existing'}),false),false);
-    assert.equal(needsWelcome(storage({[key]:'existing'}),true),true);
+test('both guest continuation and sign-in allow setup once the planner is visible',()=>{
+  for(const data of [{},{'dayline.guest.v1':'yes'},{'dayline.v1':'existing'},{'dayline.appearance.v1':'builder'}]){
+    assert.equal(needsWelcome(storage(data),true,false),true);
+    assert.equal(needsWelcome(storage({...data,'dayline.welcome.v1':'done'}),true,false),false);
   }
 });
-test('storage errors never open the introduction for a guest',()=>{
+test('storage errors still respect the sign-in page gate',()=>{
   const blocked={getItem(){throw new Error('blocked');}};
-  assert.equal(needsWelcome(blocked,false),false);
-  assert.equal(needsWelcome(blocked,true),true);
+  assert.equal(needsWelcome(blocked,false,true),false);
+  assert.equal(needsWelcome(blocked,true,true),false);
+  assert.equal(needsWelcome(blocked,true,false),true);
 });
