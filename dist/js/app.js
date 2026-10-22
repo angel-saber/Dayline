@@ -1,5 +1,5 @@
 import {voice,personality,applyPersonality} from './personality.js?v=personality-1';
-import {setupFocus} from './focus.js?v=cinematic-drive-9';
+import {setupFocus} from './focus.js?v=cyber-fanfare-10';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
 import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=focus-1';
 import {setupMonthly} from './monthly.js?v=personality-1';
