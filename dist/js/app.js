@@ -1,10 +1,13 @@
+import {setupFocus} from './focus.js?v=focus-1';
+import {renderFocusReports} from './focus-reports.js?v=focus-1';
+import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=focus-1';
 import {setupMonthly} from './monthly.js?v=quick-add-1';
 import {moveToDay,quickNote} from './month-model.js?v=quick-add-1';
 import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,timeLabel} from './model.js?v=monthly-1';
-import {load,save,validState} from './storage.js?v=monthly-1';
+import {load,save,validState} from './storage.js?v=focus-1';
 import {attachGestures} from './gestures.js';
 import {Reminders} from './reminders.js?v=monthly-1';
-import {setupAccounts} from './accounts.js?v=monthly-1';
+import {setupAccounts} from './accounts.js?v=focus-1';
 import {dailyQuote} from './quotes.js';
 import {renderFormatted} from './format.js?v=direct-edit-1';
 import {createNoteEditor} from './note-editor.js?v=monthly-1';
@@ -68,7 +71,7 @@ function renderTimeline(){
       renderNoteLines(body,e.text,e.format,noteTasks(e),start=>{
         const tasks=noteTasks(e).map(t=>t.start===start?{...t,done:!t.done}:t);
         commit(entries().map(item=>item.id===e.id?{...item,tasks,task:false}:item),'Task updated');
-      },()=>openEditor(notes,slot.minute,e));card.append(content);
+      },()=>openEditor(notes,slot.minute,e));renderFocusReports(content,e.focusReports);card.append(content);
       const tools=node('div','entry-tools');
       tools.append(button('↗','Move note to a different time',()=>openMove(e.id),'move-note'),button('×','Delete note',()=>remove(e.id),'delete-note'));
       const handle=node('span','drag-handle','⠿');handle.tabIndex=0;handle.setAttribute('role','button');handle.setAttribute('aria-label','Hold and drag to move, or press Enter to choose a time');
@@ -106,7 +109,7 @@ function openEditor(container,minute,entry){
     entry,label:'Note for '+timeLabel(minute,state.settings.clock),
     onChange({title,text,format,tasks}){
       const list=state.days[date]||[];undo=null;$('#undo').hidden=true;
-      if(!text.trim()&&!title.trim()){if(id)state.days[date]=list.filter(e=>e.id!==id);}
+      if(!text.trim()&&!title.trim()&&!list.find(e=>e.id===id)?.focusReports?.length){if(id)state.days[date]=list.filter(e=>e.id!==id);}
       else if(id&&list.some(e=>e.id===id)){state.days[date]=list.map(e=>e.id===id?{...e,title,text,format,tasks,task:false}:e);}
       else{id=crypto.randomUUID();state.days[date]=[...list,{id,title,text,minute,done:false,format,tasks,task:false}].sort((a,b)=>a.minute-b.minute);}
       persist();renderSummary();
@@ -219,6 +222,32 @@ accounts=setupAccounts({
     const labels={local:'● Saved on this device',pending:'● Saved here · waiting to sync',syncing:'● Syncing your notes…',synced:'● Synced across devices',error:'● Not synced · saved here'};
     $('#save-status').textContent=labels[status]||labels.error;
     $('#account-sync-status').textContent=error?.message||labels[status]||'';
+  },
+});
+const focus=setupFocus({
+  getState:()=>state,flushEditor,toast,
+  refresh(){if(view==='daily'&&!editor)renderTimeline();else if(view==='monthly')monthly.render();},
+  editNote(date,id,minute,values){
+    const found=findFocusNote(state.days,id,date),target=found?.date||date,previous=state.days[target]||[];
+    if(!found&&!values.title.trim()&&!values.text.trim())return null;
+    const entry={...(found?.entry||{id:crypto.randomUUID(),minute,done:false}),...values,task:false};
+    state.days[target]=found?previous.map(e=>e.id===entry.id?entry:e):[...previous,entry].sort((a,b)=>a.minute-b.minute);
+    if(!persist()){state.days[target]=previous;return null;}undo=null;return {id:entry.id};
+  },
+  checkTask(date,id,start){
+    const found=findFocusNote(state.days,id,date);if(!found)return;
+    const tasks=noteTasks(found.entry).map(t=>t.start===start?{...t,done:!t.done}:t);
+    const previous=state.days[found.date];state.days[found.date]=previous.map(e=>e.id===id?{...e,tasks,task:false}:e);
+    if(!persist())state.days[found.date]=previous;else undo=null;
+  },
+  extendNote(id,source,target,minute,interval){
+    try{const previous=state.days;state.days=extendFocusNote(state.days,id,source,target,minute,interval);
+      if(!persist()){state.days=previous;return false;}undo=null;return true;
+    }catch(error){toast(error.message);return false;}
+  },
+  saveReport(session){
+    const previous=state.days;state.days=attachFocusReport(state.days,session);
+    if(!persist()){state.days=previous;return false;}undo=null;return true;
   },
 });
 if(readFailed)toast('Stored data could not be read. Saving is paused to protect it. Open Settings to export a recovery copy or restore a backup.');

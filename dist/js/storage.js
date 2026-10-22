@@ -1,3 +1,4 @@
+import {validFocusReports} from './focus-model.js?v=focus-1';
 import { DEFAULT_SETTINGS } from './model.js';
 import {validFormat} from './format.js?v=line-tasks-1';
 import {validTasks} from './tasks.js?v=line-tasks-1';
@@ -14,6 +15,7 @@ export function validState(value) {
       if(!e || typeof e.id!=='string' || seen.has(e.id) || typeof e.text!=='string' || !Number.isInteger(e.minute) || e.minute<0 || e.minute>=1440 || typeof e.done!=='boolean') throw new Error('Invalid entry in backup.');
       seen.add(e.id);
       const result={id:e.id,text:e.text,minute:e.minute,done:e.done};
+      if(e.focusReports!==undefined)result.focusReports=validFocusReports(e.focusReports);
       if(e.title!==undefined){if(typeof e.title!=='string'||e.title.length>200)throw new Error('Invalid note title.');result.title=e.title;}
       if(e.format!==undefined)result.format=validFormat(e.format,e.text);
       if(e.tasks!==undefined)result.tasks=validTasks(e.tasks,e.text);

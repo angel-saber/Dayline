@@ -1,7 +1,7 @@
 import { cloudConfig } from './config.js';
 import { CloudClient } from './cloud.js';
-import { SyncEngine, mergeGuestDays, clearSyncedDrafts } from './sync.js?v=monthly-1';
-import { load, save, validState } from './storage.js?v=monthly-1';
+import { SyncEngine, mergeGuestDays, clearSyncedDrafts } from './sync.js?v=focus-1';
+import { load, save, validState } from './storage.js?v=focus-1';
 
 const $ = selector => document.querySelector(selector);
 

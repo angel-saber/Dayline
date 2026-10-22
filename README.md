@@ -49,3 +49,19 @@ In the repository, choose **Settings → Pages → Source → GitHub Actions**, 
 - Real-device gestures, persistence, notification delivery, CloudKit entitlement provisioning, two-device sync, and App Store submission require the acceptance checks in the Apple release plan. A successful simulator build does not validate live iCloud behavior.
 
 Create a feature branch for each change, commit it, and open a pull request into `main`. Do not commit private planner backups, signing credentials, certificates, or account tokens.
+
+### Focus Mode
+
+At the bottom of Daily, **Launch Focus Mode** opens the current clock interval.
+Choose or edit its note, review the optional task prompts, and commit to a suggested
+or custom mantra. During work, mix locally generated binaural tones, ambient sound,
+and a metronome; each layer has an independent volume. The inspiration pocket
+changes every ten minutes. Each clock interval has a separate interruption page.
+Minimizing keeps the session and audio active while the website stays open.
+
+Earlier pages remain available. Continuing an unfinished note in the current
+interval moves that interval's notes together into the next empty interval, including
+across midnight. Finish fades the audio and offers an optional reflection. Each
+session saves a separate expandable report in the most recently referenced note.
+Reports are included in JSON backups. An active draft is saved in this browser;
+refreshing offers a resume control, with audio restarted only by pressing Play.
