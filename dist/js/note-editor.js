@@ -1,3 +1,4 @@
+import {typeSelect} from './note-types.js?v=note-types-1';
 import {safeLink} from './links.js?v=hyperlinks-1';
 import {toggleBullets,editBullets,selectedLines} from './bullets.js?v=bullets-1';
 import {HIGHLIGHTS,renderFormatted,editFormat,setLink} from './format.js?v=hyperlinks-1';
@@ -14,7 +15,7 @@ const makeButton=(text,label,action)=>{
 // The browser edits one surface. Only plain text, validated style ranges and line
 // tasks enter storage; pasted HTML is never installed in the document.
 export function createNoteEditor({entry,label,onChange,onDone}){
-  let state={title:entry?.title||'',text:entry?.text||'',format:structuredClone(entry?.format||[]),tasks:noteTasks(entry),bullets:structuredClone(entry?.bullets||[])};
+  let state={noteType:entry?.noteType||'',title:entry?.title||'',text:entry?.text||'',format:structuredClone(entry?.format||[]),tasks:noteTasks(entry),bullets:structuredClone(entry?.bullets||[])};
   let selection={start:state.text.length,end:state.text.length},typingStyle=null,composing=false,destroyed=false;
   const past=[],future=[];
   const wrapper=element('div','editor'),toolbar=element('div','format-toolbar');
@@ -25,6 +26,7 @@ export function createNoteEditor({entry,label,onChange,onDone}){
   const titleLabel=element('label','note-title-label','Note title');
   const titleInput=element('input','note-title-input');titleInput.type='text';titleInput.maxLength=200;titleInput.placeholder='Title (optional)';titleInput.value=state.title;
   titleInput.setAttribute('aria-label','Note title');titleLabel.append(titleInput);
+  const typeLabel=element('label','note-type-label','Type (optional)'),noteType=typeSelect(state.noteType);typeLabel.append(noteType);noteType.addEventListener('change',()=>{state={...state,noteType:noteType.value};publish();});
   titleInput.addEventListener('input',()=>{state={...state,title:titleInput.value};publish();});
   const controls=element('div','editor-actions');controls.append(element('small','','Saves as you write · Ctrl/⌘ + Enter to close'));
   const buttons=[];
@@ -146,11 +148,11 @@ export function createNoteEditor({entry,label,onChange,onDone}){
   // Keep the caret and mobile keyboard in the editable text when a tool is tapped.
   toolbar.addEventListener('pointerdown',event=>{if(event.target.closest('button'))event.preventDefault();});
   controls.append(makeButton('Done','Close note editor',()=>{flush();onDone();}));controls.lastChild.className='primary';
-  wrapper.append(titleLabel,toolbar,linkPanel,surface,controls);
+  wrapper.append(titleLabel,typeLabel,toolbar,linkPanel,surface,controls);
   function undo(redo=false){
     const source=redo?future:past,target=redo?past:future;
     if(!source.length)return;
-    target.push(snapshot());const previous=source.pop();state={...previous.state,title:state.title};selection=previous.selection;typingStyle=previous.typingStyle;render();publish();
+    target.push(snapshot());const previous=source.pop();state={...previous.state,title:state.title,noteType:state.noteType};selection=previous.selection;typingStyle=previous.typingStyle;render();publish();
   }
   function deletion(backward,word=false){
     let {start,end}=selection;

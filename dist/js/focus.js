@@ -1,9 +1,10 @@
+import {typeBadge} from './note-types.js?v=note-types-1';
 import {musicProfile} from './focus-music.js?v=cyber-mission-12';
 import {voice,personality,focusMantras,focusIdeas} from './personality.js?v=intention-labels-3';
 import {dayKey,timeLabel,bucket} from './model.js';
 import {newFocus,advanceFocus,commitFocus,findFocusNote,validFocusDraft,durationLabel,MANTRAS,INSPIRATION} from './focus-model.js?v=focus-1';
 import {FocusAudio} from './focus-audio.js?v=speaker-playback-1';
-import {createNoteEditor} from './note-editor.js?v=hyperlinks-1';
+import {createNoteEditor} from './note-editor.js?v=note-types-1';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const KEY='dayline.focus.v1';
@@ -58,6 +59,7 @@ export function setupFocus(api){
     section.append(heading,node('p','focus-interval-label',`${p.date} · ${timeLabel(p.minute,api.getState().settings.clock)} – ${timeLabel(Math.min(1440,p.minute+(p.interval||session.interval)),api.getState().settings.clock)}`));
     const body=node('div','focus-note');section.append(body);
     if(entry){
+      const badge=typeBadge(entry.noteType);if(badge)body.append(badge);
       if(entry.title)body.append(node('h3','',entry.title));
       let start=0;
       for(const line of entry.text.split('\n')){
