@@ -3,8 +3,8 @@ import {voice,personality,focusMantras,focusIdeas} from './personality.js?v=inte
 import {dayKey,timeLabel,bucket} from './model.js';
 import {newFocus,advanceFocus,commitFocus,findFocusNote,validFocusDraft,durationLabel,MANTRAS,INSPIRATION} from './focus-model.js?v=focus-1';
 import {FocusAudio} from './focus-audio.js?v=speaker-playback-1';
-import {createNoteEditor} from './note-editor.js?v=bullets-1';
-import {renderFormatted} from './format.js?v=direct-edit-1';
+import {createNoteEditor} from './note-editor.js?v=hyperlinks-1';
+import {renderFormatted} from './format.js?v=hyperlinks-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const KEY='dayline.focus.v1';
 const defaults={binaural:false,ambient:true,warmAmbient:false,metronome:false,beat:10,bpm:80,tonesVolume:30,ambientVolume:35,warmVolume:35,metronomeVolume:50};

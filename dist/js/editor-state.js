@@ -1,5 +1,5 @@
 import {editBullets} from './bullets.js?v=bullets-1';
-import {segments,toggleFormat,editFormat} from './format.js?v=direct-edit-1';
+import {segments,toggleFormat,editFormat} from './format.js?v=hyperlinks-1';
 import {lineRange,editTasks,toggleTask} from './tasks.js?v=line-tasks-1';
 
 export function replaceText(state,start,end,text,typingStyle){

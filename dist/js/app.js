@@ -2,19 +2,19 @@ import {setupActivities,renderGuidedReports} from './activities.js?v=activities-
 import {attachGuidedPlan} from './activities-model.js?v=activities-2';
 import {setupWelcome} from './welcome.js?v=zen-name-1';
 import {voice,personality,applyPersonality} from './personality.js?v=intention-labels-3';
-import {setupFocus} from './focus.js?v=notification-links-1';
+import {setupFocus} from './focus.js?v=hyperlinks-1';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
 import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=focus-1';
 import {setupMonthly} from './monthly.js?v=intention-labels-3';
 import {moveToDay,quickNote} from './month-model.js?v=quick-add-1';
 import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,timeLabel} from './model.js?v=monthly-1';
-import {load,save,validState} from './storage.js?v=activities-2';
+import {load,save,validState} from './storage.js?v=hyperlinks-1';
 import {attachGestures} from './gestures.js';
 import {Reminders,resolveReminder} from './reminders.js?v=notification-links-1';
-import {setupAccounts} from './accounts.js?v=activities-2';
+import {setupAccounts} from './accounts.js?v=hyperlinks-1';
 import {dailyQuote} from './quotes.js?v=intention-labels-3';
-import {renderFormatted} from './format.js?v=direct-edit-1';
-import {createNoteEditor} from './note-editor.js?v=bullets-1';
+import {renderFormatted} from './format.js?v=hyperlinks-1';
+import {createNoteEditor} from './note-editor.js?v=hyperlinks-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const $=s=>document.querySelector(s);
 let state,readFailed=false,selected=dayKey(),view='daily',undo=null,editor=null,moveId=null,pendingImport=null,accounts=null;
@@ -100,7 +100,8 @@ function renderNoteLines(container,text,format=[],tasks=[],onCheck,onEdit,bullet
       check.addEventListener('change',()=>onCheck(anchor));row.append(check);
     }
     if(!task&&bullets.some(item=>item.start===start)){const marker=node('span','bullet-marker','•');marker.setAttribute('aria-hidden','true');row.append(marker);}
-    const textNode=onEdit?button('',`Edit note: ${line||'Empty line'}`,onEdit,'note-text'):node('span','note-text');
+    const textNode=node('span','note-text');
+    if(onEdit){textNode.tabIndex=0;textNode.setAttribute('role','button');textNode.setAttribute('aria-label',`Edit note: ${line||'Empty line'}`);textNode.addEventListener('click',onEdit);textNode.addEventListener('keydown',event=>{if(event.target===textNode&&(event.key==='Enter'||event.key===' ')){event.preventDefault();onEdit();}});}
     const marks=format.filter(m=>m.start<start+line.length&&m.end>start).map(m=>({...m,start:Math.max(0,m.start-start),end:Math.min(line.length,m.end-start)}));
     renderFormatted(textNode,line,marks);if(!line)textNode.append(document.createTextNode('\u200b'));
     textNode.classList.toggle('task-completed',!!task?.done);row.append(textNode);container.append(row);

@@ -1,7 +1,8 @@
+import {safeLink} from './links.js?v=hyperlinks-1';
 import {toggleBullets,editBullets,selectedLines} from './bullets.js?v=bullets-1';
-import {HIGHLIGHTS,renderFormatted,editFormat} from './format.js?v=direct-edit-1';
+import {HIGHLIGHTS,renderFormatted,editFormat,setLink} from './format.js?v=hyperlinks-1';
 import {lineRange,noteTasks,editTasks} from './tasks.js?v=line-tasks-1';
-import {replaceText,insertLineBreak,applyStyle,applyCheckbox,checkTask,selectionStyle} from './editor-state.js?v=bullets-1';
+import {replaceText,insertLineBreak,applyStyle,applyCheckbox,checkTask,selectionStyle} from './editor-state.js?v=hyperlinks-1';
 
 const element=(tag,className,text)=>{
   const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;
@@ -82,7 +83,7 @@ export function createNoteEditor({entry,label,onChange,onDone}){
       if(!task&&state.bullets.some(item=>item.start===start)){const marker=element('span','bullet-marker','•');marker.contentEditable='false';marker.setAttribute('aria-hidden','true');row.append(marker);}
       const text=element('span','editable-line-text');text.classList.toggle('task-completed',!!task?.done);
       const marks=state.format.filter(m=>m.start<start+line.length&&m.end>start).map(m=>({...m,start:Math.max(0,m.start-start),end:Math.min(line.length,m.end-start)}));
-      renderFormatted(text,line,marks);if(!line)text.append(document.createElement('br'));
+      renderFormatted(text,line,marks,{editable:true});if(!line)text.append(document.createElement('br'));
       row.append(text);surface.append(row);start+=line.length+1;
     }
     surface.dataset.empty=String(!state.text&&!state.tasks.length&&!state.bullets.length);
@@ -122,10 +123,30 @@ export function createNoteEditor({entry,label,onChange,onDone}){
   const taskButton=makeButton('Add checkbox','Add checkbox',()=>{readSelection();update(applyCheckbox(state,selection.start),selection);});
   taskButton.className='format-task';toolbar.append(taskButton);
   const bulletButton=makeButton('• Bullets','Bullet list',()=>{readSelection();update(toggleBullets(state,selection.start,selection.end),selection);});bulletButton.className='format-bullets';toolbar.append(bulletButton);
+  const linkPanel=element('div','link-panel');linkPanel.hidden=true;
+  const linkLabel=element('label','','Web address'),linkInput=element('input');linkInput.type='text';linkInput.inputMode='url';linkInput.placeholder='https://example.com';linkInput.setAttribute('aria-label','Web address');linkLabel.append(linkInput);
+  const linkError=element('p','field-hint');linkError.setAttribute('role','alert');let linkSelection=null;
+  function closeLink(){linkPanel.hidden=true;linkSelection=null;restoreSelection();}
+  const applyLink=makeButton('Apply link','Apply link',()=>{
+    const href=safeLink(linkInput.value);if(!href){linkError.textContent='Enter a valid http or https web address.';linkInput.focus();return;}
+    const {start,end}=linkSelection;let next=state,nextSelection={start,end};
+    if(start===end){next=replaceText(state,start,end,linkInput.value.trim(),typingStyle);nextSelection.end=start+linkInput.value.trim().length;}
+    next={...next,format:setLink(next.text,next.format,nextSelection.start,nextSelection.end,href)};
+    typingStyle=null;linkPanel.hidden=true;linkSelection=null;update(next,nextSelection);
+  });
+  const removeLink=makeButton('Remove link','Remove link',()=>{const {start,end}=linkSelection;const next={...state,format:setLink(state.text,state.format,start,end,null)};typingStyle=null;linkPanel.hidden=true;linkSelection=null;update(next,{start,end});});
+  linkPanel.append(linkLabel,applyLink,removeLink,makeButton('Cancel','Cancel link editing',closeLink),linkError);
+  function openLink(){
+    readSelection();linkSelection={...selection};const mark=state.format.find(m=>m.href&&m.start<=selection.start&&m.end>selection.start);
+    if(selection.start===selection.end&&mark)linkSelection={start:mark.start,end:mark.end};
+    linkInput.value=mark?.href||safeLink(state.text.slice(selection.start,selection.end))||'';removeLink.hidden=!mark;linkError.textContent='';linkPanel.hidden=false;linkInput.focus();
+  }
+  toolbar.append(makeButton('Link','Add or edit hyperlink',openLink));
+  linkInput.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();applyLink.click();}else if(event.key==='Escape'){event.preventDefault();closeLink();}});
   // Keep the caret and mobile keyboard in the editable text when a tool is tapped.
   toolbar.addEventListener('pointerdown',event=>{if(event.target.closest('button'))event.preventDefault();});
   controls.append(makeButton('Done','Close note editor',()=>{flush();onDone();}));controls.lastChild.className='primary';
-  wrapper.append(titleLabel,toolbar,surface,controls);
+  wrapper.append(titleLabel,toolbar,linkPanel,surface,controls);
   function undo(redo=false){
     const source=redo?future:past,target=redo?past:future;
     if(!source.length)return;
@@ -165,7 +186,8 @@ export function createNoteEditor({entry,label,onChange,onDone}){
   surface.addEventListener('keydown',event=>{
     if((event.ctrlKey||event.metaKey)&&!event.altKey){
       const key=event.key.toLowerCase();
-      if(['b','i','u'].includes(key)){event.preventDefault();format({b:'bold',i:'italic',u:'underline'}[key]);}
+      if(key==='k'){event.preventDefault();openLink();}
+      else if(['b','i','u'].includes(key)){event.preventDefault();format({b:'bold',i:'italic',u:'underline'}[key]);}
       else if(key==='z'||key==='y'){event.preventDefault();readSelection();undo(key==='y'||event.shiftKey);}
       else if(event.key==='Enter'){event.preventDefault();flush();onDone();}
     }else if(event.key==='Escape'){event.preventDefault();flush();onDone();}

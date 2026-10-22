@@ -2,7 +2,7 @@ import {validGuidedReports} from './activities-model.js?v=activities-2';
 import {validBullets} from './bullets.js?v=bullets-1';
 import {validFocusReports} from './focus-model.js?v=focus-1';
 import { DEFAULT_SETTINGS } from './model.js';
-import {validFormat} from './format.js?v=line-tasks-1';
+import {validFormat} from './format.js?v=hyperlinks-1';
 import {validTasks} from './tasks.js?v=line-tasks-1';
 const KEY='dayline.v1';
 export function validState(value) {

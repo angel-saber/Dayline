@@ -194,3 +194,5 @@ main{padding-bottom:180px}
 @media(max-width:400px){.topbar .tab{padding:9px 10px}}
 
 .compass-populate{display:flex;gap:10px;align-items:center;font-size:13px;line-height:1.6;margin:24px 0 16px}.activity-dialog input[type=time]{display:block;background:var(--white);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:12px;margin:8px 0 16px;width:100%}
+
+.note-text a,.editable-line-text a{color:var(--green);text-decoration:underline;text-underline-offset:3px;cursor:pointer;overflow-wrap:anywhere}.link-panel{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);margin-bottom:12px}.link-panel label{flex:1 1 100%;font-size:12px}.link-panel input{display:block;width:100%;background:var(--white);border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:10px;margin-top:6px}.link-panel button{border:1px solid var(--line);border-radius:5px;padding:8px 12px}.link-panel p{flex-basis:100%;margin:0}
