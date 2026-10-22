@@ -2,7 +2,7 @@
 // No recordings, external assets, or background JavaScript scheduling.
 export function musicProfile(layout){
   if(layout==='builder')return {layout,bpm:112,label:'Cyberpunk drive',description:'Dark cyberpunk loop: distorted synth bass, punchy breakbeats, minor-key atmosphere, and glitch accents at 112 BPM.'};
-  if(layout==='founder')return {layout,bpm:76,label:'Symphonic horizon',description:'Original synthesized orchestral score: sustained string-like ensembles, brass-like swells, deep bass, and timpani, with delicate bell-like sparkles and rising high strings in a spacious hall at 76 BPM.'};
+  if(layout==='founder')return {layout,bpm:76,label:'Symphonic horizon',description:'Original synthesized orchestral score: sustained string-like ensembles, brass-like swells, deep bass, and timpani, with lively rising bells and a layered orchestral crescendo that builds, peaks, and gently recedes at 76 BPM.'};
   return {layout:'zen',bpm:60,label:'Still temple',description:'Original meditation-inspired soundscape: synthesized singing-bowl-like tones and soft bells with long, spacious decays. No piano, drums, chants, or ritual recordings.'};
 }
 export function musicLength(sampleRate,layout){return Math.round(sampleRate*60/musicProfile(layout).bpm*64);}
@@ -110,14 +110,29 @@ function renderOrchestra(data,rate){
     if(bar%2===0||secondHalf)chord.slice(1,3).forEach(midi=>note(midi,at+.4*beat,3.3*beat,secondHalf?.075:.045,brass,true));
     if(bar%2===0)timpani(at,chord[0]-12,.14);
     if(bar%4===3)timpani(at+3*beat,33,.075);
-    // Brief, chord-aligned glints leave the existing slow orchestral arc in front.
-    if(bar%4===1||bar%4===2){
-      const upper=chord.slice(1).map(midi=>midi+24);
-      upper.forEach((midi,index)=>sparkle(midi,at+(1+index*.5)*beat,.035));
-      if(secondHalf)upper.slice(0,2).forEach((midi,index)=>note(midi,at+(1.5+index*.75)*beat,1.9*beat,.026,strings,true));
+    // Bell figures quicken and climb during the build, then give the ending space.
+    const upper=chord.slice(1).map(midi=>midi+24);
+    if(bar%2===1||bar>=6&&bar<=12){
+      const building=bar>=6&&bar<=11,pattern=building?[0,1,2,1,2,2]:[0,1,2,1];
+      pattern.forEach((index,step)=>sparkle(upper[index]+(building&&step===5?12:0),at+(.5+step*(building?.375:.5))*beat,building?.055:.04));
     }
-    if(bar===0||bar===8)sparkle(86,at+.5*beat,.025);
+    if(bar>=6&&bar<=12){
+      // Add octave strings and a broader brass choir as the phrase approaches its summit.
+      upper.slice(0,2).forEach((midi,index)=>note(midi,at+index*.5*beat,3.6*beat,.052,strings,true));
+      chord.slice(1).forEach(midi=>note(midi+12,at+.2*beat,3.8*beat,.065,brass,true));
+      if(bar>=8&&bar<=10)for(let step=0;step<4;step++)timpani(at+step*beat,chord[0]-12,.055+step*.012);
+    }
+    if(bar===0||bar===8)sparkle(86,at+.5*beat,.03);
   }
+  // A continuous phrase-wide envelope shapes the whole ensemble, not just its volume per bar.
+  // Begin the build after the introduction; crest over the F/C-major passage, then recede.
+  const smooth=value=>{const x=Math.max(0,Math.min(1,value));return x*x*(3-2*x);};
+  for(let i=0;i<data.length;i++){
+    const position=i/rate/beat;
+    const rise=smooth((position-16)/24),fall=1-smooth((position-44)/20);
+    data[i]*=.62+1.15*rise*fall;
+  }
+
   // A circular, non-recursive reverb tail carries naturally across the loop boundary.
   const dry=data.slice();
   for(const [seconds,gain] of [[.071,.13],[.113,.11],[.173,.09],[.239,.07],[.347,.055],[.503,.04]]){
