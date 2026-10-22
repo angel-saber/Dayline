@@ -2,7 +2,3 @@ node_modules/
 .DS_Store
 *.zip
 .openai/.local/
-.build/
-DerivedData/
-xcuserdata/
-*.xcuserstate

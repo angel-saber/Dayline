@@ -22,7 +22,7 @@ For database integration validation, use a **disposable development project** an
 
 ## 3. Configure email codes
 
-Enable email authentication and new-user sign-ups in Supabase Auth. The same email-code form serves new and existing users.
+Enable email authentication and new-user sign-ups in Supabase Auth. The email-code form serves existing users by default. New users must explicitly select the optional account-creation checkbox.
 
 In **Authentication → Email Templates**, edit the **Magic Link** and **Confirm signup** templates to display `{{ .Token }}` as the sign-in code. For example:
 
@@ -54,7 +54,7 @@ Use only the HTTPS origin, with no extra path, credentials, or query parameters.
 
 ## 5. Validate and deploy
 
-Run `npm run check` and `npm test`. Then publish the current `dist` using the included **Deploy GitHub Pages** workflow. Initial Pages setup is described in the README. Code commits alone do not run the manual deployment workflow.
+Run `npm run check` and `npm test`. Then publish the current `dist` using the included **Deploy GitHub Pages** workflow. Initial Pages setup is described in the README. Changes to `dist/` on `main` trigger that deployment workflow automatically; it can also be started manually.
 
 ## Live acceptance checks
 

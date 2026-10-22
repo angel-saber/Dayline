@@ -1,13 +1,26 @@
-# Dayline workflow
+# Dayline website workflow
 
-The accepted direction is an Apple-first, local-first app with optional private iCloud sync and no separately hosted Dayline account service.
+Dayline is a static website implemented with HTML, CSS, and JavaScript modules. GitHub is the current development repository and preview host; the deployable output is `dist/` and can move to another static host.
 
-1. Validate the native daily planner and local saving using the free local Xcode scheme.
-2. Verify interval settings, gestures, drag insertion, date navigation, and accessible alternatives.
-3. Verify native scheduled reminders, recovery, and backup/import on real devices.
-4. Once Apple membership is appropriate, provision and test optional private CloudKit sync. It uses the same local store and each person's Apple Account; separate Dayline credentials are not required.
-5. Complete cloud conflict/account-transition safeguards, TestFlight testing, and App Store materials before release.
+## Keep changes focused
 
-See [APPLE_RELEASE_PLAN.md](APPLE_RELEASE_PLAN.md) for acceptance criteria and verification status, and [../apple/README.md](../apple/README.md) for Xcode setup and code structure.
+1. Read the affected modules and preserve existing planner data and backup compatibility.
+2. Keep scheduling, formatting, and session rules in their pure model modules; keep DOM behavior in the corresponding view modules.
+3. Keep personality copy separate from user content. Changing presentation must not rewrite notes or saved commitments.
+4. Keep music generation local and separate from session persistence. Preserve independent audio controls and predictable stop/fade behavior.
+5. Use a feature branch and a focused pull request when collaborating. Describe behavior and relevant validation.
 
-The browser prototype remains in `dist/` and opens in device-local mode while its legacy cloud configuration is empty. Its original pure scheduling/storage tests and optional Supabase experiment are retained. Those earlier cloud-account instructions are not required for the selected Apple-app architecture, and no paid backend has been activated.
+## Verify and publish
+
+1. Run `npm run check` for application syntax.
+2. Run `npm test` for behavior and regression checks. Add tests when they protect meaningful behavior.
+3. Verify changed UI in the browser, including keyboard use, narrow layouts, persistence, and relevant recovery paths.
+4. Publish the latest `main` through **Deploy GitHub Pages** while using the current development host. Older deployments do not need to run again: the latest commit contains earlier changes.
+5. Verify both the deployment job result and the live page. A queued run is not proof of publication; record publication delays separately from code failures.
+
+## Preserve the launch direction
+
+- Keep guest planning usable without a paid hosting or account dependency.
+- Treat optional account activation as a separate, deliberate change. Do not provision a service or enable costs as part of unrelated edits.
+- Finalize the website before changing hosts or adding payments and ads.
+- Use [WEB_RELEASE_PLAN.md](WEB_RELEASE_PLAN.md) to prepare free commercial hosting, the note-transfer process, supporter payments, paid extras, banners, and ad-free access.
