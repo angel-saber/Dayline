@@ -18,6 +18,11 @@
       select(input.value);
       try{localStorage.setItem(key,current);status.textContent='Layout saved on this device.';}catch{status.textContent='Layout applied for now. Your browser could not save this preference.';}
     }));
+    window.addEventListener('dayline:preview-layout',event=>{if(layouts.includes(event.detail))select(event.detail);});
+    window.addEventListener('dayline:set-layout',event=>{
+      if(!layouts.includes(event.detail))return;select(event.detail);
+      try{localStorage.setItem(key,current);status.textContent='Layout saved on this device.';}catch{status.textContent='Layout applied for this visit. Your browser could not save it.';}
+    });
     window.addEventListener('storage',event=>{if(event.key===key)select(layouts.includes(event.newValue)?event.newValue:'zen');});
   });
 })();

@@ -158,3 +158,18 @@ body:has(#monthly-view:not([hidden])) main{max-width:1280px}
 .focus-tempo-control{display:grid;grid-template-columns:minmax(0,1fr) minmax(90px,1fr) 86px;gap:14px;align-items:center;margin:16px 0;font-size:12px}
 .focus-tempo-control input[type=range]{width:100%;accent-color:var(--green);min-width:0}.focus-tempo-control input[type=number]{width:86px;margin:0;padding:7px 10px}
 @media(max-width:600px){.focus-tempo-control{grid-template-columns:minmax(0,1fr) 80px;gap:8px 12px}.focus-tempo-control label{grid-column:1/-1}.focus-tempo-control input[type=number]{width:80px}.focus-audio-presets button{margin-left:5px}}
+
+.welcome-window{max-width:760px;max-height:90dvh;overflow:auto;padding:36px 40px;overscroll-behavior:contain}
+.welcome-window h1{font-size:39px;line-height:1.15;margin:12px 0 18px}.welcome-intro{font-size:15px;line-height:1.8;color:var(--ink)}
+.welcome-features{font-size:12px;color:var(--muted);line-height:1.8;padding-left:20px}.welcome-features li{margin:7px 0}
+.welcome-step{border-top:1px solid var(--line);padding-top:22px;margin-top:24px}.welcome-step h2{font-size:22px;margin:0 0 15px}.welcome-step>label,.welcome-step>div>label{display:block;margin:10px 0 4px}
+.welcome-personalities{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:0;border:0;margin:12px 0}
+.welcome-personalities label{display:grid;grid-template-columns:18px 1fr;gap:9px;padding:15px 12px;border:1px solid var(--line);border-radius:8px;background:var(--white);cursor:pointer;align-content:start}
+.welcome-personalities input{margin:0;accent-color:var(--green)}.welcome-personalities strong{font-size:12px}.welcome-personalities span{grid-column:1/-1;font-size:11px;line-height:1.6;color:var(--muted)}
+.welcome-personalities label:has(input:checked){outline:2px solid var(--green);outline-offset:2px}.welcome-preview{padding:15px 18px;background:var(--soft);border-left:3px solid var(--green);font-size:15px;color:var(--ink);line-height:1.7}
+.welcome-error{color:var(--ink);font-size:12px}.welcome-error:empty{display:none}.welcome-footnote{margin-top:24px}.welcome-confirm{padding:13px 22px}
+.welcome-leaving{animation:welcome-fade .4s ease forwards;pointer-events:none}.welcome-leaving::backdrop{animation:welcome-fade .4s ease forwards}
+@keyframes welcome-fade{to{opacity:0;transform:translateY(8px)}}
+:root[data-layout=builder] .welcome-window h1{font-family:Arial,Helvetica,sans-serif;font-weight:600}:root[data-layout=builder] .welcome-personalities label{border-radius:3px}
+@media(max-width:600px){.welcome-window{padding:26px 20px}.welcome-window h1{font-size:31px}.welcome-personalities{grid-template-columns:1fr}.welcome-personalities label{padding:12px}.welcome-personalities span{grid-column:2}}
+@media(prefers-reduced-motion:reduce){.welcome-leaving,.welcome-leaving::backdrop{animation:none}}

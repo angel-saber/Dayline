@@ -1,3 +1,4 @@
+import {setupWelcome} from './welcome.js?v=welcome-1';
 import {voice,personality,applyPersonality} from './personality.js?v=personality-1';
 import {setupFocus} from './focus.js?v=cyber-mission-12';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
@@ -255,3 +256,9 @@ if(readFailed)toast('Stored data could not be read. Saving is paused to protect 
 
 applyPersonality();
 window.addEventListener('dayline:appearance',()=>{applyPersonality();if(view==='daily'&&!editor)renderTimeline();else{renderHeader();renderSummary();}if(view==='monthly')monthly.show(selected);});
+
+setupWelcome({getState:()=>state,toast,saveInterval(interval){
+  flushEditor();const previous=state.settings.interval;state.settings.interval=interval;
+  if(!persist()){state.settings.interval=previous;return false;}
+  undo=null;renderSettings();if(view==='daily')renderTimeline();else if(view==='monthly')monthly.render();return true;
+}});
