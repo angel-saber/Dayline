@@ -1,6 +1,6 @@
 // Authored product copy. User content and committed mantras are never translated.
 const copy = {
-  "Plan": {"builder": "Mission", "founder": "Agenda"},
+  "Intention": {"builder": "Mission", "founder": "Agenda"},
   "YOUR DAY, AT YOUR PACE": {
     "builder": "LOCK IN. BUILD SOMETHING.",
     "founder": "MAKE THE DAY COMPOUND."

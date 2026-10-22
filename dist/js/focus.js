@@ -1,5 +1,5 @@
 import {musicProfile} from './focus-music.js?v=cyber-mission-12';
-import {voice,personality,focusMantras,focusIdeas} from './personality.js?v=plan-labels-2';
+import {voice,personality,focusMantras,focusIdeas} from './personality.js?v=intention-labels-3';
 import {dayKey,timeLabel,bucket} from './model.js';
 import {newFocus,advanceFocus,commitFocus,findFocusNote,validFocusDraft,durationLabel,MANTRAS,INSPIRATION} from './focus-model.js?v=focus-1';
 import {FocusAudio} from './focus-audio.js?v=cyber-mission-12';
@@ -54,7 +54,7 @@ export function setupFocus(api){
   function noteSection(){
     const p=page(),found=resolve(p),entry=found?.entry;
     const section=node('section','focus-section'),heading=node('div','focus-section-heading');
-    heading.append(node('h2','',voice('Plan')),button(entry?'Edit note':'Add a note',()=>editNote(body)));
+    heading.append(node('h2','',voice('Intention')),button(entry?'Edit note':'Add a note',()=>editNote(body)));
     section.append(heading,node('p','focus-interval-label',`${p.date} · ${timeLabel(p.minute,api.getState().settings.clock)} – ${timeLabel(Math.min(1440,p.minute+(p.interval||session.interval)),api.getState().settings.clock)}`));
     const body=node('div','focus-note');section.append(body);
     if(entry){

@@ -1,4 +1,4 @@
-import {VOICE_QUOTES} from './personality.js?v=plan-labels-2';
+import {VOICE_QUOTES} from './personality.js?v=intention-labels-3';
 // Original Dayline quotes. Keep this local: no API, tracking, or network access.
 const quotes = Object.freeze([
   'A small beginning is still a beginning.',
