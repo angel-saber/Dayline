@@ -1,4 +1,4 @@
-import {setupWelcome} from './welcome.js?v=entry-first-2';
+import {setupWelcome} from './welcome.js?v=zen-name-1';
 import {voice,personality,applyPersonality} from './personality.js?v=intention-labels-3';
 import {setupFocus} from './focus.js?v=intention-labels-3';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';

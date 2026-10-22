@@ -101,7 +101,7 @@ body:has(#monthly-view:not([hidden])) main{max-width:1280px}
 .focus-committing>.focus-window-header,.focus-committing>h1{animation:focus-fade-out .4s forwards}
 @media(prefers-reduced-motion:reduce){.focus-committing>.focus-window-header,.focus-committing>h1{animation:none!important}}
 
-/* Appearance variants leave the original Zen Light rules intact. */
+/* Appearance variants leave the original Zen rules intact. */
 .layout-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;border:0;padding:0;margin:18px 0}
 .settings-card .layout-choice{display:flex;flex-direction:column;position:relative;margin:0;padding:12px;gap:10px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:var(--white);min-width:0}
 .layout-choice:has(input:checked){outline:2px solid var(--green);outline-offset:2px}
