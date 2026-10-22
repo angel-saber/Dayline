@@ -152,3 +152,9 @@ body:has(#monthly-view:not([hidden])) main{max-width:1280px}
 @media(max-width:600px){.layout-options{grid-template-columns:1fr}.settings-card .layout-choice{display:grid;grid-template-columns:74px 1fr;padding-right:38px;gap:6px 14px}.layout-swatch{grid-row:span 2;height:58px}.layout-choice strong{align-self:end}.layout-choice>span:last-child{align-self:start}.layout-choice input{top:22px}}
 
 .day-end .day-end-copy{display:inline;font:inherit;color:inherit;margin:0}
+
+.focus-audio-presets{padding-left:20px}.focus-audio-presets li{padding:5px 0;line-height:1.7}.focus-audio-presets button{margin-left:10px;padding:5px 10px;font-size:11px;white-space:nowrap}
+.focus-audio-presets button[aria-pressed=true]{outline:2px solid var(--green);outline-offset:1px;color:var(--ink);font-weight:600}
+.focus-tempo-control{display:grid;grid-template-columns:minmax(0,1fr) minmax(90px,1fr) 86px;gap:14px;align-items:center;margin:16px 0;font-size:12px}
+.focus-tempo-control input[type=range]{width:100%;accent-color:var(--green);min-width:0}.focus-tempo-control input[type=number]{width:86px;margin:0;padding:7px 10px}
+@media(max-width:600px){.focus-tempo-control{grid-template-columns:minmax(0,1fr) 80px;gap:8px 12px}.focus-tempo-control label{grid-column:1/-1}.focus-tempo-control input[type=number]{width:80px}.focus-audio-presets button{margin-left:5px}}

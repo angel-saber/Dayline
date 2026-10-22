@@ -7,7 +7,7 @@ import {createNoteEditor} from './note-editor.js?v=monthly-1';
 import {renderFormatted} from './format.js?v=direct-edit-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const KEY='dayline.focus.v1';
-const defaults={binaural:false,ambient:true,metronome:false,beat:6,bpm:80,tonesVolume:30,ambientVolume:35,metronomeVolume:50};
+const defaults={binaural:false,ambient:true,metronome:false,beat:10,bpm:80,tonesVolume:30,ambientVolume:35,metronomeVolume:50};
 const node=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;};
 const button=(text,action,className='secondary')=>{const el=node('button',className,text);el.type='button';el.addEventListener('click',action);return el;};
 export function setupFocus(api){
@@ -91,12 +91,22 @@ export function setupFocus(api){
   function audioSection(){
     const section=node('section','focus-section');section.append(node('h2','','Focus audio'),node('p','field-hint',musicProfile(personality()).description+' Mix any layers you like. Binaural tones use separate left and right channels for headphones. The metronome tempo is independent of the soundtrack.'));
     section.append(node('p','field-hint','Suggested starting points to experiment with (binaural difference · metronome tempo):'));
-    const suggestions=node('ul','field-hint');
-    for(const copy of [
-      'Gentle reflection or brainstorming: try 6 Hz · 60 BPM.',
-      'Relaxed, steady writing or reading: try 10 Hz · 80 BPM.',
-      'A brisk rhythm for routine tasks: try 14 Hz · 100 BPM.',
-    ])suggestions.append(node('li','',copy));
+    const suggestions=node('ul','field-hint focus-audio-presets'),presetButtons=[],tempoControls=new Map();
+    for(const [name,copy,beat,bpm] of [
+      ['Gentle','Gentle reflection or brainstorming: 6 Hz · 60 BPM.',6,60],
+      ['Relaxed','Relaxed, steady writing or reading: 10 Hz · 80 BPM.',10,80],
+      ['Brisk','A brisk rhythm for routine tasks: 14 Hz · 100 BPM.',14,100],
+    ]){
+      const item=node('li'),apply=button('Use '+name.toLowerCase(),()=>{
+        audioSettings.beat=beat;audioSettings.bpm=bpm;syncTempos();changeAudio();
+      });
+      apply.setAttribute('aria-label',`Use ${name.toLowerCase()}: ${beat} Hz and ${bpm} BPM`);
+      presetButtons.push({apply,beat,bpm});item.append(node('span','',copy),apply);suggestions.append(item);
+    }
+    function syncTempos(){
+      for(const [key,inputs] of tempoControls)for(const input of inputs)input.value=audioSettings[key];
+      for(const {apply,beat,bpm} of presetButtons)apply.setAttribute('aria-pressed',String(audioSettings.beat===beat&&audioSettings.bpm===bpm));
+    }
     section.append(suggestions,node('p','field-hint','These are optional listening ideas, not scientifically established recipes for flow. Evidence for binaural brainwave entrainment is mixed; no frequency or BPM guarantees a mental state. Hz is the difference between the two ear tones; BPM controls the separate metronome. Adjust either independently, or turn a layer off.'));
     const action=button(audio.playing?'Pause audio':'Play audio',async()=>{
       action.disabled=true;try{if(audio.playing)await audio.fadeOut();else await audio.play({...audioSettings,layout:personality()});action.textContent=audio.playing?'Pause audio':'Play audio';buttons();}catch(e){error=e.message;status();}finally{action.disabled=false;}
@@ -107,8 +117,17 @@ export function setupFocus(api){
       const range=node('input');range.type='range';range.min=0;range.max=100;range.value=audioSettings[volume];range.setAttribute('aria-label',label+' volume');range.addEventListener('input',()=>{audioSettings[volume]=Number(range.value);changeAudio();});row.append(toggleLabel,range);section.append(row);
     }
     for(const [key,label,min,max] of [['bpm','Metronome tempo (BPM)',30,180],['beat','Binaural frequency difference (Hz)',2,15]]){
-      const labelNode=node('label','focus-number-label',label),input=node('input');input.type='number';input.min=min;input.max=max;input.step=1;input.value=audioSettings[key];input.setAttribute('aria-label',label);input.addEventListener('change',()=>{if(!input.reportValidity())return;audioSettings[key]=Number(input.value);changeAudio();});labelNode.append(input);section.append(labelNode);
+      const row=node('div','focus-tempo-control'),labelNode=node('label','',label),range=node('input'),input=node('input');
+      range.type='range';input.type='number';input.required=true;range.id='focus-tempo-'+key;labelNode.htmlFor=range.id;
+      for(const control of [range,input]){control.min=min;control.max=max;control.step=1;control.value=audioSettings[key];}
+      range.setAttribute('aria-label',label+' slider');input.setAttribute('aria-label',label);
+      range.setAttribute('aria-describedby','focus-preset-help');input.setAttribute('aria-describedby','focus-preset-help');
+      tempoControls.set(key,[range,input]);
+      range.addEventListener('input',()=>{audioSettings[key]=Number(range.value);syncTempos();changeAudio();});
+      input.addEventListener('change',()=>{if(!input.reportValidity())return;audioSettings[key]=Number(input.value);syncTempos();changeAudio();});
+      row.append(labelNode,range,input);section.append(row);
     }
+    const help=node('p','field-hint','Presets update both sliders. Fine-tune either value below; layer switches stay as you set them.');help.id='focus-preset-help';section.append(help);syncTempos();
     async function changeAudio(){save();if(audio.playing){try{await audio.play({...audioSettings,layout:personality()});}catch(e){error=e.message;status();}}}
     section.append(action);return section;
   }
