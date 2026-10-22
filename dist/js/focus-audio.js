@@ -1,4 +1,4 @@
-import {musicProfile,musicLength,renderMusic} from './focus-music.js?v=cyberpunk-2';
+import {musicProfile,musicLength,renderMusic} from './focus-music.js?v=orchestra-3';
 // All sounds are generated locally; no remote tracks, accounts or audio downloads.
 export class FocusAudio{
   constructor(){this.sources=[];this.playing=false;this.generation=0;}

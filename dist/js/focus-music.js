@@ -2,36 +2,14 @@
 // No recordings, external assets, or background JavaScript scheduling.
 export function musicProfile(layout){
   if(layout==='builder')return {layout,bpm:112,label:'Cyberpunk drive',description:'Dark cyberpunk loop: distorted synth bass, punchy breakbeats, minor-key atmosphere, and glitch accents at 112 BPM.'};
-  if(layout==='founder')return {layout,bpm:96,label:'Baroque-inspired keys',description:'Original Baroque-inspired loop: plucked keyboard tones, a moving bass line, and interwoven melodic figures at 96 BPM.'};
+  if(layout==='founder')return {layout,bpm:76,label:'Symphonic horizon',description:'Original synthesized orchestral score: sustained string-like ensembles, brass-like swells, deep bass, and timpani with a spacious hall effect at 76 BPM.'};
   return {layout:'zen',label:'Warm ambient sound',description:'Soft, warm ambient sound for an unhurried pace.'};
 }
 export function musicLength(sampleRate,layout){return Math.round(sampleRate*60/musicProfile(layout).bpm*64);}
 export function renderMusic(data,rate,layout){
   const profile=musicProfile(layout);if(profile.layout==='zen')throw new Error('Zen uses the ambient noise layer.');
   if(layout==='builder'){renderCyberpunk(data,rate);return;}
-  const beat=60/profile.bpm,tau=2*Math.PI;
-  const frequency=midi=>440*2**((midi-69)/12);
-  function note(midi,at,length,volume,kind){
-    const start=Math.round(at*rate),count=Math.ceil(length*rate),hz=frequency(midi);
-    for(let i=0;i<count;i++){
-      const t=i/rate,attack=Math.min(1,t/.008),release=Math.min(1,(length-t)/.06);let value;
-      if(kind==='keys')value=(Math.sin(tau*hz*t)+.42*Math.sin(tau*hz*2*t)+.2*Math.sin(tau*hz*3*t)+.09*Math.sin(tau*hz*4*t))*Math.exp(-t*4.5);
-      else if(kind==='bass')value=Math.sin(tau*hz*t)*Math.exp(-t*3);
-      else value=(Math.sin(tau*hz*t)+.22*Math.sin(tau*hz*2*t))*Math.exp(-t*9);
-      data[(start+i)%data.length]+=value*volume*attack*Math.max(0,release);
-    }
-  }
-  // C major, A minor, F major, G major; each progression spans four bars.
-  const chords=[[60,64,67],[57,60,64],[53,57,60],[55,59,62]];
-  for(let bar=0;bar<16;bar++){
-    const chord=chords[bar%4],at=bar*4*beat;
-    for(let b=0;b<4;b++)note(chord[b%2===0?0:2]-12,at+b*beat,beat*.85,.12,'bass');
-      const figure=bar%2?[2,1,0,1,2,1,0,2]:[0,1,2,1,0,2,1,2];
-      for(let step=0;step<8;step++)note(chord[figure[step]]+12+(step===6&&bar%4===3?12:0),at+step*beat/2,beat*.9,.13,'keys');
-      for(let b=0;b<4;b++)note(chord[(b+1)%3],at+b*beat,beat*1.3,.08,'keys');
-  }
-  let peak=0;for(const value of data)peak=Math.max(peak,Math.abs(value));
-  if(peak>0)for(let i=0;i<data.length;i++)data[i]*=.8/peak;
+  renderOrchestra(data,rate);
 }
 
 // A sparse E-minor industrial groove with a half-time backbeat and four-bar fills.
@@ -77,6 +55,57 @@ function renderCyberpunk(data,rate){
     atmosphere(root+36,at);
     // Short, low-volume digital stutters punctuate the ends of phrases.
     if(bar%2===1)for(let j=0;j<3;j++)sound(at+(3.5+j*.125)*beat,.045,t=>Math.sin(tau*(880+j*220)*t)*Math.exp(-t*70)*.025);
+  }
+  let peak=0;for(const value of data)peak=Math.max(peak,Math.abs(value));
+  if(peak>0)for(let i=0;i<data.length;i++)data[i]*=.8/peak;
+}
+
+// Slow, connected orchestral voicings. Wavetables keep long ensemble notes inexpensive.
+function renderOrchestra(data,rate){
+  const beat=60/76,tau=2*Math.PI,size=2048;
+  function table(harmonics){
+    const values=new Float32Array(size);
+    for(let i=0;i<size;i++)for(let h=1;h<=harmonics.length;h++)values[i]+=Math.sin(tau*i*h/size)*harmonics[h-1];
+    return values;
+  }
+  const strings=table([.52,.21,.12,.065,.035,.02]),brass=table([.6,.24,.14,.075,.035]),bass=table([.8,.12,.04]);
+  function sample(wave,phase){const at=((phase%1)+1)%1*size,i=Math.floor(at);return wave[i]+(wave[(i+1)%size]-wave[i])*(at-i);}
+  function note(midi,at,length,volume,wave,ensemble=false){
+    const hz=440*2**((midi-69)/12),start=Math.round(at*rate),count=Math.ceil(length*rate);
+    let phase=0;
+    for(let i=0;i<count;i++){
+      const t=i/rate,u=t/length;
+      const envelope=Math.min(1,t/.55)*Math.min(1,(length-t)/.7)*(.72+.28*Math.sin(Math.PI*u));
+      phase+=hz/rate*(1+.0018*Math.sin(tau*4.7*t));
+      let value=sample(wave,phase);
+      if(ensemble)value=(value+sample(wave,phase*1.003+ .17)+sample(wave,phase*.997+ .39))/3;
+      data[(start+i)%data.length]+=value*volume*Math.max(0,envelope);
+    }
+  }
+  function timpani(at,midi,volume){
+    const hz=440*2**((midi-69)/12),start=Math.round(at*rate);
+    for(let i=0;i<rate*1.6;i++){
+      const t=i/rate,value=(Math.sin(tau*hz*t)+.42*Math.sin(tau*hz*1.5*t)+.17*Math.sin(tau*hz*2.08*t))*Math.exp(-t*3.7)*Math.min(1,t/.006);
+      data[(start+i)%data.length]+=value*volume;
+    }
+  }
+  // D minor → B-flat → F → C, then G minor → B-flat → A → A: a broad eight-bar arc.
+  const progression=[[50,57,62,65],[46,53,58,62],[41,53,57,60],[48,55,60,64],[43,55,58,62],[46,53,58,62],[45,52,57,61],[45,52,57,61]];
+  const melody=[77,74,72,76,74,77,76,73,77,81,79,76,79,77,76,73];
+  for(let bar=0;bar<16;bar++){
+    const chord=progression[bar%8],at=bar*4*beat,secondHalf=bar>=8;
+    chord.slice(1).forEach(midi=>note(midi,at,4.2*beat,.12,strings,true));
+    note(chord[0]-12,at,4.1*beat,.16,bass);
+    note(melody[bar],at+.25*beat,3.6*beat,secondHalf?.11:.08,strings,true);
+    if(bar%2===0||secondHalf)chord.slice(1,3).forEach(midi=>note(midi,at+.4*beat,3.3*beat,secondHalf?.075:.045,brass,true));
+    if(bar%2===0)timpani(at,chord[0]-12,.14);
+    if(bar%4===3)timpani(at+3*beat,33,.075);
+  }
+  // A circular, non-recursive reverb tail carries naturally across the loop boundary.
+  const dry=data.slice();
+  for(const [seconds,gain] of [[.071,.13],[.113,.11],[.173,.09],[.239,.07],[.347,.055],[.503,.04]]){
+    const delay=Math.round(seconds*rate);
+    for(let i=0;i<data.length;i++)data[(i+delay)%data.length]+=dry[i]*gain;
   }
   let peak=0;for(const value of data)peak=Math.max(peak,Math.abs(value));
   if(peak>0)for(let i=0;i<data.length;i++)data[i]*=.8/peak;
