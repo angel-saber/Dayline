@@ -1,5 +1,5 @@
-import {setupMonthly} from './monthly.js?v=monthly-1';
-import {moveToDay} from './month-model.js?v=monthly-1';
+import {setupMonthly} from './monthly.js?v=quick-add-1';
+import {moveToDay,quickNote} from './month-model.js?v=quick-add-1';
 import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,timeLabel} from './model.js?v=monthly-1';
 import {load,save,validState} from './storage.js?v=monthly-1';
 import {attachGestures} from './gestures.js';
@@ -143,6 +143,14 @@ const monthly=setupMonthly({root:$('#monthly-view'),getState:()=>state,announce,
   onOpen(date,id){
     selected=date;switchView('daily');
     if(id){const entry=entries().find(e=>e.id===id);if(entry){const slot=$(`#timeline .slot[data-minute="${Math.floor(entry.minute/state.settings.interval)*state.settings.interval}"] .slot-notes`);openEditor(slot,entry.minute,entry);slot.scrollIntoView({block:'center'});}}
+  },
+  onAdd(date,title,time){
+    try{
+      const entry=quickNote(title,time,crypto.randomUUID()),previous=state.days[date]||[];
+      state.days[date]=[...previous,entry].sort((a,b)=>a.minute-b.minute);
+      if(!persist()){state.days[date]=previous;return false;}
+      undo={days:{[date]:structuredClone(previous)}};monthly.render();toast('Note added. Open its title to write more.',true);
+    }catch(error){toast(error.message);return false;}
   },
   onMove(source,id,target){
     try{

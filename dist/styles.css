@@ -66,3 +66,9 @@ body:has(#monthly-view:not([hidden])) main{max-width:1280px}
 .month-drop-target{background:#e0ebd4;outline:2px solid var(--green);outline-offset:-2px}
 .month-move-dialog input{display:block;width:100%;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--white);margin:8px 0 20px}
 @media(max-width:750px){.month-grid{grid-template-columns:1fr}.month-day{min-height:64px;border-right:0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:65px minmax(0,1fr);gap:8px}.month-day:last-child{border-bottom:0}.month-day-heading{padding-top:6px}.month-heading h1{font-size:34px}.month-note-title{font-size:12px}.topbar{gap:8px}.tab{padding:9px 12px}.month-move,.month-drag{padding:2px 5px}}
+
+.month-day-heading{cursor:pointer;touch-action:manipulation}
+.month-quick-dialog label{display:block;margin-bottom:16px;font-size:12px}
+.month-quick-dialog input{display:block;width:100%;margin-top:7px;border:1px solid var(--line);border-radius:6px;background:var(--white);padding:12px}
+.month-quick-dialog .inline>button{padding:10px 12px;border-radius:6px}
+.month-note-time{display:block;font-size:9px;font-weight:normal;color:var(--muted);margin-top:4px}

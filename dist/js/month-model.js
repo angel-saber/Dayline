@@ -15,3 +15,10 @@ export function moveToDay(days,source,id,target){
   if(days[target]?.some(e=>e.id===id))throw new Error('That date already contains a note with the same ID.');
   return {...days,[source]:days[source].filter(e=>e.id!==id),[target]:[...(days[target]||[]),entry].sort((a,b)=>a.minute-b.minute)};
 }
+export function quickNote(title,time,id){
+  title=title.trim();
+  if(!title||title.length>200)throw new Error('Enter a title of 1–200 characters.');
+  if(!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time))throw new Error('Choose a valid time.');
+  const [hour,minute]=time.split(':').map(Number);
+  return {id,title,text:'',minute:hour*60+minute,done:false,task:false,format:[],tasks:[]};
+}
