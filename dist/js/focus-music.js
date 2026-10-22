@@ -1,94 +1,85 @@
 // Original procedural scores, rendered once per layout and looped by the audio engine.
 // No recordings, external assets, or background JavaScript scheduling.
 export function musicProfile(layout){
-  if(layout==='builder')return {layout,bpm:104,label:'Cyberpunk drive',description:'Cinematic electronic score: a straight low synth pulse, dark sustained drones, heavy impacts, a gradual tension-building swell, and a punchy rhythmic synth-brass hook at the peak at 104 BPM.'};
+  if(layout==='builder')return {layout,bpm:116,label:'Cyberpunk mission',description:'Original synthesized cyberpunk score: a driving mechanical beat, gritty sequenced bass, dark drones, and rhythmic glitch textures that evolve together at 116 BPM.'};
   if(layout==='founder')return {layout,bpm:76,label:'Symphonic horizon',description:'Original synthesized orchestral score: sustained string-like ensembles, brass-like swells, deep bass, and timpani, with lively rising bells and a sustained strings-and-trumpet-like crescendo with a gradual rise, broad held peak, and gentle release at 76 BPM.'};
   return {layout:'zen',bpm:60,label:'Still temple',description:'Original meditation-inspired soundscape: synthesized singing-bowl-like tones and soft bells with long, spacious decays. No piano, drums, chants, or ritual recordings.'};
 }
-export function musicLength(sampleRate,layout){return Math.round(sampleRate*60/musicProfile(layout).bpm*(layout==='founder'?96:64));}
+export function musicLength(sampleRate,layout){return Math.round(sampleRate*60/musicProfile(layout).bpm*(layout==='founder'?96:layout==='builder'?128:64));}
 export function renderMusic(data,rate,layout){
   const profile=musicProfile(layout);if(profile.layout==='zen'){renderBowls(data,rate);return;}
   if(layout==='builder'){renderCyberpunk(data,rate);return;}
   renderOrchestra(data,rate);
 }
 
-// A cinematic electronic cue: straight pulses, pedal tones, long drones, and slow tension.
+// One continuous cyberpunk cue: every layer shares the same grid and evolving intensity.
 function renderCyberpunk(data,rate){
-  const beat=60/104,tau=2*Math.PI,size=2048;
-  let seed=7319;
+  const beat=60/116,tau=2*Math.PI,size=2048;
+  let seed=90210;
   const noise=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/2147483648-1;};
-  const wave=new Float32Array(size);
-  for(let i=0;i<size;i++)for(let h=1;h<=7;h++)wave[i]+=Math.sin(tau*i*h/size)/h;
-  const sample=phase=>{const at=((phase%1)+1)%1*size,i=Math.floor(at);return wave[i]+(wave[(i+1)%size]-wave[i])*(at-i);};
   const smooth=value=>{const x=Math.max(0,Math.min(1,value));return x*x*(3-2*x);};
+  const saw=new Float32Array(size);
+  for(let i=0;i<size;i++)for(let h=1;h<=8;h++)saw[i]+=Math.sin(tau*i*h/size)/h;
+  const sample=phase=>{const at=((phase%1)+1)%1*size,i=Math.floor(at);return saw[i]+(saw[(i+1)%size]-saw[i])*(at-i);};
   function sound(at,length,fn){
     const start=Math.round(at*rate),count=Math.ceil(length*rate);
     for(let i=0;i<count;i++){
-      const t=i/rate,edge=Math.min(1,t/.006,(length-t)/.025);
-      data[(start+i)%data.length]+=fn(t)*Math.max(0,edge);
+      const t=i/rate,edge=smooth(t/.004)*smooth((length-t)/.016);
+      data[(start+i)%data.length]+=fn(t)*edge;
     }
   }
-  function pulse(midi,at,strong){
+  function bass(midi,at,volume){
     const hz=440*2**((midi-69)/12);
-    sound(at,beat*.46,t=>{
-      const grit=Math.tanh(sample(hz*t)*1.7)*.15,sub=Math.sin(tau*hz*t)*.15;
-      return (grit+sub)*Math.exp(-t*6)*(strong?1:.65);
+    sound(at,beat*.45,t=>{
+      const transient=Math.exp(-t*11),sub=Math.sin(tau*hz*t)*.6;
+      const body=Math.tanh(sample(hz*t)*1.8)*(.4+.3*transient);
+      return (sub+body)*volume*Math.exp(-t*4.5)*smooth(t/.012);
     });
   }
-  function impact(at,heavy=false){
-    sound(at,heavy?2.2:.5,t=>{
-      const hz=heavy?34:43,decay=heavy?3.5:12;
-      return Math.sin(tau*(hz*t+85*.02*(1-Math.exp(-t/.02))))*Math.exp(-t*decay)*(heavy?.35:.28)+noise()*Math.exp(-t*65)*.025;
-    });
-  }
-  function drone(midi,at,length,volume){
+  function sequence(midi,at,volume){
     const hz=440*2**((midi-69)/12);
-    sound(at,length,t=>{
-      const envelope=smooth(t/1.7)*smooth((length-t)/1.9);
-      const tone=(sample(hz*t)+sample(hz*1.002*t+.2))*.5;
-      return tone*volume*envelope*(.8+.2*Math.sin(tau*.12*t));
+    sound(at,beat*.32,t=>{
+      // Short, low-mid synth gates repeat as texture, without a solo melody.
+      const envelope=Math.exp(-t*22);
+      return (sample(hz*t)*.7+sample(hz*1.003*t+.2)*.3)*volume*envelope;
     });
   }
-  for(let bar=0;bar<16;bar++){
-    const at=bar*4*beat,root=[28,24,28,26][Math.floor(bar/4)];
-    // Even eighth notes stay on the pedal tone: no swing, walking bass, or breakbeat.
-    for(let step=0;step<8;step++)pulse(root,at+step*beat/2,step%2===0);
-    impact(at,bar%4===0);impact(at+2*beat);
-    drone(root+24,at,5.5*beat,.025);drone(root+31,at,5.5*beat,.018);
-    if(bar>=4&&bar<=13)drone(root+36,at,5*beat,.018*smooth((bar-3)/6));
-    // Quiet clock-like textures, rather than a hi-hat/snare groove.
-    for(let step=0;step<4;step++)sound(at+(step+.5)*beat,.035,t=>noise()*Math.exp(-t*120)*.016);
+  function kick(at,volume){sound(at,.34,t=>(Math.sin(tau*(42*t+85*.018*(1-Math.exp(-t/.018))))*Math.exp(-t*15)+noise()*Math.exp(-t*210)*.04)*volume);}
+  function snare(at,volume){let last=0;sound(at,.16,t=>{const n=noise(),high=n-last;last=n;return (high*Math.exp(-t*32)*.6+Math.sin(tau*190*t)*Math.exp(-t*38)*.4)*volume;});}
+  function tick(at,volume){let last=0;sound(at,.04,t=>{const n=noise(),high=n-last;last=n;return high*Math.exp(-t*130)*volume;});}
+  function drone(midi,at,volume){
+    const hz=440*2**((midi-69)/12),length=17*beat;
+    sound(at,length,t=>(sample(hz*t)+sample(hz*1.0015*t+.3))*.5*volume*smooth(t/1.7)*smooth((length-t)/2));
   }
-  // A slowly opening synthetic tension layer crests near the end, then releases.
-  sound(8*beat,48*beat,t=>{
-    const envelope=smooth(t/(28*beat))*smooth((48*beat-t)/(12*beat));
-    const shimmer=Math.sin(tau*164.81*t)+.25*Math.sin(tau*246.94*t)+.15*Math.sin(tau*329.63*t);
-    return shimmer*envelope*.045;
+  for(let bar=0;bar<32;bar++){
+    const at=bar*4*beat,root=[28,28,24,26][Math.floor(bar/8)];
+    // A broad rise and fall keeps the loop moving without an abrupt drop or spotlight cue.
+    const intensity=.45+.55*Math.sin(Math.PI*(bar+.5)/32)**2;
+    for(let step=0;step<8;step++)bass(root+(step===6&&bar%4===3?12:0),at+step*beat/2,(step%2===0?.15:.105)*intensity);
+    for(let b=0;b<4;b++)kick(at+b*beat,.22+.07*intensity);
+    snare(at+2*beat,.065+.035*intensity);
+    const pattern=[12,19,12,24,12,19,15,19];
+    for(let step=0;step<8;step++){
+      sequence(root+pattern[step],at+step*beat/2,.025+.025*intensity);
+      tick(at+(step+.5)*beat/2,.011+.009*intensity);
+    }
+    // Tiny gated static bursts recur inside the rhythm instead of becoming a separate hook.
+    for(const step of (bar%2?[5,11,14]:[3,10])){
+      sound(at+step*beat/4,beat*.17,t=>{
+        const gate=Math.sin(tau*75*t)>0?1:0;
+        return noise()*gate*Math.exp(-t*65)*(.018+.012*intensity);
+      });
+    }
+    if(bar%4===0){drone(root+24,at,.013+.008*intensity);drone(root+31,at,.009+.005*intensity);}
+    if(bar>=8&&bar<24)sequence(root+24,at+3.75*beat,.022*intensity);
+  }
+  // Dark electronic atmosphere slowly opens above the pulse and subsides before looping.
+  sound(0,128*beat,t=>{
+    const u=t/(128*beat),swell=Math.sin(Math.PI*u)**2;
+    return (Math.sin(tau*164.81*t)+.3*Math.sin(tau*246.94*t))*swell*.016;
   });
-  // Original compact synth-brass hook: clipped articulation and a lower, solid register.
-  function brassStab(midi,at,length,volume){
-    const hz=440*2**((midi-69)/12),levels=[.56,.31,.2,.13,.085,.05,.025];
-    sound(at,length,t=>{
-      const envelope=smooth(t/.018)*smooth((length-t)/.075)*(.72+.28*Math.exp(-t*12));
-      let tone=0;
-      for(let h=1;h<=levels.length;h++)if(hz*h<rate*.42){
-        const brightness=h===1?1:.38+.62*Math.exp(-t*9);
-        tone+=(Math.sin(tau*hz*h*t)+.25*Math.sin(tau*hz*1.002*h*t+.1))*levels[h-1]*brightness;
-      }
-      return Math.tanh(tone*1.35)*volume*envelope;
-    });
-  }
-  // Two call-and-response gestures sit over the E pedal and finish before its change.
-  for(const [midi,position,length,volume] of [
-    [59,40,.42,.12],[64,40.75,.4,.13],[62,41.5,.3,.11],[59,42,.7,.12],
-    [57,43.25,.38,.1],[59,44,.42,.12],[62,44.75,.35,.12],[64,45.5,.65,.13],[59,46.75,.6,.11],
-  ])brassStab(midi,position*beat,length*beat,volume);
-  for(let i=0;i<data.length;i++){
-    const position=i/rate/beat;
-    data[i]*=.7+.45*smooth((position-8)/32)*(1-smooth((position-48)/16));
-  }
   const dry=data.slice();
-  for(const [seconds,gain] of [[.13,.09],[.29,.065],[.47,.04]]){
+  for(const [seconds,gain] of [[beat*.75,.075],[beat*1.5,.045]]){
     const delay=Math.round(seconds*rate);for(let i=0;i<data.length;i++)data[(i+delay)%data.length]+=dry[i]*gain;
   }
   let peak=0;for(const value of data)peak=Math.max(peak,Math.abs(value));
