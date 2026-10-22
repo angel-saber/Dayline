@@ -1,4 +1,4 @@
-import {validGuidedReports} from './activities-model.js?v=activities-1';
+import {validGuidedReports} from './activities-model.js?v=activities-2';
 import {validBullets} from './bullets.js?v=bullets-1';
 import {validFocusReports} from './focus-model.js?v=focus-1';
 import { DEFAULT_SETTINGS } from './model.js';

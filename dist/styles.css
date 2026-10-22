@@ -192,3 +192,5 @@ main{padding-bottom:180px}
 @media(prefers-reduced-motion:reduce){.breath-orb{transform:none;will-change:auto}}
 
 @media(max-width:400px){.topbar .tab{padding:9px 10px}}
+
+.compass-populate{display:flex;gap:10px;align-items:center;font-size:13px;line-height:1.6;margin:24px 0 16px}.activity-dialog input[type=time]{display:block;background:var(--white);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:12px;margin:8px 0 16px;width:100%}
