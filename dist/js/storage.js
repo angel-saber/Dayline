@@ -1,3 +1,4 @@
+import {validGuidedReports} from './activities-model.js?v=activities-1';
 import {validBullets} from './bullets.js?v=bullets-1';
 import {validFocusReports} from './focus-model.js?v=focus-1';
 import { DEFAULT_SETTINGS } from './model.js';
@@ -16,6 +17,7 @@ export function validState(value) {
       if(!e || typeof e.id!=='string' || seen.has(e.id) || typeof e.text!=='string' || !Number.isInteger(e.minute) || e.minute<0 || e.minute>=1440 || typeof e.done!=='boolean') throw new Error('Invalid entry in backup.');
       seen.add(e.id);
       const result={id:e.id,text:e.text,minute:e.minute,done:e.done};
+      if(e.guidedActivities!==undefined)result.guidedActivities=validGuidedReports(e.guidedActivities);
       if(e.focusReports!==undefined)result.focusReports=validFocusReports(e.focusReports);
       if(e.title!==undefined){if(typeof e.title!=='string'||e.title.length>200)throw new Error('Invalid note title.');result.title=e.title;}
       if(e.format!==undefined)result.format=validFormat(e.format,e.text);
