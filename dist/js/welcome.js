@@ -10,9 +10,9 @@ export function setupWelcome(api){
     <ul class="welcome-features"><li>Write and format notes, add titles and checkboxes, and move plans between time slots.</li><li>See your month at a glance and drag notes to a different day.</li><li>Launch Focus Mode with music, a commitment, an interruption log, and a session reflection.</li></ul>
     <section class="welcome-step"><h2>Choose your rhythm</h2><label for="welcome-interval">Time intervals</label><select id="welcome-interval"><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60" selected>1 hour</option><option value="120">2 hours</option><option value="240">4 hours</option><option value="custom">Custom</option></select><div id="welcome-custom-wrap" hidden><label for="welcome-custom">Custom interval in minutes</label><input id="welcome-custom" type="number" min="1" max="1440" step="1" value="60" required></div></section>
     <section class="welcome-step"><h2>Choose your atmosphere</h2><p class="field-hint">Preview a personality. The look and voice change together.</p><fieldset class="welcome-personalities"><legend class="sr-only">Dayline personality</legend>
-    <label><input type="radio" name="welcome-personality" value="zen" checked><strong>Zen Light</strong><span>Calm, encouraging, and unhurried.</span></label>
-    <label><input type="radio" name="welcome-personality" value="builder"><strong>Builder</strong><span>Dark, driven, and ready to lock in.</span></label>
-    <label><input type="radio" name="welcome-personality" value="founder"><strong>Founder</strong><span>Elegant, strategic, and resourceful.</span></label></fieldset>
+    <label><input type="radio" name="welcome-personality" value="zen" checked><strong>Zen Light</strong><span>Gentle and encouraging.</span></label>
+    <label><input type="radio" name="welcome-personality" value="builder"><strong>Builder</strong><span>Visionary and powerful.</span></label>
+    <label><input type="radio" name="welcome-personality" value="founder"><strong>Founder</strong><span>Elegant and strategic.</span></label></fieldset>
     <p class="welcome-preview" aria-live="polite"></p></section>
     <p class="field-hint welcome-footnote">You can change these choices anytime in Settings. Notes are saved on this device; download a backup to keep a copy.</p>
     <p class="welcome-error" role="status"></p><div class="inline"><button class="primary welcome-confirm" type="button">Start my day</button><button class="secondary welcome-cancel" type="button" hidden>Cancel</button></div>`;
