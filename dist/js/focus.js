@@ -88,6 +88,14 @@ export function setupFocus(api){
   }
   function audioSection(){
     const section=node('section','focus-section');section.append(node('h2','','Focus audio'),node('p','field-hint','Mix any layers you like. Binaural tones use separate left and right channels for headphones.'));
+    section.append(node('p','field-hint','Suggested starting points to experiment with (binaural difference · metronome tempo):'));
+    const suggestions=node('ul','field-hint');
+    for(const copy of [
+      'Gentle reflection or brainstorming: try 6 Hz · 60 BPM.',
+      'Relaxed, steady writing or reading: try 10 Hz · 80 BPM.',
+      'A brisk rhythm for routine tasks: try 14 Hz · 100 BPM.',
+    ])suggestions.append(node('li','',copy));
+    section.append(suggestions,node('p','field-hint','These are optional listening ideas, not scientifically established recipes for flow. Evidence for binaural brainwave entrainment is mixed; no frequency or BPM guarantees a mental state. Hz is the difference between the two ear tones; BPM controls the separate metronome. Adjust either independently, or turn a layer off.'));
     const action=button(audio.playing?'Pause audio':'Play audio',async()=>{
       action.disabled=true;try{if(audio.playing)await audio.fadeOut();else await audio.play(audioSettings);action.textContent=audio.playing?'Pause audio':'Play audio';buttons();}catch(e){error=e.message;status();}finally{action.disabled=false;}
     },'primary');
