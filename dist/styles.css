@@ -100,3 +100,53 @@ body:has(#monthly-view:not([hidden])) main{max-width:1280px}
 @media(prefers-reduced-motion:reduce){.focus-committing .focus-prep-fields,.focus-committing .focus-commitment{animation:none!important}}
 .focus-committing>.focus-window-header,.focus-committing>h1{animation:focus-fade-out .4s forwards}
 @media(prefers-reduced-motion:reduce){.focus-committing>.focus-window-header,.focus-committing>h1{animation:none!important}}
+
+/* Appearance variants leave the original Zen Light rules intact. */
+.layout-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;border:0;padding:0;margin:18px 0}
+.settings-card .layout-choice{display:flex;flex-direction:column;position:relative;margin:0;padding:12px;gap:10px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:var(--white);min-width:0}
+.layout-choice:has(input:checked){outline:2px solid var(--green);outline-offset:2px}
+.layout-choice input{position:absolute;right:12px;top:12px;accent-color:var(--green);margin:0;width:16px;height:16px}
+.layout-choice strong{font-size:13px}.layout-choice>span:last-child{font-size:11px;line-height:1.6;color:var(--muted)}
+.layout-swatch{height:66px;border-radius:5px;padding:15px 12px;display:flex;flex-direction:column;gap:6px;overflow:hidden;border:1px solid #8883}
+.layout-swatch i{display:block;height:5px;width:70%;border-radius:2px}.layout-swatch i:nth-child(2){width:47%}.layout-swatch i:nth-child(3){width:60%}
+.swatch-zen{background:#f5f4ef}.swatch-zen i{background:#a4b39a}.swatch-builder{background:#0b111b}.swatch-builder i{background:#65dded;border-radius:0}.swatch-founder{background:#eee5d6}.swatch-founder i{background:#9c7850}
+:root[data-layout=builder]{color-scheme:dark;--paper:#0b111b;--white:#141f2e;--ink:#e5edf7;--muted:#a2b2c7;--line:#2c4057;--green:#74dce9;--soft:#1d3444;--surface:#101a28;--accent-ink:#091b25;font-family:Arial,Helvetica,sans-serif}
+:root[data-layout=founder]{color-scheme:light;--paper:#eee5d6;--white:#fcf7ee;--ink:#3d3026;--muted:#786752;--line:#cdbda6;--green:#86623d;--soft:#e5d7c1;--surface:#f5eddf;--accent-ink:#fffaf2;font-family:Arial,Helvetica,sans-serif}
+:root:is([data-layout=builder],[data-layout=founder]) :is(nav,.notice,.entry.done,.outside-month,.focus-extend,.focus-combined-log){background:var(--soft)}
+:root:is([data-layout=builder],[data-layout=founder]) :is(.settings-card,.secondary,.focus-window textarea){background:var(--surface);border-color:var(--line)}
+:root:is([data-layout=builder],[data-layout=founder]) :is(.pill,.entry,.check,.editor,select,input[type=number],.auth-card input,.month-note){border-color:var(--line)}
+:root:is([data-layout=builder],[data-layout=founder]) :is(.tab,.slot-time,.end-time,.empty-add,.entry-tools button,.drag-handle,.day-end,.day-end span,.gesture-guide,.notice,.month-empty){color:var(--muted)}
+:root:is([data-layout=builder],[data-layout=founder]) .tab.active{color:var(--ink)}
+:root:is([data-layout=builder],[data-layout=founder]) :is(.primary,.focus-mini){background:var(--green);color:var(--accent-ink)}
+:root:is([data-layout=builder],[data-layout=founder]) footer{background:var(--paper)}
+:root:is([data-layout=builder],[data-layout=founder]) :is(.now-badge,.month-note,.month-today,.empty-add:hover,.focus-mantra){background:var(--soft)}
+:root:is([data-layout=builder],[data-layout=founder]) .focus-mantra{border-left-color:var(--green)}
+:root:is([data-layout=builder],[data-layout=founder]) :is(.slot.drop-target,.month-drop-target){background:var(--soft);outline-color:var(--green)}
+:root:is([data-layout=builder],[data-layout=founder]) :is(.slot.current .slot-time,.empty-add:hover){color:var(--green)}
+:root:is([data-layout=builder],[data-layout=founder]) :is(.status-dot,#progress,.entry.done .check){background:var(--green)}
+:root:is([data-layout=builder],[data-layout=founder]) .entry.done .check{color:var(--accent-ink);border-color:var(--green)}
+:root:is([data-layout=builder],[data-layout=founder]) .entry.done .note-text{color:var(--muted)}
+:root:is([data-layout=builder],[data-layout=founder]) .format-toolbar button:not(.format-highlight){background:var(--soft);color:var(--ink)}
+:root:is([data-layout=builder],[data-layout=founder]) .format-toolbar button[aria-pressed=true]{box-shadow:inset 0 0 0 2px var(--green)}
+:root:is([data-layout=builder],[data-layout=founder]) .format-toolbar .format-highlight{color:#293b30}
+:root:is([data-layout=builder],[data-layout=founder]) .switch{background:var(--line)}
+:root:is([data-layout=builder],[data-layout=founder]) .switch:checked{background:var(--green)}
+:root:is([data-layout=builder],[data-layout=founder]) .focus-save-status{color:var(--green)}
+:root[data-layout=builder] body{background-image:linear-gradient(#74dce906 1px,transparent 1px),linear-gradient(90deg,#74dce906 1px,transparent 1px);background-size:40px 40px}
+:root[data-layout=builder] :is(h1,.settings-card h2,dialog h2,.focus-window h2,.auth-card h2,.note-title-input){font-family:Arial,Helvetica,sans-serif;font-weight:600;letter-spacing:-.6px}
+:root[data-layout=builder] :is(.eyebrow,.slot-time,.timeline-top,.focus-stats,.save-status,.month-week h2,.month-note-time){font-family:'SFMono-Regular',Consolas,'Liberation Mono',monospace}
+:root[data-layout=builder] :is(nav,.tab,.entry,.settings-card,.month-grid,.focus-section,.focus-commitment,dialog,.primary,.secondary,.month-note){border-radius:4px}
+:root[data-layout=builder] .topbar{border-bottom-color:var(--green)}
+:root[data-layout=builder] .entry{border-left:2px solid #74dce960;box-shadow:0 4px 16px #0002}
+:root[data-layout=builder] .focus-mantra{font-family:'SFMono-Regular',Consolas,monospace;font-size:18px!important}
+:root[data-layout=builder] .focus-inspiration{font-family:Arial,Helvetica,sans-serif}
+:root[data-layout=founder] :is(h1,.brand,.settings-card h2,dialog h2,.focus-window h2,.daily-note-title,.note-title-input){font-family:Georgia,'Times New Roman',serif}
+:root[data-layout=founder] h1{letter-spacing:-1.5px}
+:root[data-layout=founder] .brand{font-weight:normal;letter-spacing:-1px}
+:root[data-layout=founder] .topbar{border-bottom:double 3px var(--line)}
+:root[data-layout=founder] :is(.entry,.settings-card,.focus-section,.focus-commitment,.month-grid){border-radius:3px;box-shadow:0 4px 16px #51371b07}
+:root[data-layout=founder] .entry{padding-top:18px;padding-bottom:18px}
+:root[data-layout=founder] .daily-note-title{font-size:17px;font-weight:normal}
+:root[data-layout=founder] .eyebrow{letter-spacing:3px}
+:root[data-layout=founder] .focus-mantra{border-radius:0}
+@media(max-width:600px){.layout-options{grid-template-columns:1fr}.settings-card .layout-choice{display:grid;grid-template-columns:74px 1fr;padding-right:38px;gap:6px 14px}.layout-swatch{grid-row:span 2;height:58px}.layout-choice strong{align-self:end}.layout-choice>span:last-child{align-self:start}.layout-choice input{top:22px}}
