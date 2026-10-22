@@ -1,4 +1,4 @@
-import {NOTE_TYPES,typeSelect,typeBadge,matchesNoteType} from './note-types.js?v=note-types-1';
+import {NOTE_TYPES,typeChips,typeBadge,matchesNoteType} from './note-types.js?v=type-chips-1';
 import {voice,focusMantras,focusIdeas} from './personality.js?v=intention-labels-3';
 import {dateActions} from './date-actions.js?v=quick-add-1';
 import {dayKey,parseDay,timeLabel} from './model.js';
@@ -15,10 +15,10 @@ export function setupMonthly({root,getState,onOpen,onMove,onAdd,announce}){
     const heading=node('h2','',`Quick note · ${dateLabel}`);heading.id='quick-note-heading';dialog.setAttribute('aria-labelledby',heading.id);
     const titleLabel=node('label','','Note title'),title=node('input');title.type='text';title.required=true;title.maxLength=200;title.placeholder='What would you like to plan?';title.setAttribute('aria-label','Quick note title');titleLabel.append(title);
     const timeLabel=node('label','','Time'),time=node('input');time.type='time';time.required=true;time.step='60';time.value='09:00';time.setAttribute('aria-label','Quick note time');timeLabel.append(time);
-    const typeLabel=node('label','','Type (optional)'),noteType=typeSelect('', 'Quick note type');typeLabel.append(noteType);
+    const noteType=typeChips('', 'Type (optional)');
     const actions=node('div','inline'),add=node('button','primary','Add note');add.type='submit';
     actions.append(add,button('Cancel','Cancel quick note',()=>dialog.close()),button('Open day','Open this date in Daily',()=>{dialog.close();onOpen(date);}));
-    form.append(heading,titleLabel,timeLabel,typeLabel,actions);dialog.append(form);document.body.append(dialog);
+    form.append(heading,titleLabel,timeLabel,noteType.element,actions);dialog.append(form);document.body.append(dialog);
     title.addEventListener('input',()=>title.setCustomValidity(''));
     form.addEventListener('submit',event=>{
       event.preventDefault();title.setCustomValidity(title.value.trim()?'':'Enter a note title.');
