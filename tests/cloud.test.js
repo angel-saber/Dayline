@@ -19,7 +19,7 @@ test('email-code verification saves a session and authenticated requests use its
     calls.push({ url, ...opts }); return new Response(JSON.stringify(url.endsWith('/verify') ? session : []));
   } });
   await client.sendCode('test@example.com'); await client.verifyCode('test@example.com', '123456'); await client.loadDays();
-  assert.equal(JSON.parse(calls[0].body).create_user, true);
+  assert.equal(JSON.parse(calls[0].body).create_user, false);
   assert.equal(JSON.parse(calls[1].body).type, 'email');
   assert.equal(calls[2].headers.Authorization, 'Bearer test-access');
   assert.equal(client.readSession().user.id, 'one');
@@ -48,4 +48,13 @@ test('sign-out revokes only this session and clears its browser credentials', as
   const urls = []; const client = new CloudClient(config, { storage: storage(), fetcher: async url => { urls.push(url); return new Response(null, { status: 204 }); } });
   client.storeSession(session); await client.signOut();
   assert.ok(urls[0].endsWith('/logout?scope=local')); assert.equal(client.readSession(), null);
+});
+
+test('sign-up must be explicitly requested when asking for an email code', async () => {
+  const bodies=[];
+  const client=new CloudClient(config,{storage:storage(),fetcher:async(url,opts)=>{bodies.push(JSON.parse(opts.body));return new Response('{}');}});
+  await client.sendCode('test@example.com');
+  await client.sendCode('test@example.com',{createUser:true});
+  await client.sendCode('test@example.com',{createUser:false});
+  assert.deepEqual(bodies.map(body=>body.create_user),[false,true,false]);
 });

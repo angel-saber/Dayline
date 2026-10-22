@@ -1,4 +1,4 @@
-import {setupWelcome} from './welcome.js?v=personality-descriptions-4';
+import {setupWelcome} from './welcome.js?v=optional-login-1';
 import {voice,personality,applyPersonality} from './personality.js?v=intention-labels-3';
 import {setupFocus} from './focus.js?v=intention-labels-3';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
@@ -9,7 +9,7 @@ import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,timeLabel} from './mod
 import {load,save,validState} from './storage.js?v=focus-1';
 import {attachGestures} from './gestures.js';
 import {Reminders} from './reminders.js?v=monthly-1';
-import {setupAccounts} from './accounts.js?v=focus-1';
+import {setupAccounts} from './accounts.js?v=optional-login-1';
 import {dailyQuote} from './quotes.js?v=intention-labels-3';
 import {renderFormatted} from './format.js?v=direct-edit-1';
 import {createNoteEditor} from './note-editor.js?v=monthly-1';
@@ -257,7 +257,7 @@ if(readFailed)toast('Stored data could not be read. Saving is paused to protect 
 applyPersonality();
 window.addEventListener('dayline:appearance',()=>{applyPersonality();if(view==='daily'&&!editor)renderTimeline();else{renderHeader();renderSummary();}if(view==='monthly')monthly.show(selected);});
 
-setupWelcome({getState:()=>state,toast,saveInterval(interval){
+setupWelcome({getState:()=>state,isSignedIn:()=>accounts?.isSignedIn()===true,toast,saveInterval(interval){
   flushEditor();const previous=state.settings.interval;state.settings.interval=interval;
   if(!persist()){state.settings.interval=previous;return false;}
   undo=null;renderSettings();if(view==='daily')renderTimeline();else if(view==='monthly')monthly.render();return true;

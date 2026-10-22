@@ -1,5 +1,5 @@
 import { cloudConfig } from './config.js';
-import { CloudClient } from './cloud.js';
+import { CloudClient } from './cloud.js?v=optional-login-1';
 import { SyncEngine, mergeGuestDays, clearSyncedDrafts } from './sync.js?v=focus-1';
 import { load, save, validState } from './storage.js?v=focus-1';
 
@@ -26,8 +26,9 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
 
   function accountView() {
     $('#account-email').textContent = user?.email || 'Using this device';
-    $('#account-explanation').textContent = user ? 'Your notes sync with this account. Time intervals and reminder preferences stay on each device.' : 'Sign in to keep your notes with you across devices.';
-    $('#sign-in-button').hidden = !!user || !cloud?.config;
+    $('#account-explanation').textContent = user ? 'Your notes sync with this account. Time intervals and reminder preferences stay on each device.' : cloud?.config ? 'Sign in to keep your notes with you across devices.' : 'Use Dayline without an account. Account access is not available yet.';
+    $('#sign-in-button').hidden = !!user;
+    $('#reopen-welcome').hidden = !user;
     $('#sign-out-button').hidden = !user;
     $('#sync-now').hidden = !user;
     let hasGuest = false;
@@ -56,6 +57,7 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
       // Read only this account's draft cache; never auto-import guest notes.
       setState({ version: 1, days: engine.days, settings: preferences }, { readFailed: false });
       engine.start(); accountView(); showLogin(false);
+      window.dispatchEvent(new Event('dayline:account'));
       await engine.sync();
       if (current !== generation) return;
     } catch (error) {
@@ -77,7 +79,7 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
     busy = true; $('#auth-submit').disabled = true; $('#send-code').disabled = true;
     try { await action(); }
     catch (error) { $('#auth-message').textContent = error.message; }
-    finally { busy = false; $('#auth-submit').disabled = false; $('#send-code').disabled = false; }
+    finally { busy = false; $('#auth-submit').disabled = !cloud?.config; $('#send-code').disabled = !cloud?.config; }
   }
 
   $('#auth-form').addEventListener('submit', event => {
@@ -88,10 +90,10 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
       if (!cloud?.config) throw new Error('Account setup is not active yet. You can still continue on this device.');
       if (!token) {
         if (Date.now() < resendAt) throw new Error('Please wait a minute before requesting another code.');
-        await cloud.sendCode(email); resendAt = Date.now() + 60000;
+        await cloud.sendCode(email, { createUser: $('#create-account').checked }); resendAt = Date.now() + 60000;
         $('#code-field').hidden = false; $('#auth-code').required = true;
         $('#auth-submit').textContent = 'Sign in'; $('#send-code').hidden = false;
-        $('#auth-message').textContent = 'Check your email for your sign-in code. New here? This also creates your account.';
+        $('#auth-message').textContent = 'Check your email for your code. Enter it below to continue.';
         $('#auth-code').focus();
       } else {
         const session = await cloud.verifyCode(email, token);
@@ -102,14 +104,14 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
   });
   $('#send-code').onclick = () => withBusy(async () => {
     if (Date.now() < resendAt) throw new Error('Please wait a minute before requesting another code.');
-    await cloud.sendCode($('#auth-email').value.trim()); resendAt = Date.now() + 60000;
+    await cloud.sendCode($('#auth-email').value.trim(), { createUser: $('#create-account').checked }); resendAt = Date.now() + 60000;
     $('#auth-message').textContent = 'A new code is on its way. Use the newest code in your inbox.';
   });
   $('#auth-email').oninput = () => {
     $('#code-field').hidden = true; $('#auth-code').required = false;
     $('#auth-code').value = ''; $('#auth-submit').textContent = 'Email me a sign-in code'; $('#send-code').hidden = true;
   };
-  $('#continue-local').onclick = () => { showLogin(false); accountView(); };
+  $('#continue-local').onclick = () => { try{localStorage.setItem('dayline.guest.v1','yes');}catch{} showLogin(false); accountView(); };
   $('#sign-in-button').onclick = () => showLogin(true);
   $('#sync-now').onclick = () => { flushEditor(); engine?.sync().catch(error => toast(error.message)); };
   $('#import-device-notes').onclick = () => $('#migration-dialog').showModal();
@@ -141,6 +143,7 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
     engine = null; user = null;
     try { setState(load(), { readFailed: false }); } catch { setState({ version: 1, days: {}, settings: getState().settings }, { readFailed: true }); }
     accountView(); showLogin(true); onStatus('local');
+    window.dispatchEvent(new Event('dayline:account'));
   }
 
   window.addEventListener('online', () => engine?.sync().catch(() => {}));
@@ -167,11 +170,13 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
       setState({ ...getState(), settings: preferences });
     }
   } catch { /* Invalid optional preferences do not affect the notes. */ }
-  showLogin(!!cloud?.config); accountView();
+  let returningGuest=false;try{returningGuest=localStorage.getItem('dayline.guest.v1')==='yes'||localStorage.getItem('dayline.v1')!==null;}catch{}
+  showLogin(!returningGuest); accountView();
+  $('#auth-submit').disabled=!cloud?.config;$('#create-account').disabled=!cloud?.config;
   try {
     const session = cloud?.config && cloud.readSession();
     if (session) enterAccount(session);
-    else if (!cloud?.config) $('#auth-message').textContent = 'Cloud accounts are being set up. Your device notes are still available below.';
+    else if (!cloud?.config) $('#auth-message').textContent = 'Account sign-in and sign-up are not available yet. Continue without an account to use Dayline on this device.';
   } catch (error) { $('#auth-message').textContent = error.message; }
   return {
     persist,

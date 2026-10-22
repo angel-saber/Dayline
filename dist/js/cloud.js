@@ -73,8 +73,8 @@ export class CloudClient {
     return data;
   }
 
-  sendCode(email) {
-    return this.request('/auth/v1/otp', { method: 'POST', body: { email, create_user: true } });
+  sendCode(email, { createUser = false } = {}) {
+    return this.request('/auth/v1/otp', { method: 'POST', body: { email, create_user: createUser === true } });
   }
 
   async verifyCode(email, token) {

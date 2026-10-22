@@ -1,17 +1,18 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f5f4ef"><meta name="description" content="A quiet space to plan your day, one interval at a time."><title>Dayline — A little room for your day</title><link rel="icon" href="./icon.svg" type="image/svg+xml"><script src="./js/appearance.js?v=welcome-1"></script><link rel="stylesheet" href="./styles.css?v=welcome-1"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f5f4ef"><meta name="description" content="A quiet space to plan your day, one interval at a time."><title>Dayline — A little room for your day</title><link rel="icon" href="./icon.svg" type="image/svg+xml"><script src="./js/appearance.js?v=welcome-1"></script><link rel="stylesheet" href="./styles.css?v=optional-login-1"></head>
 <body>
 <header class="topbar"><a class="brand" href="./" aria-label="Dayline home"><span class="brand-icon">◒</span> dayline<span class="brand-dot">.</span></a><nav id="planner-nav" aria-label="Main navigation" hidden><button id="daily-tab" class="tab active" aria-selected="true">Daily</button><button id="monthly-tab" class="tab" aria-selected="false">Monthly</button><button id="settings-tab" class="tab" aria-selected="false">Settings</button></nav><span class="save-status" id="save-status" role="status">● Saved on this device</span></header>
 <main>
 <section id="auth-view" class="auth-view" aria-labelledby="auth-heading">
   <div class="eyebrow">YOUR DAY, WHEREVER YOU ARE</div>
   <h1 id="auth-heading">A little space.<br>Always yours.</h1>
-  <p class="intro">Sign in to bring your notes along, from your phone to your laptop and back.</p>
+  <p class="intro">Use Dayline without an account, or sign in when account access is available. Creating an account is optional.</p>
   <form id="auth-form" class="auth-card">
     <h2>Welcome to Dayline</h2>
-    <p class="field-hint">New here or coming back? We’ll email you a sign-in code.</p>
+    <p class="field-hint">Already have an account? Sign in with an email code. New here? Choose to create an account below, or continue without one.</p>
     <label for="auth-email">Email address</label>
     <input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com" required maxlength="254">
+    <label class="auth-signup-option"><input id="create-account" type="checkbox"> Create an account if I’m new (optional)</label>
     <div id="code-field" hidden>
       <label for="auth-code">Code from your email</label>
       <input id="auth-code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" maxlength="10" placeholder="Enter your code">
@@ -20,7 +21,7 @@
     <button id="send-code" class="text-button" type="button" hidden>Send a new code</button>
     <p id="auth-message" class="field-hint" role="status" aria-live="polite"></p>
   </form>
-  <button id="continue-local" class="local-continue">Continue on this device <span>→</span></button>
+  <button id="continue-local" class="local-continue">Continue without an account <span>→</span></button>
   <p class="auth-footnote">Your account notes are private. Without signing in, notes stay on this device.</p>
 </section>
 <div id="planner" hidden>
@@ -62,5 +63,5 @@
 <dialog id="restore-dialog"><form method="dialog"><h2>Restore this backup?</h2><p id="restore-explanation">This replaces all notes and settings on this device. Download your current backup first if you want to keep it.</p><div class="inline"><button value="cancel" class="secondary">Cancel</button><button value="restore" class="primary">Restore backup</button></div></form></dialog>
 <dialog id="migration-dialog"><form method="dialog"><h2>Bring your notes along?</h2><p>This adds this device’s notes to the account you’re signed into. Existing account notes and the original device notes are kept.</p><div class="inline"><button value="cancel" class="secondary">Cancel</button><button value="import" class="primary">Add notes to my account</button></div></form></dialog>
 <div class="sr-only" id="announcer" aria-live="polite"></div>
-<script type="module" src="./js/app.js?v=personality-descriptions-4"></script>
+<script type="module" src="./js/app.js?v=optional-login-1"></script>
 </body></html>

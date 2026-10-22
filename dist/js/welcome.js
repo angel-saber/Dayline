@@ -1,7 +1,8 @@
 // First-visit setup stays separate from planner data and personality presentation.
 const KEY='dayline.welcome.v1';
-export function needsWelcome(storage){
-  try{return storage.getItem(KEY)!=='done'&&!['dayline.v1','dayline.appearance.v1','dayline.focus.v1'].some(key=>storage.getItem(key)!==null);}catch{return true;}
+export function needsWelcome(storage,signedIn=false){
+  if(!signedIn)return false;
+  try{return storage.getItem(KEY)!=='done';}catch{return true;}
 }
 export function setupWelcome(api){
   const dialog=document.createElement('dialog');dialog.className='welcome-window';dialog.setAttribute('aria-labelledby','welcome-title');
@@ -29,7 +30,7 @@ export function setupWelcome(api){
   interval.addEventListener('change',()=>{$('#welcome-custom-wrap').hidden=interval.value!=='custom';});
   dialog.querySelectorAll('input[name="welcome-personality"]').forEach(input=>input.addEventListener('change',preview));
   function open(revisit=false){
-    if(dialog.open||closing)return;
+    if(dialog.open||closing||!api.isSignedIn())return;
     manual=revisit;original=document.documentElement.dataset.layout||'zen';
     const minutes=revisit?api.getState().settings.interval:60;
     interval.value=[15,30,60,120,240].includes(minutes)?String(minutes):'custom';custom.value=minutes;$('#welcome-custom-wrap').hidden=interval.value!=='custom';
@@ -51,6 +52,14 @@ export function setupWelcome(api){
     if(matchMedia('(prefers-reduced-motion: reduce)').matches)finish();else setTimeout(finish,420);
   });
   document.querySelector('#reopen-welcome').addEventListener('click',()=>open(true));
-  try{if(needsWelcome(localStorage))open();}catch{open();}
+  function checkAccount(){
+    if(!api.isSignedIn()){
+      if(dialog.open){window.dispatchEvent(new CustomEvent('dayline:preview-layout',{detail:original}));dialog.close();}
+      return;
+    }
+    try{if(needsWelcome(localStorage,true))open();}catch{open();}
+  }
+  window.addEventListener('dayline:account',checkAccount);
+  checkAccount();
   return {open};
 }

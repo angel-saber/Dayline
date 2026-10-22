@@ -173,3 +173,5 @@ body:has(#monthly-view:not([hidden])) main{max-width:1280px}
 :root[data-layout=builder] .welcome-window h1{font-family:Arial,Helvetica,sans-serif;font-weight:600}:root[data-layout=builder] .welcome-personalities label{border-radius:3px}
 @media(max-width:600px){.welcome-window{padding:26px 20px}.welcome-window h1{font-size:31px}.welcome-personalities{grid-template-columns:1fr}.welcome-personalities label{padding:12px}.welcome-personalities span{grid-column:2}}
 @media(prefers-reduced-motion:reduce){.welcome-leaving,.welcome-leaving::backdrop{animation:none}}
+.auth-card .auth-signup-option{display:flex;align-items:flex-start;gap:10px;font-size:12px;line-height:1.6;margin:18px 0}
+.auth-card .auth-signup-option input{width:16px;height:16px;flex:none;margin:2px 0 0;padding:0;accent-color:var(--green)}
