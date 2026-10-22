@@ -1,4 +1,4 @@
-import {setupFocus} from './focus.js?v=focus-1';
+import {setupFocus} from './focus.js?v=focus-advice-2';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
 import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=focus-1';
 import {setupMonthly} from './monthly.js?v=quick-add-1';

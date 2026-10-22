@@ -72,8 +72,8 @@ export function setupFocus(api){
     base('A little commitment. A steady beginning.');const fields=node('div','focus-prep-fields');
     fields.append(node('p','focus-lead','For this interval, you have chosen to focus on:'),noteSection());
     for(const [title,copy] of [
-      ['Overwhelmed about your tasks?','Break the task into smaller chunks. What is one action you could do in five minutes? Open the note and write just the next few steps.'],
-      ['Confused about your tasks?','Clarify the result you are aiming for: what would “done” look like? If information is missing, name the question and who you could ask for clarification.'],
+      ['Overwhelmed about your tasks?','Break the task into smaller chunks and write just the next few steps. Ask for help, or consider delegating a task to someone who can take it on. If starting feels hard, try just two minutes of one small action. You can decide what comes next after that.'],
+      ['Confused about your tasks?','Clarify the result you are aiming for: what would “done” look like? Work backwards from that result to find your first step. If information is missing, name the question and who you could ask for clarification. Set aside time to research or explore before expecting yourself to have the answer.'],
     ]){const details=node('details','focus-advice');details.append(node('summary','',title),node('p','',copy));fields.append(details);}
     const commitment=node('section','focus-commitment');commitment.append(node('h2','','Choose your commitment'));
     const mantra=node('textarea','focus-mantra-input');mantra.rows=3;mantra.value=session.mantra;mantra.setAttribute('aria-label','Commitment mantra');mantra.addEventListener('input',()=>{mantra.setCustomValidity('');session.mantra=mantra.value;save();});
