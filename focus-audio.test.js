@@ -28,3 +28,21 @@ test('finishing schedules a fade to silence and stops every source',async()=>{
   try{const audio=new FocusAudio();await audio.play(settings);const sources=[...audio.sources],gain=audio.master.gain;await audio.fadeOut();assert.equal(gain.ramp.value,0);assert.equal(gain.ramp.time,1.75);assert.equal(audio.playing,false);assert.ok(sources.every(s=>s.stopped));}
   finally{globalThis.AudioContext=original;}
 });
+
+test('layout soundtracks are distinct, cached, and switch without leaving old sources playing',async()=>{
+  const original=globalThis.AudioContext;globalThis.AudioContext=MockContext;
+  try{
+    const audio=new FocusAudio(),mix={...settings,binaural:false,metronome:false};
+    await audio.play({...mix,layout:'builder'});
+    const electronic=audio.sources[0],samples=electronic.buffer.getChannelData(0);
+    assert.ok(samples.some(v=>v!==0));assert.ok(samples.every(v=>Number.isFinite(v)&&Math.abs(v)<=.801));
+    await audio.play({...mix,layout:'builder',ambientVolume:40});
+    assert.equal(audio.sources[0].buffer,electronic.buffer);assert.equal(electronic.stopped,true);
+    const previous=audio.sources[0];await audio.play({...mix,layout:'founder'});
+    const classical=audio.sources[0];assert.equal(previous.stopped,true);assert.notEqual(classical.buffer,electronic.buffer);
+    assert.ok(classical.buffer.getChannelData(0).some(v=>v!==0));
+    assert.ok(classical.buffer.getChannelData(0).every(v=>Number.isFinite(v)&&Math.abs(v)<=.801));
+    assert.notEqual(classical.buffer.length,electronic.buffer.length);
+    audio.stop();assert.equal(classical.stopped,true);
+  }finally{globalThis.AudioContext=original;}
+});
