@@ -1,4 +1,4 @@
-import {musicProfile,musicLength,renderMusic} from './focus-music.js?v=symphonic-legato-8';
+import {musicProfile,musicLength,renderMusic} from './focus-music.js?v=cinematic-drive-9';
 // All sounds are generated locally; no remote tracks, accounts or audio downloads.
 export class FocusAudio{
   constructor(){this.sources=[];this.playing=false;this.generation=0;}

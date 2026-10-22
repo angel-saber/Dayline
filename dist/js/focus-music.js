@@ -1,7 +1,7 @@
 // Original procedural scores, rendered once per layout and looped by the audio engine.
 // No recordings, external assets, or background JavaScript scheduling.
 export function musicProfile(layout){
-  if(layout==='builder')return {layout,bpm:112,label:'Cyberpunk drive',description:'Dark cyberpunk loop: distorted synth bass, punchy breakbeats, minor-key atmosphere, and glitch accents at 112 BPM.'};
+  if(layout==='builder')return {layout,bpm:104,label:'Cyberpunk drive',description:'Cinematic electronic score: a straight low synth pulse, dark sustained drones, heavy impacts, and a gradual tension-building swell at 104 BPM.'};
   if(layout==='founder')return {layout,bpm:76,label:'Symphonic horizon',description:'Original synthesized orchestral score: sustained string-like ensembles, brass-like swells, deep bass, and timpani, with lively rising bells and a sustained strings-and-trumpet-like crescendo with a gradual rise, broad held peak, and gentle release at 76 BPM.'};
   return {layout:'zen',bpm:60,label:'Still temple',description:'Original meditation-inspired soundscape: synthesized singing-bowl-like tones and soft bells with long, spacious decays. No piano, drums, chants, or ritual recordings.'};
 }
@@ -12,49 +12,66 @@ export function renderMusic(data,rate,layout){
   renderOrchestra(data,rate);
 }
 
-// A sparse E-minor industrial groove with a half-time backbeat and four-bar fills.
+// A cinematic electronic cue: straight pulses, pedal tones, long drones, and slow tension.
 function renderCyberpunk(data,rate){
-  const beat=60/112,tau=2*Math.PI;
+  const beat=60/104,tau=2*Math.PI,size=2048;
   let seed=7319;
   const noise=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/2147483648-1;};
+  const wave=new Float32Array(size);
+  for(let i=0;i<size;i++)for(let h=1;h<=7;h++)wave[i]+=Math.sin(tau*i*h/size)/h;
+  const sample=phase=>{const at=((phase%1)+1)%1*size,i=Math.floor(at);return wave[i]+(wave[(i+1)%size]-wave[i])*(at-i);};
+  const smooth=value=>{const x=Math.max(0,Math.min(1,value));return x*x*(3-2*x);};
   function sound(at,length,fn){
     const start=Math.round(at*rate),count=Math.ceil(length*rate);
     for(let i=0;i<count;i++){
-      const t=i/rate,edge=Math.min(1,t/.003,(length-t)/.012);
+      const t=i/rate,edge=Math.min(1,t/.006,(length-t)/.025);
       data[(start+i)%data.length]+=fn(t)*Math.max(0,edge);
     }
   }
-  function bass(midi,at,length){
+  function pulse(midi,at,strong){
+    const hz=440*2**((midi-69)/12);
+    sound(at,beat*.46,t=>{
+      const grit=Math.tanh(sample(hz*t)*1.7)*.15,sub=Math.sin(tau*hz*t)*.15;
+      return (grit+sub)*Math.exp(-t*6)*(strong?1:.65);
+    });
+  }
+  function impact(at,heavy=false){
+    sound(at,heavy?2.2:.5,t=>{
+      const hz=heavy?34:43,decay=heavy?3.5:12;
+      return Math.sin(tau*(hz*t+85*.02*(1-Math.exp(-t/.02))))*Math.exp(-t*decay)*(heavy?.35:.28)+noise()*Math.exp(-t*65)*.025;
+    });
+  }
+  function drone(midi,at,length,volume){
     const hz=440*2**((midi-69)/12);
     sound(at,length,t=>{
-      // Band-limited harmonics add grit without a harsh full-spectrum saw wave.
-      let wave=0;
-      for(let h=1;h<=7&&hz*h<rate*.42;h++)wave+=Math.sin(tau*hz*h*t+Math.sin(tau*.3*t)*.08)/h;
-      const grit=Math.tanh(wave*2.2)*.16,sub=Math.sin(tau*hz*t)*.13;
-      const pump=.45+.55*Math.min(1,(t%beat)/.14);
-      return (grit+sub)*Math.exp(-t*1.8)*pump;
+      const envelope=smooth(t/1.7)*smooth((length-t)/1.9);
+      const tone=(sample(hz*t)+sample(hz*1.002*t+.2))*.5;
+      return tone*volume*envelope*(.8+.2*Math.sin(tau*.12*t));
     });
   }
-  function kick(at){sound(at,.4,t=>(Math.sin(tau*(43*t+100*.018*(1-Math.exp(-t/.018))))*Math.exp(-t*13)*.52+noise()*Math.exp(-t*190)*.055));}
-  function snare(at){let previous=0;sound(at,.22,t=>{const n=noise(),high=n-previous;previous=n;return high*Math.exp(-t*22)*.1+Math.sin(tau*175*t)*Math.exp(-t*32)*.11;});}
-  function hat(at,open=false){let previous=0;sound(at,open?.17:.055,t=>{const n=noise(),high=n-previous;previous=n;return high*Math.exp(-t*(open?30:85))*.027;});}
-  function atmosphere(root,at){
-    sound(at,beat*4,t=>{
-      const envelope=Math.sin(Math.PI*t/(beat*4))**2;
-      return [0,3,7].reduce((sum,offset)=>{const hz=440*2**((root+offset-69)/12);return sum+Math.sin(tau*hz*t)*.012+Math.sin(tau*hz*1.003*t)*.009;},0)*envelope;
-    });
-  }
-  const riff=[0,.75,1.5,2.5,3.25,3.75];
   for(let bar=0;bar<16;bar++){
-    const at=bar*4*beat,root=[28,28,24,26][Math.floor(bar/2)%4];
-    riff.forEach((position,i)=>bass(root+(i===3?7:i===5&&bar%4===3?12:0),at+position*beat,beat*(i===0?.6:.27)));
-    [0,1.5,2.75].forEach(position=>kick(at+position*beat));
-    snare(at+2*beat);
-    for(let step=0;step<8;step++)if(step!==4)hat(at+step*beat/2,step===7);
-    if(bar%4===3){snare(at+3.5*beat);hat(at+3.75*beat);}
-    atmosphere(root+36,at);
-    // Short, low-volume digital stutters punctuate the ends of phrases.
-    if(bar%2===1)for(let j=0;j<3;j++)sound(at+(3.5+j*.125)*beat,.045,t=>Math.sin(tau*(880+j*220)*t)*Math.exp(-t*70)*.025);
+    const at=bar*4*beat,root=[28,24,28,26][Math.floor(bar/4)];
+    // Even eighth notes stay on the pedal tone: no swing, walking bass, or breakbeat.
+    for(let step=0;step<8;step++)pulse(root,at+step*beat/2,step%2===0);
+    impact(at,bar%4===0);impact(at+2*beat);
+    drone(root+24,at,5.5*beat,.025);drone(root+31,at,5.5*beat,.018);
+    if(bar>=4&&bar<=13)drone(root+36,at,5*beat,.018*smooth((bar-3)/6));
+    // Quiet clock-like textures, rather than a hi-hat/snare groove.
+    for(let step=0;step<4;step++)sound(at+(step+.5)*beat,.035,t=>noise()*Math.exp(-t*120)*.016);
+  }
+  // A slowly opening synthetic tension layer crests near the end, then releases.
+  sound(8*beat,48*beat,t=>{
+    const envelope=smooth(t/(28*beat))*smooth((48*beat-t)/(12*beat));
+    const shimmer=Math.sin(tau*164.81*t)+.25*Math.sin(tau*246.94*t)+.15*Math.sin(tau*329.63*t);
+    return shimmer*envelope*.045;
+  });
+  for(let i=0;i<data.length;i++){
+    const position=i/rate/beat;
+    data[i]*=.7+.45*smooth((position-8)/32)*(1-smooth((position-48)/16));
+  }
+  const dry=data.slice();
+  for(const [seconds,gain] of [[.13,.09],[.29,.065],[.47,.04]]){
+    const delay=Math.round(seconds*rate);for(let i=0;i<data.length;i++)data[(i+delay)%data.length]+=dry[i]*gain;
   }
   let peak=0;for(const value of data)peak=Math.max(peak,Math.abs(value));
   if(peak>0)for(let i=0;i<data.length;i++)data[i]*=.8/peak;
