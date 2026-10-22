@@ -1,4 +1,4 @@
-import {musicProfile,musicLength,renderMusic} from './focus-music.js?v=orchestra-3';
+import {musicProfile,musicLength,renderMusic} from './focus-music.js?v=zen-piano-4';
 // All sounds are generated locally; no remote tracks, accounts or audio downloads.
 export class FocusAudio{
   constructor(){this.sources=[];this.playing=false;this.generation=0;}
@@ -15,16 +15,23 @@ export class FocusAudio{
       this.musicBuffers??=new Map();
       let buffer=this.musicBuffers.get(profile.layout);
       if(!buffer){
-        buffer=ctx.createBuffer(1,profile.layout==='zen'?ctx.sampleRate*4:musicLength(ctx.sampleRate,profile.layout),ctx.sampleRate);
+        buffer=ctx.createBuffer(1,musicLength(ctx.sampleRate,profile.layout),ctx.sampleRate);
         const data=buffer.getChannelData(0);
-        if(profile.layout==='zen'){let brown=0;for(let i=0;i<data.length;i++){brown=(brown+(Math.random()*2-1)*.02)/1.02;data[i]=brown*3;}}
-        else renderMusic(data,ctx.sampleRate,profile.layout);
+        renderMusic(data,ctx.sampleRate,profile.layout);
         this.musicBuffers.set(profile.layout,buffer);
       }
       const source=ctx.createBufferSource();source.buffer=buffer;source.loop=true;
-      if(profile.layout==='zen'){const filter=ctx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=950;source.connect(filter);filter.connect(gain(settings.ambientVolume/100*.35));}
-      else source.connect(gain(settings.ambientVolume/100*.3));
+      source.connect(gain(settings.ambientVolume/100*.3));
       source.start();this.sources.push(source);
+    }
+    if(settings.warmAmbient){
+      if(!this.warmBuffer){
+        this.warmBuffer=ctx.createBuffer(1,ctx.sampleRate*4,ctx.sampleRate);
+        const data=this.warmBuffer.getChannelData(0);let brown=0;
+        for(let i=0;i<data.length;i++){brown=(brown+(Math.random()*2-1)*.02)/1.02;data[i]=brown*3;}
+      }
+      const source=ctx.createBufferSource(),filter=ctx.createBiquadFilter();source.buffer=this.warmBuffer;source.loop=true;
+      filter.type='lowpass';filter.frequency.value=950;source.connect(filter);filter.connect(gain((settings.warmVolume??35)/100*.35));source.start();this.sources.push(source);
     }
     if(settings.metronome){
       // A looping audio buffer stays steady even when JS timers are throttled.

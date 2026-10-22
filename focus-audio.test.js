@@ -46,3 +46,19 @@ test('layout soundtracks are distinct, cached, and switch without leaving old so
     audio.stop();assert.equal(classical.stopped,true);
   }finally{globalThis.AudioContext=original;}
 });
+
+test('warm ambience is an independent layer in every layout, with or without music',async()=>{
+  const original=globalThis.AudioContext;globalThis.AudioContext=MockContext;
+  try{
+    const audio=new FocusAudio();
+    for(const layout of ['zen','builder','founder']){
+      const mix={...settings,layout,binaural:false,metronome:false,warmAmbient:true,warmVolume:25};
+      await audio.play(mix);assert.equal(audio.sources.length,2);
+      const music=audio.sources[0].buffer,warm=audio.sources[1].buffer;
+      assert.notEqual(music,warm);assert.equal(warm.length,8000*4);assert.ok(music.length>warm.length);
+      await audio.play({...mix,ambient:false});assert.equal(audio.sources.length,1);assert.equal(audio.sources[0].buffer,warm);
+      await audio.play({...mix,warmAmbient:false});assert.equal(audio.sources.length,1);assert.equal(audio.sources[0].buffer,music);
+    }
+    audio.stop();assert.equal(audio.sources.length,0);
+  }finally{globalThis.AudioContext=original;}
+});

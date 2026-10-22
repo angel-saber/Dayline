@@ -1,13 +1,13 @@
-import {musicProfile} from './focus-music.js?v=orchestra-3';
+import {musicProfile} from './focus-music.js?v=zen-piano-4';
 import {voice,personality,focusMantras,focusIdeas} from './personality.js?v=personality-1';
 import {dayKey,timeLabel,bucket} from './model.js';
 import {newFocus,advanceFocus,commitFocus,findFocusNote,validFocusDraft,durationLabel,MANTRAS,INSPIRATION} from './focus-model.js?v=focus-1';
-import {FocusAudio} from './focus-audio.js?v=orchestra-3';
+import {FocusAudio} from './focus-audio.js?v=zen-piano-4';
 import {createNoteEditor} from './note-editor.js?v=monthly-1';
 import {renderFormatted} from './format.js?v=direct-edit-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const KEY='dayline.focus.v1';
-const defaults={binaural:false,ambient:true,metronome:false,beat:10,bpm:80,tonesVolume:30,ambientVolume:35,metronomeVolume:50};
+const defaults={binaural:false,ambient:true,warmAmbient:false,metronome:false,beat:10,bpm:80,tonesVolume:30,ambientVolume:35,warmVolume:35,metronomeVolume:50};
 const node=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;};
 const button=(text,action,className='secondary')=>{const el=node('button',className,text);el.type='button';el.addEventListener('click',action);return el;};
 export function setupFocus(api){
@@ -89,7 +89,7 @@ export function setupFocus(api){
     fields.append(button('Cancel preparation',()=>{clear();dialog.close();buttons();},'text-button'));dialog.append(fields,commitment);
   }
   function audioSection(){
-    const section=node('section','focus-section');section.append(node('h2','','Focus audio'),node('p','field-hint',musicProfile(personality()).description+' Mix any layers you like. Binaural tones use separate left and right channels for headphones. The metronome tempo is independent of the soundtrack.'));
+    const section=node('section','focus-section');section.append(node('h2','','Focus audio'),node('p','field-hint',musicProfile(personality()).description+' Mix any layers you like. Warm ambient sound is the original soft background layer, available with or without music in every layout. Binaural tones use separate left and right channels for headphones. The metronome tempo is independent of the soundtrack.'));
     section.append(node('p','field-hint','Suggested starting points to experiment with (binaural difference · metronome tempo):'));
     const suggestions=node('ul','field-hint focus-audio-presets'),presetButtons=[],tempoControls=new Map();
     for(const [name,copy,beat,bpm] of [
@@ -111,7 +111,7 @@ export function setupFocus(api){
     const action=button(audio.playing?'Pause audio':'Play audio',async()=>{
       action.disabled=true;try{if(audio.playing)await audio.fadeOut();else await audio.play({...audioSettings,layout:personality()});action.textContent=audio.playing?'Pause audio':'Play audio';buttons();}catch(e){error=e.message;status();}finally{action.disabled=false;}
     },'primary');
-    for(const [key,label,volume] of [['binaural','Binaural tones','tonesVolume'],['ambient',musicProfile(personality()).label,'ambientVolume'],['metronome','Steady metronome','metronomeVolume']]){
+    for(const [key,label,volume] of [['binaural','Binaural tones','tonesVolume'],['ambient',musicProfile(personality()).label,'ambientVolume'],['warmAmbient','Warm ambient sound','warmVolume'],['metronome','Steady metronome','metronomeVolume']]){
       const row=node('div','focus-audio-row'),toggleLabel=node('label',''),toggle=node('input');toggle.type='checkbox';toggle.checked=audioSettings[key];toggleLabel.append(toggle,document.createTextNode(' '+label));
       toggle.addEventListener('change',()=>{audioSettings[key]=toggle.checked;changeAudio();});
       const range=node('input');range.type='range';range.min=0;range.max=100;range.value=audioSettings[volume];range.setAttribute('aria-label',label+' volume');range.addEventListener('input',()=>{audioSettings[volume]=Number(range.value);changeAudio();});row.append(toggleLabel,range);section.append(row);
