@@ -4,6 +4,9 @@ export class FocusAudio{
   constructor(){this.sources=[];this.playing=false;this.generation=0;}
   async play(settings){
     const Context=globalThis.AudioContext||globalThis.webkitAudioContext;if(!Context)throw new Error('Focus audio is unavailable in this browser.');
+    // Declare music playback before creating/resuming Web Audio. Safari otherwise
+    // treats it as ambient audio and can mute built-in speakers in Silent Mode.
+    try{if(globalThis.navigator?.audioSession)globalThis.navigator.audioSession.type='playback';}catch{/* Older browsers can expose an unsupported session API. */}
     const generation=++this.generation;this.context??=new Context();await this.context.resume();if(generation!==this.generation)return;this.stopSources();
     const ctx=this.context;this.master=ctx.createGain();this.master.gain.value=.55;this.master.connect(ctx.destination);
     const gain=(volume)=>{const g=ctx.createGain();g.gain.value=volume;g.connect(this.master);return g;};

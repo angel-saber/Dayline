@@ -62,3 +62,20 @@ test('warm ambience is an independent layer in every layout, with or without mus
     audio.stop();assert.equal(audio.sources.length,0);
   }finally{globalThis.AudioContext=original;}
 });
+
+
+test('requests music playback before creating audio so speaker output is not classified as ambient',async()=>{
+  const original=globalThis.AudioContext,descriptor=Object.getOwnPropertyDescriptor(globalThis,'navigator');
+  const session={type:'auto'};
+  Object.defineProperty(globalThis,'navigator',{configurable:true,value:{audioSession:session}});
+  globalThis.AudioContext=class extends MockContext{constructor(){assert.equal(session.type,'playback');super();}};
+  try{const audio=new FocusAudio();await audio.play({...settings,ambient:false});assert.equal(audio.playing,true);audio.stop();}
+  finally{globalThis.AudioContext=original;if(descriptor)Object.defineProperty(globalThis,'navigator',descriptor);else delete globalThis.navigator;}
+});
+test('audio still plays when the optional playback session API rejects the setting',async()=>{
+  const original=globalThis.AudioContext,descriptor=Object.getOwnPropertyDescriptor(globalThis,'navigator');
+  Object.defineProperty(globalThis,'navigator',{configurable:true,value:{audioSession:{set type(value){throw new Error('Unsupported');}}}});
+  globalThis.AudioContext=MockContext;
+  try{const audio=new FocusAudio();await audio.play({...settings,ambient:false});assert.equal(audio.playing,true);audio.stop();}
+  finally{globalThis.AudioContext=original;if(descriptor)Object.defineProperty(globalThis,'navigator',descriptor);else delete globalThis.navigator;}
+});

@@ -183,3 +183,5 @@ body:has(#monthly-view:not([hidden])) main{max-width:1280px}
 .focus-mini{bottom:calc(95px + env(safe-area-inset-bottom));right:max(24px,env(safe-area-inset-right))}
 main{padding-bottom:180px}
 @media(max-width:600px){.focus-launch,.focus-mini{right:max(16px,env(safe-area-inset-right))}.focus-launch .primary{font-size:12px;padding:14px 18px}}
+.bullet-marker{display:inline-block;flex:none;width:17px;text-align:center;line-height:1.6;user-select:none;color:var(--ink)}
+.format-toolbar .format-bullets[aria-pressed=true]{background:var(--soft);color:var(--ink);border-color:var(--green)}

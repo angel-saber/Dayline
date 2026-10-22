@@ -1,3 +1,4 @@
+import {editBullets} from './bullets.js?v=bullets-1';
 import {segments,toggleFormat,editFormat} from './format.js?v=direct-edit-1';
 import {lineRange,editTasks,toggleTask} from './tasks.js?v=line-tasks-1';
 
@@ -13,12 +14,12 @@ export function replaceText(state,start,end,text,typingStyle){
     if(Object.keys(typingStyle).length)format.push({start,end:start+text.length,...typingStyle});
     format.sort((a,b)=>a.start-b.start);
   }
-  return {...state,text:next,format,tasks:editTasks(state.text,next,state.tasks,{start,end})};
+  return {...state,text:next,format,tasks:editTasks(state.text,next,state.tasks,{start,end}),...(state.bullets?{bullets:editBullets(state.text,next,state.bullets,{start,end})}:{})};
 }
 export function applyStyle(state,start,end,key,value=true){
   return {...state,format:toggleFormat(state.text,state.format,start,end,key,value)};
 }
-export function applyCheckbox(state,caret){return {...state,tasks:toggleTask(state.text,state.tasks,caret)};}
+export function applyCheckbox(state,caret){return {...state,tasks:toggleTask(state.text,state.tasks,caret),...(state.bullets?{bullets:state.bullets.filter(item=>item.start!==lineRange(state.text,caret).start)}:{})};}
 export function checkTask(state,start){return {...state,tasks:state.tasks.map(t=>t.start===start?{...t,done:!t.done}:t)};}
 export function selectionStyle(state,start,end){
   if(start===end)({start,end}=lineRange(state.text,start));
@@ -39,6 +40,9 @@ export function insertLineBreak(state,start,end,typingStyle){
   if(task){
     next.tasks=next.tasks.filter(t=>t.start!==caret);
     next.tasks.push({start:caret,done:false});next.tasks.sort((a,b)=>a.start-b.start);
+  }
+  if(state.bullets?.some(item=>item.start===lineRange(state.text,start).start)){
+    next.bullets=next.bullets.filter(item=>item.start!==caret);next.bullets.push({start:caret});next.bullets.sort((a,b)=>a.start-b.start);
   }
   return {state:next,caret,typingStyle:style};
 }

@@ -1,3 +1,4 @@
+import {validBullets} from './bullets.js?v=bullets-1';
 import {validFocusReports} from './focus-model.js?v=focus-1';
 import { DEFAULT_SETTINGS } from './model.js';
 import {validFormat} from './format.js?v=line-tasks-1';
@@ -18,6 +19,7 @@ export function validState(value) {
       if(e.focusReports!==undefined)result.focusReports=validFocusReports(e.focusReports);
       if(e.title!==undefined){if(typeof e.title!=='string'||e.title.length>200)throw new Error('Invalid note title.');result.title=e.title;}
       if(e.format!==undefined)result.format=validFormat(e.format,e.text);
+      if(e.bullets!==undefined)result.bullets=validBullets(e.bullets,e.text);
       if(e.tasks!==undefined)result.tasks=validTasks(e.tasks,e.text);
       if(e.task!==undefined){if(typeof e.task!=='boolean')throw new Error('Invalid checkbox task.');result.task=e.task;}
       return result;

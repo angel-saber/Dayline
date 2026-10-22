@@ -1,18 +1,18 @@
 import {setupWelcome} from './welcome.js?v=zen-name-1';
 import {voice,personality,applyPersonality} from './personality.js?v=intention-labels-3';
-import {setupFocus} from './focus.js?v=intention-labels-3';
+import {setupFocus} from './focus.js?v=speaker-playback-1';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
 import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=focus-1';
 import {setupMonthly} from './monthly.js?v=intention-labels-3';
 import {moveToDay,quickNote} from './month-model.js?v=quick-add-1';
 import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,timeLabel} from './model.js?v=monthly-1';
-import {load,save,validState} from './storage.js?v=focus-1';
+import {load,save,validState} from './storage.js?v=bullets-1';
 import {attachGestures} from './gestures.js';
 import {Reminders} from './reminders.js?v=monthly-1';
-import {setupAccounts} from './accounts.js?v=entry-first-2';
+import {setupAccounts} from './accounts.js?v=bullets-1';
 import {dailyQuote} from './quotes.js?v=intention-labels-3';
 import {renderFormatted} from './format.js?v=direct-edit-1';
-import {createNoteEditor} from './note-editor.js?v=monthly-1';
+import {createNoteEditor} from './note-editor.js?v=bullets-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const $=s=>document.querySelector(s);
 let state,readFailed=false,selected=dayKey(),view='daily',undo=null,editor=null,moveId=null,pendingImport=null,accounts=null;
@@ -73,7 +73,7 @@ function renderTimeline(){
       renderNoteLines(body,e.text,e.format,noteTasks(e),start=>{
         const tasks=noteTasks(e).map(t=>t.start===start?{...t,done:!t.done}:t);
         commit(entries().map(item=>item.id===e.id?{...item,tasks,task:false}:item),'Task updated');
-      },()=>openEditor(notes,slot.minute,e));renderFocusReports(content,e.focusReports);card.append(content);
+      },()=>openEditor(notes,slot.minute,e),e.bullets);renderFocusReports(content,e.focusReports);card.append(content);
       const tools=node('div','entry-tools');
       tools.append(button('↗','Move note to a different time',()=>openMove(e.id),'move-note'),button('×','Delete note',()=>remove(e.id),'delete-note'));
       const handle=node('span','drag-handle','⠿');handle.tabIndex=0;handle.setAttribute('role','button');handle.setAttribute('aria-label','Hold and drag to move, or press Enter to choose a time');
@@ -88,7 +88,7 @@ function renderTimeline(){
   if(invitation){invitation.append(node('span','','+'),document.createTextNode(voice("What would you like to make time for?")));}
 }
 // Render line controls beside text; never nest a checkbox inside an edit button.
-function renderNoteLines(container,text,format=[],tasks=[],onCheck,onEdit){
+function renderNoteLines(container,text,format=[],tasks=[],onCheck,onEdit,bullets=[]){
   container.replaceChildren();let start=0;
   for(const line of text.split('\n')){
     const row=node('div','note-line'),task=tasks.find(t=>t.start===start),anchor=start;
@@ -97,6 +97,7 @@ function renderNoteLines(container,text,format=[],tasks=[],onCheck,onEdit){
       check.setAttribute('aria-label',`Complete task: ${line||'Empty line'}`);
       check.addEventListener('change',()=>onCheck(anchor));row.append(check);
     }
+    if(!task&&bullets.some(item=>item.start===start)){const marker=node('span','bullet-marker','•');marker.setAttribute('aria-hidden','true');row.append(marker);}
     const textNode=onEdit?button('',`Edit note: ${line||'Empty line'}`,onEdit,'note-text'):node('span','note-text');
     const marks=format.filter(m=>m.start<start+line.length&&m.end>start).map(m=>({...m,start:Math.max(0,m.start-start),end:Math.min(line.length,m.end-start)}));
     renderFormatted(textNode,line,marks);if(!line)textNode.append(document.createTextNode('\u200b'));
@@ -109,11 +110,11 @@ function openEditor(container,minute,entry){
   let id=entry?.id;const date=selected;
   const noteEditor=createNoteEditor({
     entry,label:'Note for '+timeLabel(minute,state.settings.clock),
-    onChange({title,text,format,tasks}){
+    onChange({title,text,format,tasks,bullets}){
       const list=state.days[date]||[];undo=null;$('#undo').hidden=true;
       if(!text.trim()&&!title.trim()&&!list.find(e=>e.id===id)?.focusReports?.length){if(id)state.days[date]=list.filter(e=>e.id!==id);}
-      else if(id&&list.some(e=>e.id===id)){state.days[date]=list.map(e=>e.id===id?{...e,title,text,format,tasks,task:false}:e);}
-      else{id=crypto.randomUUID();state.days[date]=[...list,{id,title,text,minute,done:false,format,tasks,task:false}].sort((a,b)=>a.minute-b.minute);}
+      else if(id&&list.some(e=>e.id===id)){state.days[date]=list.map(e=>e.id===id?{...e,title,text,format,tasks,bullets,task:false}:e);}
+      else{id=crypto.randomUUID();state.days[date]=[...list,{id,title,text,minute,done:false,format,tasks,bullets,task:false}].sort((a,b)=>a.minute-b.minute);}
       persist();renderSummary();
     },
     onDone:renderTimeline,

@@ -1,6 +1,7 @@
+import {toggleBullets,editBullets,selectedLines} from './bullets.js?v=bullets-1';
 import {HIGHLIGHTS,renderFormatted,editFormat} from './format.js?v=direct-edit-1';
 import {lineRange,noteTasks,editTasks} from './tasks.js?v=line-tasks-1';
-import {replaceText,insertLineBreak,applyStyle,applyCheckbox,checkTask,selectionStyle} from './editor-state.js?v=continue-format-1';
+import {replaceText,insertLineBreak,applyStyle,applyCheckbox,checkTask,selectionStyle} from './editor-state.js?v=bullets-1';
 
 const element=(tag,className,text)=>{
   const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;
@@ -12,7 +13,7 @@ const makeButton=(text,label,action)=>{
 // The browser edits one surface. Only plain text, validated style ranges and line
 // tasks enter storage; pasted HTML is never installed in the document.
 export function createNoteEditor({entry,label,onChange,onDone}){
-  let state={title:entry?.title||'',text:entry?.text||'',format:structuredClone(entry?.format||[]),tasks:noteTasks(entry)};
+  let state={title:entry?.title||'',text:entry?.text||'',format:structuredClone(entry?.format||[]),tasks:noteTasks(entry),bullets:structuredClone(entry?.bullets||[])};
   let selection={start:state.text.length,end:state.text.length},typingStyle=null,composing=false,destroyed=false;
   const past=[],future=[];
   const wrapper=element('div','editor'),toolbar=element('div','format-toolbar');
@@ -32,7 +33,9 @@ export function createNoteEditor({entry,label,onChange,onDone}){
     if(node===surface){const row=surface.children[offset];return row?Number(row.dataset.start):state.text.length;}
     const row=(node.nodeType===Node.ELEMENT_NODE?node:node.parentElement)?.closest('[data-editor-line]');
     if(!row||!surface.contains(row))return null;
-    const range=document.createRange();range.selectNodeContents(row);range.setEnd(node,offset);
+    const range=document.createRange();const text=row.querySelector('.editable-line-text');
+    if(!text.contains(node))return Number(node===row&&offset>0?row.dataset.end:row.dataset.start);
+    range.selectNodeContents(text);range.setEnd(node,offset);
     return Number(row.dataset.start)+range.toString().length;
   }
   function readSelection(){
@@ -63,6 +66,8 @@ export function createNoteEditor({entry,label,onChange,onDone}){
     const hasTask=state.tasks.some(t=>t.start===lineRange(state.text,selection.start).start);
     taskButton.textContent=hasTask?'Remove checkbox':'Add checkbox';
     taskButton.setAttribute('aria-label',taskButton.textContent);taskButton.setAttribute('aria-pressed',String(hasTask));
+    const lines=selectedLines(state.text,selection.start,selection.end),hasBullets=lines.every(at=>state.bullets.some(item=>item.start===at));
+    bulletButton.setAttribute('aria-pressed',String(hasBullets));
   }
   function render(focus=true){
     surface.replaceChildren();let start=0;
@@ -74,12 +79,13 @@ export function createNoteEditor({entry,label,onChange,onDone}){
         check.setAttribute('aria-label',`Complete task: ${line||'Empty line'}`);
         check.addEventListener('change',()=>update(checkTask(state,anchor),selection));row.append(check);
       }
+      if(!task&&state.bullets.some(item=>item.start===start)){const marker=element('span','bullet-marker','•');marker.contentEditable='false';marker.setAttribute('aria-hidden','true');row.append(marker);}
       const text=element('span','editable-line-text');text.classList.toggle('task-completed',!!task?.done);
       const marks=state.format.filter(m=>m.start<start+line.length&&m.end>start).map(m=>({...m,start:Math.max(0,m.start-start),end:Math.min(line.length,m.end-start)}));
       renderFormatted(text,line,marks);if(!line)text.append(document.createElement('br'));
       row.append(text);surface.append(row);start+=line.length+1;
     }
-    surface.dataset.empty=String(!state.text&&!state.tasks.length);
+    surface.dataset.empty=String(!state.text&&!state.tasks.length&&!state.bullets.length);
     refreshToolbar();if(focus)restoreSelection();
   }
   function update(next,nextSelection,remember=true){
@@ -115,6 +121,7 @@ export function createNoteEditor({entry,label,onChange,onDone}){
   }
   const taskButton=makeButton('Add checkbox','Add checkbox',()=>{readSelection();update(applyCheckbox(state,selection.start),selection);});
   taskButton.className='format-task';toolbar.append(taskButton);
+  const bulletButton=makeButton('• Bullets','Bullet list',()=>{readSelection();update(toggleBullets(state,selection.start,selection.end),selection);});bulletButton.className='format-bullets';toolbar.append(bulletButton);
   // Keep the caret and mobile keyboard in the editable text when a tool is tapped.
   toolbar.addEventListener('pointerdown',event=>{if(event.target.closest('button'))event.preventDefault();});
   controls.append(makeButton('Done','Close note editor',()=>{flush();onDone();}));controls.lastChild.className='primary';
@@ -181,7 +188,7 @@ export function createNoteEditor({entry,label,onChange,onDone}){
     const rows=[...surface.childNodes];
     const text=rows.every(row=>row.nodeType===Node.ELEMENT_NODE&&row.hasAttribute('data-editor-line'))?rows.map(nativeText).join('\n'):nativeText(surface);
     if(text===state.text)return;
-    readSelection();const next={...state,text,format:editFormat(state.text,text,state.format),tasks:editTasks(state.text,text,state.tasks)};
+    readSelection();const next={...state,text,format:editFormat(state.text,text,state.format),tasks:editTasks(state.text,text,state.tasks),bullets:editBullets(state.text,text,state.bullets)};
     const caret=Math.min(text.length,selection.end);update(next,{start:caret,end:caret});
   }
   surface.addEventListener('compositionstart',()=>{composing=true;});

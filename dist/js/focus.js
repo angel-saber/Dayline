@@ -2,8 +2,8 @@ import {musicProfile} from './focus-music.js?v=cyber-mission-12';
 import {voice,personality,focusMantras,focusIdeas} from './personality.js?v=intention-labels-3';
 import {dayKey,timeLabel,bucket} from './model.js';
 import {newFocus,advanceFocus,commitFocus,findFocusNote,validFocusDraft,durationLabel,MANTRAS,INSPIRATION} from './focus-model.js?v=focus-1';
-import {FocusAudio} from './focus-audio.js?v=cyber-mission-12';
-import {createNoteEditor} from './note-editor.js?v=monthly-1';
+import {FocusAudio} from './focus-audio.js?v=speaker-playback-1';
+import {createNoteEditor} from './note-editor.js?v=bullets-1';
 import {renderFormatted} from './format.js?v=direct-edit-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const KEY='dayline.focus.v1';
@@ -63,6 +63,7 @@ export function setupFocus(api){
       for(const line of entry.text.split('\n')){
         const row=node('div','note-line'),task=noteTasks(entry).find(t=>t.start===start),anchor=start;
         if(task){const check=node('input','line-checkbox');check.type='checkbox';check.checked=task.done;check.setAttribute('aria-label',`Complete focus task: ${line}`);check.addEventListener('change',()=>{api.checkTask(found.date,entry.id,anchor);refreshPageSnapshot();render();});row.append(check);}
+        if(!task&&entry.bullets?.some(item=>item.start===start)){const marker=node('span','bullet-marker','•');marker.setAttribute('aria-hidden','true');row.append(marker);}
         const text=node('span','note-text');const marks=(entry.format||[]).filter(m=>m.start<start+line.length&&m.end>start).map(m=>({...m,start:Math.max(0,m.start-start),end:Math.min(line.length,m.end-start)}));renderFormatted(text,line||'\u200b',marks);text.classList.toggle('task-completed',!!task?.done);row.append(text);body.append(row);start+=line.length+1;
       }
       const choices=(api.getState().days[p.date]||[]).filter(e=>bucket(e.minute,p.interval||session.interval)===p.minute);
@@ -89,7 +90,7 @@ export function setupFocus(api){
     fields.append(button('Cancel preparation',()=>{clear();dialog.close();buttons();},'text-button'));dialog.append(fields,commitment);
   }
   function audioSection(){
-    const section=node('section','focus-section');section.append(node('h2','','Focus audio'),node('p','field-hint',musicProfile(personality()).description+' Mix any layers you like. Warm ambient sound is the original soft background layer, available with or without music in every layout. Binaural tones use separate left and right channels for headphones. The metronome tempo is independent of the soundtrack.'));
+    const section=node('section','focus-section');section.append(node('h2','','Focus audio'),node('p','field-hint',musicProfile(personality()).description+' Music and warm ambience work through speakers or headphones. Mix any layers you like. Warm ambient sound is the original soft background layer, available with or without music in every layout. Binaural tones use separate left and right channels for headphones. The metronome tempo is independent of the soundtrack.'));
     section.append(node('p','field-hint','Suggested starting points to experiment with (binaural difference · metronome tempo):'));
     const suggestions=node('ul','field-hint focus-audio-presets'),presetButtons=[],tempoControls=new Map();
     for(const [name,copy,beat,bpm] of [
