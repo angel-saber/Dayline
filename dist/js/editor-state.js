@@ -29,3 +29,16 @@ export function selectionStyle(state,start,end){
   }
   return style;
 }
+
+// Enter continues the active tools. Completion belongs to each task, so a new
+// checkbox always starts unchecked even when the preceding task is complete.
+export function insertLineBreak(state,start,end,typingStyle){
+  const style={...(typingStyle??selectionStyle(state,start,end))};
+  const task=state.tasks.some(t=>t.start===lineRange(state.text,start).start);
+  const next=replaceText(state,start,end,'\n',style),caret=start+1;
+  if(task){
+    next.tasks=next.tasks.filter(t=>t.start!==caret);
+    next.tasks.push({start:caret,done:false});next.tasks.sort((a,b)=>a.start-b.start);
+  }
+  return {state:next,caret,typingStyle:style};
+}

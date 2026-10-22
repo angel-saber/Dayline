@@ -5,7 +5,7 @@ import {Reminders} from './reminders.js';
 import {setupAccounts} from './accounts.js?v=line-tasks-1';
 import {dailyQuote} from './quotes.js';
 import {renderFormatted} from './format.js?v=direct-edit-1';
-import {createNoteEditor} from './note-editor.js?v=direct-edit-1';
+import {createNoteEditor} from './note-editor.js?v=continue-format-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const $=s=>document.querySelector(s);
 let state,readFailed=false,selected=dayKey(),view='daily',undo=null,editor=null,moveId=null,pendingImport=null,accounts=null;

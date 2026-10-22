@@ -1,6 +1,6 @@
 import {HIGHLIGHTS,renderFormatted,editFormat} from './format.js?v=direct-edit-1';
 import {lineRange,noteTasks,editTasks} from './tasks.js?v=line-tasks-1';
-import {replaceText,applyStyle,applyCheckbox,checkTask,selectionStyle} from './editor-state.js?v=direct-edit-1';
+import {replaceText,insertLineBreak,applyStyle,applyCheckbox,checkTask,selectionStyle} from './editor-state.js?v=continue-format-1';
 
 const element=(tag,className,text)=>{
   const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;
@@ -83,9 +83,14 @@ export function createNoteEditor({entry,label,onChange,onDone}){
     state=next;selection={...nextSelection};render();publish();
   }
   function replace(text,start=selection.start,end=selection.end){
-    const next=replaceText(state,start,end,text,typingStyle);
-    update(next,{start:start+text.length,end:start+text.length});
-    if(text.includes('\n'))typingStyle=null;
+    if(text==='\n'){
+      const next=insertLineBreak(state,start,end,typingStyle);
+      update(next.state,{start:next.caret,end:next.caret});
+      typingStyle=next.typingStyle;refreshToolbar();
+    }else{
+      const next=replaceText(state,start,end,text,typingStyle);
+      update(next,{start:start+text.length,end:start+text.length});
+    }
   }
   function format(key,value=true){
     readSelection();const {start,end}=selection,line=lineRange(state.text,start);
