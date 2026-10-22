@@ -183,6 +183,16 @@ export function setupFocus(api){
     advanceFocus(session,api.getState(),Date.now());save(true);render();if(!dialog.open)dialog.showModal();dialog.scrollTop=0;buttons();
   }
   launch.addEventListener('click',start);dialog.addEventListener('cancel',event=>{event.preventDefault();minimize();});dialog.addEventListener('close',buttons);
+  // Only a gesture that starts and ends on the backdrop minimizes the session.
+  // Selecting text or dragging a control out of the window must not dismiss it.
+  let backdropPress=false;
+  function onBackdrop(event){
+    const rect=dialog.getBoundingClientRect();
+    return event.target===dialog&&(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom);
+  }
+  dialog.addEventListener('pointerdown',event=>{backdropPress=event.isPrimary&&event.button===0&&onBackdrop(event);});
+  dialog.addEventListener('pointercancel',()=>{backdropPress=false;});
+  dialog.addEventListener('click',event=>{const dismiss=backdropPress&&onBackdrop(event);backdropPress=false;if(dismiss)minimize();});
   function tickLabels(){
     if(!session)return;
     const elapsed=Math.max(0,(session.endedAt||Date.now())-(session.startedAt||Date.now()));
