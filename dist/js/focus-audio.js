@@ -1,4 +1,4 @@
-import {musicProfile,musicLength,renderMusic} from './focus-music.js?v=zen-bowls-5';
+import {musicProfile,musicLength,renderMusic} from './focus-music.js?v=symphonic-spark-6';
 // All sounds are generated locally; no remote tracks, accounts or audio downloads.
 export class FocusAudio{
   constructor(){this.sources=[];this.playing=false;this.generation=0;}

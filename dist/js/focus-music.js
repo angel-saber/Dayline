@@ -2,7 +2,7 @@
 // No recordings, external assets, or background JavaScript scheduling.
 export function musicProfile(layout){
   if(layout==='builder')return {layout,bpm:112,label:'Cyberpunk drive',description:'Dark cyberpunk loop: distorted synth bass, punchy breakbeats, minor-key atmosphere, and glitch accents at 112 BPM.'};
-  if(layout==='founder')return {layout,bpm:76,label:'Symphonic horizon',description:'Original synthesized orchestral score: sustained string-like ensembles, brass-like swells, deep bass, and timpani with a spacious hall effect at 76 BPM.'};
+  if(layout==='founder')return {layout,bpm:76,label:'Symphonic horizon',description:'Original synthesized orchestral score: sustained string-like ensembles, brass-like swells, deep bass, and timpani, with delicate bell-like sparkles and rising high strings in a spacious hall at 76 BPM.'};
   return {layout:'zen',bpm:60,label:'Still temple',description:'Original meditation-inspired soundscape: synthesized singing-bowl-like tones and soft bells with long, spacious decays. No piano, drums, chants, or ritual recordings.'};
 }
 export function musicLength(sampleRate,layout){return Math.round(sampleRate*60/musicProfile(layout).bpm*64);}
@@ -89,6 +89,16 @@ function renderOrchestra(data,rate){
       data[(start+i)%data.length]+=value*volume;
     }
   }
+  function sparkle(midi,at,volume){
+    const hz=440*2**((midi-69)/12),start=Math.round(at*rate),length=2.4;
+    for(let i=0;i<rate*length;i++){
+      const t=i/rate,envelope=Math.min(1,t/.015)*Math.exp(-t*2.3)*Math.min(1,(length-t)/.3);
+      let tone=Math.sin(tau*hz*t);
+      if(hz*2.01<rate*.42)tone+=.24*Math.sin(tau*hz*2.01*t)*Math.exp(-t*1.2);
+      if(hz*4.08<rate*.42)tone+=.055*Math.sin(tau*hz*4.08*t)*Math.exp(-t*2);
+      data[(start+i)%data.length]+=tone*volume*Math.max(0,envelope);
+    }
+  }
   // D minor → B-flat → F → C, then G minor → B-flat → A → A: a broad eight-bar arc.
   const progression=[[50,57,62,65],[46,53,58,62],[41,53,57,60],[48,55,60,64],[43,55,58,62],[46,53,58,62],[45,52,57,61],[45,52,57,61]];
   const melody=[77,74,72,76,74,77,76,73,77,81,79,76,79,77,76,73];
@@ -100,6 +110,13 @@ function renderOrchestra(data,rate){
     if(bar%2===0||secondHalf)chord.slice(1,3).forEach(midi=>note(midi,at+.4*beat,3.3*beat,secondHalf?.075:.045,brass,true));
     if(bar%2===0)timpani(at,chord[0]-12,.14);
     if(bar%4===3)timpani(at+3*beat,33,.075);
+    // Brief, chord-aligned glints leave the existing slow orchestral arc in front.
+    if(bar%4===1||bar%4===2){
+      const upper=chord.slice(1).map(midi=>midi+24);
+      upper.forEach((midi,index)=>sparkle(midi,at+(1+index*.5)*beat,.035));
+      if(secondHalf)upper.slice(0,2).forEach((midi,index)=>note(midi,at+(1.5+index*.75)*beat,1.9*beat,.026,strings,true));
+    }
+    if(bar===0||bar===8)sparkle(86,at+.5*beat,.025);
   }
   // A circular, non-recursive reverb tail carries naturally across the loop boundary.
   const dry=data.slice();
