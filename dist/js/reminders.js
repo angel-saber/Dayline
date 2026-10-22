@@ -1,4 +1,4 @@
-import { dayKey, dueEntries } from './model.js';
+import { dayKey, dueEntries } from './model.js?v=monthly-1';
 export class Reminders {
   constructor(getState, onDue, onError) {
     this.getState=getState; this.onDue=onDue; this.onError=onError;
@@ -30,7 +30,7 @@ export class Reminders {
       if(this.fired.has(token)) continue; this.fired.add(token);
       this.onDue(entry);
       if(globalThis.Notification?.permission==='granted') {
-        try { new Notification('Dayline · It’s time',{body:entry.text,tag:token}); } catch { /* In-app reminder remains available. */ }
+        try { new Notification('Dayline · It’s time',{body:entry.title?`${entry.title}\n${entry.text}`:entry.text,tag:token}); } catch { /* In-app reminder remains available. */ }
       }
       if(state.settings.sound) this.chime().catch(()=>this.onError('Tap “Test sound” in Settings to enable audio for this session.'));
     }

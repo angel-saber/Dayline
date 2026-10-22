@@ -1,7 +1,7 @@
 import { cloudConfig } from './config.js';
 import { CloudClient } from './cloud.js';
-import { SyncEngine, mergeGuestDays, clearSyncedDrafts } from './sync.js?v=line-tasks-1';
-import { load, save, validState } from './storage.js?v=line-tasks-1';
+import { SyncEngine, mergeGuestDays, clearSyncedDrafts } from './sync.js?v=monthly-1';
+import { load, save, validState } from './storage.js?v=monthly-1';
 
 const $ = selector => document.querySelector(selector);
 
@@ -20,7 +20,7 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
     $('#auth-view').hidden = !show;
     $('#planner').hidden = show;
     $('#planner-nav').hidden = show;
-    $('#date-footer').hidden = show || !$('#settings-view').hidden;
+    $('#date-footer').hidden = show || $('#daily-view').hidden;
     if (show) $('#auth-email').focus();
   }
 

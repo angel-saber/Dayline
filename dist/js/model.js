@@ -35,7 +35,7 @@ export function moveEntry(entries, id, targetMinute, interval) {
 }
 export function dueEntries(entries, key, interval, from, now) {
   return entries.filter(e=>{
-    if(e.done || !e.text.trim()) return false;
+    if(e.done || !(e.title?.trim()||e.text).trim()) return false;
     const date=parseDay(key); date.setHours(0,0,0,0); date.setMinutes(bucket(e.minute,interval));
     return date.getTime()>from && date.getTime()<=now;
   });
