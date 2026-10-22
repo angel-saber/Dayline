@@ -175,3 +175,11 @@ body:has(#monthly-view:not([hidden])) main{max-width:1280px}
 @media(prefers-reduced-motion:reduce){.welcome-leaving,.welcome-leaving::backdrop{animation:none}}
 .auth-card .auth-signup-option{display:flex;align-items:flex-start;gap:10px;font-size:12px;line-height:1.6;margin:18px 0}
 .auth-card .auth-signup-option input{width:16px;height:16px;flex:none;margin:2px 0 0;padding:0;accent-color:var(--green)}
+
+/* Focus controls share a fixed home above date navigation, across planner views. */
+.focus-launch{position:fixed;right:max(24px,env(safe-area-inset-right));bottom:calc(95px + env(safe-area-inset-bottom));z-index:8;margin:0;text-align:right;max-width:calc(100vw - 32px)}
+.focus-launch .primary{max-width:100%;box-shadow:0 4px 18px #27332222;font-size:13px;padding:14px 20px}
+.focus-launch:has(#launch-focus[hidden]){display:none}
+.focus-mini{bottom:calc(95px + env(safe-area-inset-bottom));right:max(24px,env(safe-area-inset-right))}
+main{padding-bottom:180px}
+@media(max-width:600px){.focus-launch,.focus-mini{right:max(16px,env(safe-area-inset-right))}.focus-launch .primary{font-size:12px;padding:14px 18px}}

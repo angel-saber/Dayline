@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f5f4ef"><meta name="description" content="A quiet space to plan your day, one interval at a time."><title>Dayline — A little room for your day</title><link rel="icon" href="./icon.svg" type="image/svg+xml"><script src="./js/appearance.js?v=welcome-1"></script><link rel="stylesheet" href="./styles.css?v=zen-name-1"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f5f4ef"><meta name="description" content="A quiet space to plan your day, one interval at a time."><title>Dayline — A little room for your day</title><link rel="icon" href="./icon.svg" type="image/svg+xml"><script src="./js/appearance.js?v=welcome-1"></script><link rel="stylesheet" href="./styles.css?v=floating-focus-1"></head>
 <body>
 <header class="topbar"><a class="brand" href="./" aria-label="Dayline home"><span class="brand-icon">◒</span> dayline<span class="brand-dot">.</span></a><nav id="planner-nav" aria-label="Main navigation" hidden><button id="daily-tab" class="tab active" aria-selected="true">Daily</button><button id="monthly-tab" class="tab" aria-selected="false">Monthly</button><button id="settings-tab" class="tab" aria-selected="false">Settings</button></nav><span class="save-status" id="save-status" role="status">● Saved on this device</span></header>
 <main>
@@ -35,7 +35,7 @@
 <div id="timeline" class="timeline"></div>
 <div class="day-end"><span>✧</span> <span class="day-end-copy" data-voice="A day doesn’t have to be full to be a good one.">A day doesn’t have to be full to be a good one.</span></div>
 <div class="gesture-guide"><span>→ swipe to complete</span><span>← swipe to delete</span><span>⠿ hold handle to move</span></div>
-<div class="focus-launch"><button id="launch-focus" class="primary">Launch Focus Mode</button><p class="field-hint" data-voice="A gentle start for your current time interval.">A gentle start for your current time interval.</p></div>
+
 </section>
 <section id="monthly-view" hidden aria-labelledby="month-heading"></section>
 <section id="settings-view" hidden aria-labelledby="settings-heading"><div class="eyebrow" data-voice="MAKE IT YOURS">MAKE IT YOURS</div><h1 id="settings-heading" data-voice="A rhythm that fits.">A rhythm that fits.</h1><p class="intro" data-voice="A few small settings for your kind of day.">A few small settings for your kind of day.</p>
@@ -55,6 +55,7 @@
 <div class="settings-card"><h2 data-voice="A gentle nudge">A gentle nudge</h2><div class="setting-row"><div><label for="notifications">Time reminders</label><p class="field-hint">For intervals with an unfinished note.</p></div><input id="notifications" type="checkbox" class="switch" role="switch"></div><div class="setting-row"><div><label for="sound">Play a sound</label><p class="field-hint" data-voice="A soft chime when it’s time.">A soft chime when it’s time.</p></div><input id="sound" type="checkbox" class="switch" role="switch"></div><button id="test-sound" class="secondary">♫ Test sound</button><p class="notice" id="notification-status">Keep Dayline open for reminders. Closed-app alerts aren’t supported in this version. Device settings may silence sound.</p></div>
 <div class="settings-card"><h2 data-voice="Your notes, kept close">Your notes, kept close</h2><p id="backup-description" class="field-hint">Saved automatically on this device.</p><div class="inline"><button id="export" class="secondary">↓ Download backup</button><button id="import" class="secondary">↑ Restore backup</button><input id="import-file" type="file" accept="application/json,.json" hidden></div></div>
 </section>
+<div class="focus-launch"><button id="launch-focus" class="primary" aria-describedby="focus-launch-hint">Launch Focus Mode</button><p id="focus-launch-hint" class="sr-only" data-voice="A gentle start for your current time interval.">A gentle start for your current time interval.</p></div>
 </div>
 </main>
 <footer id="date-footer" hidden><button id="previous-day" aria-label="Previous day">← <span id="previous-label">Yesterday</span></button><div><label class="date-picker-label" for="date-picker"><span id="footer-date"></span><span aria-hidden="true">⌄</span></label><input id="date-picker" type="date" aria-label="Go to date"></div><button id="next-day" aria-label="Next day"><span id="next-label">Tomorrow</span> →</button></footer>
