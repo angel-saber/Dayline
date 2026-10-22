@@ -1,7 +1,7 @@
 // Original procedural scores, rendered once per layout and looped by the audio engine.
 // No recordings, external assets, or background JavaScript scheduling.
 export function musicProfile(layout){
-  if(layout==='builder')return {layout,bpm:104,label:'Cyberpunk drive',description:'Cinematic electronic score: a straight low synth pulse, dark sustained drones, heavy impacts, a gradual tension-building swell, and a triumphant trumpet-like flourish at the peak at 104 BPM.'};
+  if(layout==='builder')return {layout,bpm:104,label:'Cyberpunk drive',description:'Cinematic electronic score: a straight low synth pulse, dark sustained drones, heavy impacts, a gradual tension-building swell, and a punchy rhythmic synth-brass hook at the peak at 104 BPM.'};
   if(layout==='founder')return {layout,bpm:76,label:'Symphonic horizon',description:'Original synthesized orchestral score: sustained string-like ensembles, brass-like swells, deep bass, and timpani, with lively rising bells and a sustained strings-and-trumpet-like crescendo with a gradual rise, broad held peak, and gentle release at 76 BPM.'};
   return {layout:'zen',bpm:60,label:'Still temple',description:'Original meditation-inspired soundscape: synthesized singing-bowl-like tones and soft bells with long, spacious decays. No piano, drums, chants, or ritual recordings.'};
 }
@@ -65,19 +65,24 @@ function renderCyberpunk(data,rate){
     const shimmer=Math.sin(tau*164.81*t)+.25*Math.sin(tau*246.94*t)+.15*Math.sin(tau*329.63*t);
     return shimmer*envelope*.045;
   });
-  // A single E-major fanfare opens up the peak, resolving before the bass changes.
-  function trumpet(midi,at,length,volume){
-    const hz=440*2**((midi-69)/12),levels=[.5,.3,.19,.11,.065,.035];
+  // Original compact synth-brass hook: clipped articulation and a lower, solid register.
+  function brassStab(midi,at,length,volume){
+    const hz=440*2**((midi-69)/12),levels=[.56,.31,.2,.13,.085,.05,.025];
     sound(at,length,t=>{
-      const envelope=smooth(t/.14)*smooth((length-t)/.55);
-      const phase=hz*t+.012*Math.sin(tau*4.8*t)*smooth(t/.5);
+      const envelope=smooth(t/.018)*smooth((length-t)/.075)*(.72+.28*Math.exp(-t*12));
       let tone=0;
-      for(let h=1;h<=levels.length;h++)if(hz*h<rate*.42)tone+=Math.sin(tau*phase*h)*levels[h-1];
-      return tone*volume*envelope;
+      for(let h=1;h<=levels.length;h++)if(hz*h<rate*.42){
+        const brightness=h===1?1:.38+.62*Math.exp(-t*9);
+        tone+=(Math.sin(tau*hz*h*t)+.25*Math.sin(tau*hz*1.002*h*t+.1))*levels[h-1]*brightness;
+      }
+      return Math.tanh(tone*1.35)*volume*envelope;
     });
   }
-  for(const [midi,position,length,volume] of [[64,40,.85,.075],[68,41,.85,.085],[71,42,.85,.095],[76,43,4.6,.11]])trumpet(midi,position*beat,length*beat,volume);
-  trumpet(71,43.2*beat,4.3*beat,.045);trumpet(68,43.4*beat,4.1*beat,.035);
+  // Two call-and-response gestures sit over the E pedal and finish before its change.
+  for(const [midi,position,length,volume] of [
+    [59,40,.42,.12],[64,40.75,.4,.13],[62,41.5,.3,.11],[59,42,.7,.12],
+    [57,43.25,.38,.1],[59,44,.42,.12],[62,44.75,.35,.12],[64,45.5,.65,.13],[59,46.75,.6,.11],
+  ])brassStab(midi,position*beat,length*beat,volume);
   for(let i=0;i<data.length;i++){
     const position=i/rate/beat;
     data[i]*=.7+.45*smooth((position-8)/32)*(1-smooth((position-48)/16));

@@ -1,4 +1,4 @@
-import {musicProfile,musicLength,renderMusic} from './focus-music.js?v=cyber-fanfare-10';
+import {musicProfile,musicLength,renderMusic} from './focus-music.js?v=synth-brass-11';
 // All sounds are generated locally; no remote tracks, accounts or audio downloads.
 export class FocusAudio{
   constructor(){this.sources=[];this.playing=false;this.generation=0;}
