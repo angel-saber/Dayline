@@ -3,11 +3,11 @@
 export function musicProfile(layout){
   if(layout==='builder')return {layout,bpm:112,label:'Cyberpunk drive',description:'Dark cyberpunk loop: distorted synth bass, punchy breakbeats, minor-key atmosphere, and glitch accents at 112 BPM.'};
   if(layout==='founder')return {layout,bpm:76,label:'Symphonic horizon',description:'Original synthesized orchestral score: sustained string-like ensembles, brass-like swells, deep bass, and timpani with a spacious hall effect at 76 BPM.'};
-  return {layout:'zen',bpm:60,label:'Quiet piano',description:'Original synthesized ambient piano: slow, spacious notes over soft sustained pads at 60 BPM, without drums.'};
+  return {layout:'zen',bpm:60,label:'Still temple',description:'Original meditation-inspired soundscape: synthesized singing-bowl-like tones and soft bells with long, spacious decays. No piano, drums, chants, or ritual recordings.'};
 }
 export function musicLength(sampleRate,layout){return Math.round(sampleRate*60/musicProfile(layout).bpm*64);}
 export function renderMusic(data,rate,layout){
-  const profile=musicProfile(layout);if(profile.layout==='zen'){renderPiano(data,rate);return;}
+  const profile=musicProfile(layout);if(profile.layout==='zen'){renderBowls(data,rate);return;}
   if(layout==='builder'){renderCyberpunk(data,rate);return;}
   renderOrchestra(data,rate);
 }
@@ -111,29 +111,27 @@ function renderOrchestra(data,rate){
   if(peak>0)for(let i=0;i<data.length;i++)data[i]*=.8/peak;
 }
 
-// Gentle, widely spaced piano-like notes with an understated sustained pad.
-function renderPiano(data,rate){
-  const tau=2*Math.PI,barLength=4;
-  function note(midi,at,length,volume,pad=false){
+// An original bowl-and-bell soundscape; synthesized timbres, not ritual recordings.
+function renderBowls(data,rate){
+  const tau=2*Math.PI;
+  function bowl(midi,at,length,volume,bell=false){
     const hz=440*2**((midi-69)/12),start=Math.round(at*rate);
+    const partials=bell?[[1,1],[2.76,.22],[5.4,.07]]:[[1,1],[2.71,.28],[5.18,.09],[1.006,.38]];
     for(let i=0;i<length*rate;i++){
-      const t=i/rate,release=Math.min(1,(length-t)/.8);
-      const envelope=pad?Math.min(1,t/1.2)*release:Math.min(1,t/.012)*Math.exp(-t*.85)*release;
-      const value=pad?(Math.sin(tau*hz*t)+Math.sin(tau*hz*1.002*t))*.5:
-        Math.sin(tau*hz*t)+.3*Math.sin(tau*hz*2.001*t)*Math.exp(-t*.6)+.1*Math.sin(tau*hz*3.003*t)*Math.exp(-t);
-      data[(start+i)%data.length]+=value*volume*Math.max(0,envelope);
+      const t=i/rate,attack=Math.min(1,t/(bell?.035:.28)),release=Math.min(1,(length-t)/1.8);
+      let value=0;
+      for(let p=0;p<partials.length;p++){
+        const [ratio,level]=partials[p];
+        if(hz*ratio<rate*.42)value+=Math.sin(tau*hz*ratio*t)*level*Math.exp(-t*(bell?.65:.19)*(1+p*.45));
+      }
+      data[(start+i)%data.length]+=value*volume*attack*Math.max(0,release);
     }
   }
-  const chords=[[48,55,64,71],[45,52,60,67],[41,48,57,64],[43,50,59,62]];
-  for(let bar=0;bar<16;bar++){
-    const chord=chords[Math.floor(bar/2)%4],at=bar*barLength;
-    if(bar%2===0){note(chord[0],at,7.5,.13);for(const midi of chord.slice(1))note(midi,at,8.5,.025,true);}
-    note(chord[2]+12,at+.5,4.8,.105);
-    note(chord[3]+12,at+2.25,4.5,.08);
-    if(bar%2===1)note(chord[1]+12,at+3.25,3.7,.065);
-  }
+  // A spacious 64-second phrase with gently overlapping low bowls.
+  for(const [midi,at] of [[48,0],[55,12],[50,24],[57,36],[55,48]])bowl(midi,at,20,.18);
+  for(const [midi,at] of [[72,7],[79,29],[74,51]])bowl(midi,at,9,.045,true);
   const dry=data.slice();
-  for(const [seconds,gain] of [[.16,.13],[.31,.1],[.49,.07],[.73,.04]]){
+  for(const [seconds,gain] of [[.19,.13],[.37,.1],[.61,.075],[.97,.045]]){
     const delay=Math.round(seconds*rate);for(let i=0;i<data.length;i++)data[(i+delay)%data.length]+=dry[i]*gain;
   }
   let peak=0;for(const value of data)peak=Math.max(peak,Math.abs(value));
