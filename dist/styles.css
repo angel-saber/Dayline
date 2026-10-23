@@ -238,3 +238,12 @@ main{padding-bottom:180px}
 .focus-soundtrack-choice{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
 .focus-soundtrack-choice label{min-width:0}
 .focus-soundtrack-select{max-width:100%;font:inherit;font-size:12px;min-width:0}
+.welcome-overview>h2{font-size:22px;margin:24px 0 10px}
+.welcome-features{list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}
+.welcome-features li{padding:15px;border:1px solid var(--line);border-radius:8px;background:var(--white);margin:0;min-width:0}
+.welcome-features h3{font-size:13px;color:var(--ink);line-height:1.4;margin:0 0 8px}
+.welcome-features p{font-size:12px;line-height:1.7;margin:0}
+.welcome-more{font-size:12px;line-height:1.7;margin:18px 0}
+.welcome-more summary{cursor:pointer;color:var(--ink);padding:8px 0}
+.welcome-more p{font-size:12px}
+@media(max-width:600px){.welcome-features{grid-template-columns:1fr}}
