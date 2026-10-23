@@ -1,11 +1,13 @@
-import { cloudConfig } from './config.js';
-import { CloudClient } from './cloud.js?v=optional-login-1';
+import { cloudConfig } from './config.js?v=private-accounts-1';
+import { CloudClient, takeSignInReturn } from './cloud.js?v=private-accounts-1';
 import { SyncEngine, mergeGuestDays, clearSyncedDrafts } from './sync.js?v=weekly-notes-1';
 import { load, save, validState } from './storage.js?v=weekly-notes-1';
 
 const $ = selector => document.querySelector(selector);
 
 export function setupAccounts({ getState, setState, flushEditor, toast, onStatus }) {
+  const linkLogin = cloudConfig.authMethod === 'link';
+  const signInReturn = takeSignInReturn(window.location, window.history);
   let cloud, engine, user = null, busy = false, resendAt = 0, viewIsLogin = false;
   let generation = 0;
   let tabId;
@@ -84,15 +86,23 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
     finally { busy = false; $('#auth-submit').disabled = !cloud?.config; $('#send-code').disabled = !cloud?.config; }
   }
 
+  async function requestLink(email) {
+    if (Date.now() < resendAt) throw new Error('Please wait a minute before requesting another sign-in link.');
+    await cloud.sendLink(email, `${window.location.origin}${window.location.pathname}`);
+    resendAt = Date.now() + 60000;
+    $('#auth-message').textContent = 'Check your inbox for your sign-in link. Open it in this browser on this device. Use the newest link; check spam if needed.';
+  }
+
   $('#auth-form').addEventListener('submit', event => {
     event.preventDefault();
     withBusy(async () => {
       const email = $('#auth-email').value.trim();
       const token = $('#auth-code').value.trim();
       if (!cloud?.config) throw new Error('Account setup is not active yet. You can still continue on this device.');
+      if (linkLogin) { await requestLink(email); return; }
       if (!token) {
         if (Date.now() < resendAt) throw new Error('Please wait a minute before requesting another code.');
-        await cloud.sendCode(email, { createUser: $('#create-account').checked }); resendAt = Date.now() + 60000;
+        await cloud.sendCode(email, { createUser: cloudConfig.allowSignup === true && $('#create-account').checked }); resendAt = Date.now() + 60000;
         $('#code-field').hidden = false; $('#auth-code').required = true;
         $('#auth-submit').textContent = 'Sign in'; $('#send-code').hidden = false;
         $('#auth-message').textContent = 'Check your email for your code. Enter it below to continue.';
@@ -105,13 +115,14 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
     });
   });
   $('#send-code').onclick = () => withBusy(async () => {
+    if (linkLogin) { await requestLink($('#auth-email').value.trim()); return; }
     if (Date.now() < resendAt) throw new Error('Please wait a minute before requesting another code.');
-    await cloud.sendCode($('#auth-email').value.trim(), { createUser: $('#create-account').checked }); resendAt = Date.now() + 60000;
+    await cloud.sendCode($('#auth-email').value.trim(), { createUser: cloudConfig.allowSignup === true && $('#create-account').checked }); resendAt = Date.now() + 60000;
     $('#auth-message').textContent = 'A new code is on its way. Use the newest code in your inbox.';
   });
   $('#auth-email').oninput = () => {
     $('#code-field').hidden = true; $('#auth-code').required = false;
-    $('#auth-code').value = ''; $('#auth-submit').textContent = 'Email me a sign-in code'; $('#send-code').hidden = true;
+    $('#auth-code').value = ''; $('#auth-submit').textContent = linkLogin ? 'Email me a sign-in link' : 'Email me a sign-in code'; $('#send-code').hidden = true;
   };
   $('#continue-local').onclick = () => { try{localStorage.setItem('dayline.guest.v1','yes');}catch{} showLogin(false); accountView(); };
   $('#sign-in-button').onclick = () => showLogin(true);
@@ -174,10 +185,20 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
   } catch { /* Invalid optional preferences do not affect the notes. */ }
   let returningGuest=false;try{returningGuest=localStorage.getItem('dayline.guest.v1')==='yes'||localStorage.getItem('dayline.v1')!==null;}catch{}
   showLogin(!returningGuest); accountView();
+  $('#create-account').closest('label').hidden = cloudConfig.allowSignup !== true;
+  if (linkLogin) $('#auth-submit').textContent = 'Email me a sign-in link';
   $('#auth-submit').disabled=!cloud?.config;$('#create-account').disabled=!cloud?.config;
   try {
     const session = cloud?.config && cloud.readSession();
-    if (session) enterAccount(session);
+    if (signInReturn) {
+      showLogin(true);
+      withBusy(async () => {
+        if (signInReturn.error) throw new Error(signInReturn.error);
+        $('#auth-message').textContent = 'Signing you in…';
+        await enterAccount(await cloud.exchangeLink(signInReturn.code));
+        $('#auth-message').textContent = '';
+      });
+    } else if (session) enterAccount(session);
     else if (!cloud?.config) $('#auth-message').textContent = 'Account sign-in and sign-up are not available yet. Continue without an account to use Dayline on this device.';
   } catch (error) { $('#auth-message').textContent = error.message; }
   return {

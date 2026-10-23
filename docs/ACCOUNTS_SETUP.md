@@ -1,79 +1,49 @@
-# Activate accounts and cross-device notes
+# Private accounts and cross-device notes
 
-## What is already implemented
+Dayline is configured for a private personal test on the dedicated Supabase Free project `cxfohuoazhfjpohgtmgg`. Public sign-ups and anonymous Supabase accounts are disabled in the dashboard. Guest use remains available to everyone with browser-local notes.
 
-The GitHub Pages frontend includes an email-code login page, a guest option, per-account draft caches, revision-aware sync, deliberate guest-note import, sign-out, sync status, retry, and account-aware backup/restore. The database migration creates a private notes table, owner-only reads, and an authenticated compare-and-swap write function.
+## Sign-in
 
-These files do not create a Supabase project or configure email delivery. Until the backend is configured, the login page says account setup is pending and lets people continue with device-local notes. Never treat the unit tests as confirmation that live accounts work.
+The deployed configuration uses `authMethod: 'link'` and `allowSignup: false`. Only existing, administrator-invited accounts can request a link. The browser flag hides the signup control; **the Supabase Auth setting is the actual signup restriction**. Do not enable public sign-ups as part of routine development.
 
-## 1. Select a Supabase project
+Supabase's built-in email service sends the standard one-time sign-in link. Customizing its template now requires custom SMTP or a qualifying paid plan; personal testing uses the standard template without either. The built-in sender is restricted to organization team addresses and has low rate limits. Do not rely on it for public launch or delivery guarantees.
 
-Use a dedicated project for Dayline. Record the project URL, normally `https://YOUR_PROJECT_REF.supabase.co`, and its **publishable** API key from project settings. The frontend currently accepts the `sb_publishable_…` key format. Create a publishable key if your project only exposes older legacy keys.
+Request the link on the device/browser you want to sign into, then open the newest link in that same browser. On mobile, use the browser that opened Dayline, rather than an email app's separate in-app browser. Repeat independently on desktop and mobile. No Dayline password is required. An administrator invitation provisions the account; after receiving it, request a fresh sign-in link from Dayline.
 
-Never use a secret key, service-role key, database password, or Supabase management token in the frontend or GitHub repository. The publishable key identifies the application; authenticated user tokens and database authorization protect notes.
+Links use PKCE: a random verifier stays in this browser's local storage and only its SHA-256 challenge is sent with the email request. The returned authorization code is removed from browser history before exchange. The server validates the code and verifier; Dayline verifies that the returned email matches the requested account before saving the session. Arbitrary session tokens in URL fragments are not accepted. A missing, expired, or wrong-browser verifier requires a new link.
 
-## 2. Apply the database migration
+The code-based adapter remains available for future separately configured environments, but private testing does not need edited email templates. Never change the browser flag alone to launch public accounts.
 
-Run the complete contents of `supabase/migrations/202610190001_accounts.sql` in the project SQL editor, or apply it through your normal Supabase CLI migration workflow.
+## Backend
 
-The migration creates `public.dayline_days` and `public.save_dayline_day`. Anonymous callers have no table or function access. Signed-in users can read only rows matching their authenticated identity. Direct table writes are revoked. The write function accepts no owner ID, derives it from the verified session, validates notes, locks the relevant row, and checks its revision. Deleting every note saves an empty revisioned day.
+`supabase/migrations/202610190001_accounts.sql` creates `public.dayline_days` and `public.save_dayline_day`. Anonymous callers have no table or function access. Authenticated reads are restricted to the session owner's rows. Direct writes are revoked. The compare-and-swap function derives the owner from `auth.uid()`, validates notes, locks the row, and checks revisions. Empty days remain revisioned tombstones.
 
-For database integration validation, use a **disposable development project** and execute `supabase/tests/access.sql` as one transaction. It creates two test users, checks owner isolation and anonymous denial, checks revision conflicts and direct-write denial, and rolls everything back. Run the whole script so its final rollback executes. Do not use an existing project with unrelated tables/triggers as the first test target.
+The write function intentionally uses `SECURITY DEFINER` so direct table writes remain unavailable. It has an empty search path, derives identity on the server, accepts no owner argument, and revokes execution from PUBLIC/anon. The Security Advisor reports its authenticated execution as a warning; this is the intended authenticated API, not permission for anonymous callers.
 
-## 3. Configure email codes
+`supabase/tests/access.sql` exercises owner isolation, anonymous denial, direct-write denial, and stale-revision rejection. Run the complete transaction in a disposable development database; fixtures roll back. Never leave fixture users or notes in the live project.
 
-Enable email authentication and new-user sign-ups in Supabase Auth. The email-code form serves existing users by default. New users must explicitly select the optional account-creation checkbox.
+## Public configuration and deployment
 
-In **Authentication → Email Templates**, edit the **Magic Link** and **Confirm signup** templates to display `{{ .Token }}` as the sign-in code. For example:
+`dist/js/config.js` contains only the HTTPS project origin, its `sb_publishable_…` API key, and non-secret feature flags. Never commit a secret/service-role key, database password, management token, or user session.
 
-```html
-<h2>Your Dayline sign-in code</h2>
-<p>Enter this code in Dayline:</p>
-<p style="font-size:28px;letter-spacing:4px">{{ .Token }}</p>
-<p>If you did not request this code, ignore this email.</p>
-```
+Set the Supabase Site URL to the deployed Dayline root, currently `https://angel-saber.github.io/Dayline/`. Keep email confirmation enabled and other authentication providers disabled unless deliberately added. Use the dashboard's administrator invitation to provision the owner's address while keeping public signup disabled.
 
-Keep the template variable exactly as shown. Codes are entered into the app rather than handled through a redirect/callback route. Configure a suitable code expiry and rate limits. The app accepts numeric codes of 6–10 digits. It prevents repeated send requests within one minute; Supabase applies its own server limits.
+Run `npm run check` and `npm test`; then deploy `dist` through the GitHub Pages workflow. Verify actual email delivery, link return, and cross-device sync separately from unit tests.
 
-Configure custom SMTP or a supported transactional email provider for public users. Supabase’s built-in email service has delivery restrictions and low limits; do not assume it can send production sign-in codes to everyone. Keep provider credentials in Supabase Auth settings, never in this repository.
+## Notes, backups, and acceptance checks
 
-If you enable a CAPTCHA requirement, add its verified client challenge integration before enabling public sign-in; the current form does not submit a CAPTCHA token.
+Account notes include Daily notes, Weekly Notes, formatting, categories, and reports. Settings stay device-specific. Attachment metadata accompanies notes, but file binaries remain local to the browser; use a full backup to carry those files between devices.
 
-## 4. Set the public frontend configuration
+Guest notes are never imported automatically. After signing in, use Settings → **Add this device's notes to my account** deliberately; the original guest notes are retained. Back up existing notes before first use. The sync engine keeps concurrent versions instead of silently overwriting conflicts.
 
-Edit `dist/js/config.js`:
+For live acceptance, sign into the same account on desktop and mobile, create/edit/move/complete/delete a note, and confirm the second device updates within approximately 15 seconds or with **Sync now**. Also check Weekly Notes, simultaneous edits, offline drafts, refresh, sign-out, and invalid/expired links. Without a verified email sign-in on real devices, do not claim these checks have passed.
 
-```js
-export const cloudConfig = {
-  url: 'https://YOUR_PROJECT_REF.supabase.co',
-  publishableKey: 'sb_publishable_YOUR_PUBLIC_KEY',
-};
-```
+The Free project can pause after low activity. Resume it from the Supabase dashboard if necessary. Keep downloaded backups; the site is not an installed offline app.
 
-Use only the HTTPS origin, with no extra path, credentials, or query parameters. These two public configuration values can be checked into GitHub. Keep all other credentials out of source.
+## References
 
-## 5. Validate and deploy
-
-Run `npm run check` and `npm test`. Then publish the current `dist` using the included **Deploy GitHub Pages** workflow. Initial Pages setup is described in the README. Changes to `dist/` on `main` trigger that deployment workflow automatically; it can also be started manually.
-
-## Live acceptance checks
-
-1. Confirm a new email receives a numeric sign-in code, signs in, and loads an empty account. Repeat with an existing account and an expired/invalid code.
-2. Create notes, complete one, move one, and delete one. Sign into the same account on a second device; check all changes within approximately 15 seconds or press **Sync now**.
-3. Edit different notes simultaneously. Confirm both edits survive. Edit the same note in two places while offline, reconnect, and confirm both versions are retained with a conflict message.
-4. Create account B in a separate browser. Confirm account A’s notes never appear. Confirm unauthenticated database access fails and attempts to choose another owner cannot write their rows.
-5. Make an offline edit; reload; confirm the draft remains and later syncs. Close/reopen a tab after offline edits and confirm abandoned drafts recover. Wait at least 45 seconds after a browser crash for a stale lease to expire.
-6. Import guest notes deliberately. Confirm cloud notes and original guest notes remain. Download and restore a backup into the intended account, then check the replacement on another device.
-7. Test session refresh, expiry/revocation, sign-in again, and sign-out. Confirm sign-out does not log out another device and the current browser no longer shows account notes.
-8. Test denied/full browser storage, failed network requests, narrow-screen login, keyboard navigation, and system notification permissions.
-
-Account settings such as time interval, clock format, and reminders remain device-specific. The app must be online to request/verify sign-in codes. Cached sessions can keep local drafts when a network request fails; only the server’s acknowledgment produces the synced status. The site shell is not installed for offline use.
-
-## Upstream documentation
-
+- https://supabase.com/docs/guides/auth/sessions/pkce-flow
 - https://supabase.com/docs/guides/auth/auth-email-passwordless
-- https://supabase.com/docs/guides/auth/auth-email-templates
 - https://supabase.com/docs/guides/auth/auth-smtp
 - https://supabase.com/docs/guides/database/postgres/row-level-security
-- https://supabase.com/docs/guides/getting-started/api-keys
-- https://github.com/supabase/auth/blob/master/README.md
+- https://supabase.com/docs/guides/platform/free-project-pausing

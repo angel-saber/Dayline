@@ -20,6 +20,21 @@ export function validateConfig(config) {
   return { url: url.origin, publishableKey: key };
 }
 
+// Consume callback parameters before any later navigation can retain them.
+// Only PKCE returns are accepted; arbitrary bearer tokens in URLs cannot log in.
+export function takeSignInReturn(location, history) {
+  const url = new URL(location.href);
+  const fragment = new URLSearchParams(url.hash.slice(1));
+  const code = url.searchParams.get('code');
+  const failed = url.searchParams.has('error') || fragment.has('error');
+  const implicit = fragment.has('access_token') || fragment.has('refresh_token');
+  if (!code && !failed && !implicit) return null;
+  for (const key of ['code', 'error', 'error_code', 'error_description']) url.searchParams.delete(key);
+  url.hash = '';
+  history.replaceState(null, '', `${url.pathname}${url.search}`);
+  return failed || implicit ? { error: 'Please request a fresh sign-in link below and open it in the same browser.' } : { code };
+}
+
 export class CloudClient {
   constructor(config, { storage = localStorage, fetcher = fetch, locks = globalThis.navigator?.locks } = {}) {
     this.config = validateConfig(config);
@@ -75,6 +90,48 @@ export class CloudClient {
 
   sendCode(email, { createUser = false } = {}) {
     return this.request('/auth/v1/otp', { method: 'POST', body: { email, create_user: createUser === true } });
+  }
+
+  async sendLink(email, redirectTo) {
+    const redirect = new URL(redirectTo);
+    if (redirect.protocol !== 'https:' || redirect.search || redirect.hash || redirect.username || redirect.password) {
+      throw new Error('Sign-in needs a secure Dayline URL.');
+    }
+    const encode = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const verifier = encode(crypto.getRandomValues(new Uint8Array(32)));
+    const challenge = encode(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))));
+    const key = `${this.sessionKey}:link`;
+    this.storage.setItem(key, JSON.stringify({ verifier, email: email.toLowerCase(), created: Date.now() }));
+    try {
+      return await this.request(`/auth/v1/otp?redirect_to=${encodeURIComponent(redirect.href)}`, {
+        method: 'POST', body: { email, create_user: false, code_challenge: challenge, code_challenge_method: 's256' },
+      });
+    } catch (error) {
+      // Do not remove a newer request made in another tab.
+      if (JSON.parse(this.storage.getItem(key) || 'null')?.verifier === verifier) this.storage.removeItem(key);
+      throw error;
+    }
+  }
+
+  async exchangeLink(code) {
+    const exchange = async () => {
+      const key = `${this.sessionKey}:link`;
+      const pending = JSON.parse(this.storage.getItem(key) || 'null');
+      if (!pending?.verifier || !pending.email || Date.now() - pending.created > 3600000) {
+        this.storage.removeItem(key);
+        throw new Error('Request a new sign-in link on this device and open it in the same browser.');
+      }
+      try {
+        const data = await this.request('/auth/v1/token?grant_type=pkce', {
+          method: 'POST', body: { auth_code: code, code_verifier: pending.verifier },
+        });
+        if (data?.user?.email?.toLowerCase() !== pending.email) throw new Error('The sign-in account did not match your request.');
+        return this.storeSession(data);
+      } finally {
+        if (JSON.parse(this.storage.getItem(key) || 'null')?.verifier === pending.verifier) this.storage.removeItem(key);
+      }
+    };
+    return this.locks ? this.locks.request(`${this.sessionKey}:signin`, exchange) : exchange();
   }
 
   async verifyCode(email, token) {

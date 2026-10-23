@@ -20,7 +20,7 @@ import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,dropEntry,timeLabel} f
 import {load,save,validState} from './storage.js?v=weekly-notes-1';
 import {attachGestures} from './gestures.js?v=bulk-notes-1';
 import {Reminders,resolveReminder} from './reminders.js?v=weekly-notes-1';
-import {setupAccounts} from './accounts.js?v=weekly-notes-1';
+import {setupAccounts} from './accounts.js?v=private-accounts-1';
 import {dailyQuote} from './quotes.js?v=intention-labels-3';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
 import {createNoteEditor} from './note-editor.js?v=weekly-notes-1';

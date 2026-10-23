@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CloudClient, validateConfig } from '../dist/js/cloud.js';
+import { CloudClient, validateConfig, takeSignInReturn } from '../dist/js/cloud.js';
 const config = { url: 'https://example.supabase.co', publishableKey: 'sb_publishable_test' };
 function storage() {
   const data = new Map();
@@ -57,4 +57,51 @@ test('sign-up must be explicitly requested when asking for an email code', async
   await client.sendCode('test@example.com',{createUser:true});
   await client.sendCode('test@example.com',{createUser:false});
   assert.deepEqual(bodies.map(body=>body.create_user),[false,true,false]);
+});
+
+test('private sign-in links bind the callback to this browser with a SHA-256 challenge', async () => {
+  const calls = [], local = storage();
+  const client = new CloudClient(config, { storage: local, locks: null, fetcher: async (url, opts) => {
+    calls.push({ url, ...opts });
+    return new Response(JSON.stringify(url.includes('grant_type=pkce') ? session : {}));
+  } });
+  await client.sendLink('test@example.com', 'https://dayline.example/Dayline/');
+  const sent = JSON.parse(calls[0].body);
+  const pending = JSON.parse(local.getItem(`${client.sessionKey}:link`));
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pending.verifier));
+  assert.equal(sent.code_challenge, Buffer.from(hash).toString('base64url'));
+  assert.equal(sent.code_challenge_method, 's256');
+  assert.equal(sent.create_user, false);
+  assert.equal(new URL(calls[0].url).searchParams.get('redirect_to'), 'https://dayline.example/Dayline/');
+  assert.equal(sent.code_verifier, undefined);
+  await client.exchangeLink('one-time-test-code');
+  assert.equal(JSON.parse(calls[1].body).code_verifier, pending.verifier);
+  assert.equal(client.readSession().user.id, 'one');
+  assert.equal(local.getItem(`${client.sessionKey}:link`), null);
+});
+
+test('link callbacks require a recent browser request and the requested account', async () => {
+  const local = storage(); let calls = 0;
+  const client = new CloudClient(config, { storage: local, locks: null, fetcher: async () => {
+    calls++; return new Response(JSON.stringify(session));
+  } });
+  await assert.rejects(client.exchangeLink('test-code'), /same browser/);
+  local.setItem(`${client.sessionKey}:link`, JSON.stringify({verifier:'test',email:'test@example.com',created:1}));
+  await assert.rejects(client.exchangeLink('test-code'), /same browser/);
+  assert.equal(calls, 0);
+  local.setItem(`${client.sessionKey}:link`, JSON.stringify({verifier:'test',email:'another@example.com',created:Date.now()}));
+  await assert.rejects(client.exchangeLink('test-code'), /did not match/);
+  assert.equal(client.readSession(), null);
+  assert.equal(local.getItem(`${client.sessionKey}:link`), null);
+});
+
+test('callbacks remove auth details from history and reject unsolicited URL sessions', () => {
+  let cleaned;
+  const history = {replaceState:(_state, _title, url) => {cleaned = url;}};
+  assert.deepEqual(takeSignInReturn({href:'https://dayline.example/Dayline/?code=test-code&view=daily'}, history), {code:'test-code'});
+  assert.equal(cleaned, '/Dayline/?view=daily');
+  assert.ok(takeSignInReturn({href:'https://dayline.example/Dayline/#access_token=test&refresh_token=test'}, history).error);
+  assert.equal(cleaned, '/Dayline/');
+  assert.ok(takeSignInReturn({href:'https://dayline.example/Dayline/#error=access_denied&error_description=test'}, history).error);
+  assert.equal(takeSignInReturn({href:'https://dayline.example/Dayline/#weekly'}, history), null);
 });
