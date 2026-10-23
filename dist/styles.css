@@ -218,3 +218,5 @@ main{padding-bottom:180px}
 .bulk-mode .focus-launch,.bulk-mode .focus-mini{bottom:calc(210px + env(safe-area-inset-bottom))}
 
 .note-tag-badges{display:inline-flex;flex-wrap:wrap;gap:3px 10px;max-width:100%}.note-tag-badges .note-type-badge{margin-bottom:4px}.month-note-title .note-tag-badges{display:flex;margin-top:4px}.tag-setting-toggle{display:flex!important;align-items:center;justify-content:space-between;gap:12px;padding:9px 0}.tag-setting-toggle input{accent-color:var(--green);width:18px;height:18px}.custom-tag-setting{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0}.custom-tag-setting input{flex:1;min-width:100px;background:var(--white);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px}.custom-tag-setting button{padding:9px 12px}.note-type-chip{max-width:100%;overflow-wrap:anywhere}
+
+.focus-note-card .focus-note{cursor:text}.focus-note-card:focus-visible{outline:2px solid var(--green);outline-offset:3px}.focus-note-card:has(.editor){cursor:auto}

@@ -39,7 +39,7 @@ export function setupFocus(api){
     header.append(node('span','eyebrow','DAYLINE · FOCUS MODE'),button('Minimize',minimize,'focus-minimize'));
     dialog.append(header,heading,node('p','focus-save-status',error));dialog.querySelector('.focus-save-status').setAttribute('role','status');
   }
-  function minimize(){flushNote();if(session&&session.owner===owner)save();dialog.close();buttons();}
+  function minimize(){flushNote();if(session&&session.owner===owner)save();dialog.close();buttons();api.refresh();}
   function refreshPageSnapshot(p=page()){
     const choices=focusIntervalNotes(api.getState(),p);
     const entry=choices.find(e=>e.id===p.noteId)||choices.find(e=>!e.done)||choices[0];
@@ -48,7 +48,11 @@ export function setupFocus(api){
     else{const found=resolve(p);if(found){p.title=found.entry.title||'';p.text=found.entry.text;}}
   }
   function editNote(host,entry=null){
-    flushNote();const p=page(),date=entry?findFocusNote(api.getState().days,entry.id,p.date)?.date||p.date:p.date;let id=entry?.id||null;
+    const switching=!!noteEditor;flushNote();
+    if(switching){dialog.querySelector('.focus-notes-section')?.replaceWith(noteSection());host=entry?dialog.querySelector(`[data-note-id="${CSS.escape(entry.id)}"] .focus-note`):dialog.querySelector('.focus-add-note');if(!host){api.toast('This note has moved or is no longer available in this interval.');return;}}
+    const p=page(),found=entry?findFocusNote(api.getState().days,entry.id,p.date):null;
+    if(entry&&!found){render();api.toast('This note is no longer available.');return;}
+    entry=found?.entry||null;const date=found?.date||p.date;let id=entry?.id||null;
     noteEditor=createNoteEditor({entry,categories:categoryOptions(api.getState().days,api.getState().settings.tags),minute:p.minute,label:'Focus interval note',
       onChange(values){
         const result=api.editNote(date,id,p.minute,values);
@@ -76,9 +80,12 @@ export function setupFocus(api){
         if(!task&&entry.bullets?.some(item=>item.start===start)){const marker=node('span','bullet-marker','•');marker.setAttribute('aria-hidden','true');row.append(marker);}
         const text=node('span','note-text');const marks=(entry.format||[]).filter(m=>m.start<start+line.length&&m.end>start).map(m=>({...m,start:Math.max(0,m.start-start),end:Math.min(line.length,m.end-start)}));renderFormatted(text,line||'\u200b',marks);text.classList.toggle('task-completed',!!task?.done);row.append(text);body.append(row);start+=line.length+1;
       }
-      tools.append(button('Edit note',()=>editNote(body,entry)));
+      card.tabIndex=0;card.setAttribute('role','group');card.setAttribute('aria-label',`Note: ${entry.title||entry.text.split('\n')[0]||'Untitled note'}. Press Enter to edit.`);
+      card.addEventListener('click',event=>{if(event.target.closest('.editor,button,input,select,textarea,a,details,summary'))return;editNote(body,entry);});
+      card.addEventListener('keydown',event=>{if(event.target===card&&(event.key==='Enter'||event.key===' ')){event.preventDefault();editNote(body,entry);}});
+
       if(choices.length>1){const choose=button(entry.id===p.noteId?'Session summary note':'Use for session summary',()=>{flushNote();p.noteId=entry.id;refreshPageSnapshot();save();render();});choose.setAttribute('aria-pressed',String(entry.id===p.noteId));tools.append(choose);}
-      card.append(body,tools);section.append(card);
+      card.append(body);if(tools.childNodes.length)card.append(tools);section.append(card);
     }
     if(!choices.length)section.append(node('p','field-hint',p.text?`Earlier note: ${p.title||p.text}`:'No note is planned for this interval yet. You can add one here.'));
     section.append(addHost);notesSignature=noteSignature();return section;

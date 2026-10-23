@@ -7,7 +7,7 @@ import {setupActivities,renderGuidedReports} from './activities.js?v=activities-
 import {attachGuidedPlan} from './activities-model.js?v=note-drop-1';
 import {setupWelcome} from './welcome.js?v=zen-name-1';
 import {voice,personality,applyPersonality} from './personality.js?v=intention-labels-3';
-import {setupFocus} from './focus.js?v=multi-tags-1';
+import {setupFocus} from './focus.js?v=focus-direct-edit-1';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
 import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=focus-live-notes-1';
 import {setupMonthly} from './monthly.js?v=multi-tags-1';
@@ -277,21 +277,22 @@ accounts=setupAccounts({
     $('#account-sync-status').textContent=error?.message||labels[status]||'';
   },
 });
+function refreshPlanner(){if(view==='daily'&&!editor)renderTimeline();else if(view==='monthly')monthly.render();}
 const focus=setupFocus({
   getState:()=>state,flushEditor,toast,
-  refresh(){if(view==='daily'&&!editor)renderTimeline();else if(view==='monthly')monthly.render();},
+  refresh:refreshPlanner,
   editNote(date,id,minute,values){
     const found=findFocusNote(state.days,id,date),target=found?.date||date,previous=state.days[target]||[];
     if(!found&&!values.title.trim()&&!values.text.trim())return null;
     const entry={...(found?.entry||{id:crypto.randomUUID(),minute,done:false}),...values,task:false};
-    state.days[target]=found?previous.map(e=>e.id===entry.id?entry:e):[...previous,entry].sort((a,b)=>a.minute-b.minute);
-    if(!persist()){state.days[target]=previous;return null;}undo=null;return {id:entry.id};
+    state.days[target]=(found?previous.map(e=>e.id===entry.id?entry:e):[...previous,entry]).sort((a,b)=>a.minute-b.minute);
+    if(!persist()){state.days[target]=previous;return null;}undo=null;refreshPlanner();return {id:entry.id};
   },
   checkTask(date,id,start){
     const found=findFocusNote(state.days,id,date);if(!found)return;
     const tasks=noteTasks(found.entry).map(t=>t.start===start?{...t,done:!t.done}:t);
     const previous=state.days[found.date];state.days[found.date]=previous.map(e=>e.id===id?{...e,tasks,task:false}:e);
-    if(!persist())state.days[found.date]=previous;else undo=null;
+    if(!persist())state.days[found.date]=previous;else{undo=null;refreshPlanner();}
   },
   extendNote(id,source,target,minute,interval){
     try{const previous=state.days;state.days=extendFocusNote(state.days,id,source,target,minute,interval);
