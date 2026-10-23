@@ -16,14 +16,14 @@ export function setupFocus(api){
   const owner=crypto.randomUUID(),audio=new FocusAudio(),launch=document.querySelector('#launch-focus');
   const dialog=node('dialog','focus-window');dialog.setAttribute('aria-label','Dayline Focus Mode');document.body.append(dialog);
   const mini=button('',()=>open(),'focus-mini');mini.hidden=true;document.body.append(mini);
-  let notesSignature='',session=null,noteEditor=null,error='',unreadable=false,transition=false,audioSettings={...defaults};
+  let notesSignature='',session=null,noteEditor=null,error='',unreadable=false,transition=false,audioSettings={...defaults,soundtrack:musicProfile(personality()).layout},audioPersonality=personality();
   try{const raw=localStorage.getItem(KEY);if(raw)session=validFocusDraft(JSON.parse(raw));}catch{unreadable=true;}
   function save(claim=false){
     if(!session)return true;
     try{
       const raw=localStorage.getItem(KEY),other=raw&&JSON.parse(raw);
       if(!claim&&other&&other.owner!==owner){error='This session is open in another tab. Resume here to take over.';status();return false;}
-      session.owner=owner;session.audio={...audioSettings};localStorage.setItem(KEY,JSON.stringify(session));error='';status();return true;
+      session.owner=owner;session.audio={...audioSettings,soundtrackPersonality:audioPersonality};localStorage.setItem(KEY,JSON.stringify(session));error='';status();return true;
     }catch{error='Your browser could not save this session draft. Keep this tab open and try saving again.';status();return false;}
   }
   function status(){dialog.querySelector('.focus-save-status')?.replaceChildren(document.createTextNode(error));}
@@ -115,7 +115,9 @@ export function setupFocus(api){
     fields.append(button('Cancel preparation',()=>{clear();dialog.close();buttons();},'text-button'));dialog.append(fields,commitment);
   }
   function audioSection(){
-    const section=node('section','focus-section');section.append(node('h2','','Focus audio'),node('p','field-hint',musicProfile(personality()).description+' Music and warm ambience work through speakers or headphones. Mix any layers you like. Warm ambient sound is the original soft background layer, available with or without music in every layout. Binaural tones use separate left and right channels for headphones. The metronome tempo is independent of the soundtrack.'));
+    const section=node('section','focus-section'),description=node('p','field-hint');
+    function updateDescription(){description.textContent=musicProfile(audioSettings.soundtrack).description+' Music and warm ambience work through speakers or headphones. Mix any layers you like. Warm ambient sound is the original soft background layer, available with or without music in every layout. Binaural tones use separate left and right channels for headphones. The metronome tempo is independent of the soundtrack.';}
+    updateDescription();section.append(node('h2','','Focus audio'),description);
     section.append(node('p','field-hint','Suggested starting points to experiment with (binaural difference · metronome tempo):'));
     const suggestions=node('ul','field-hint focus-audio-presets'),presetButtons=[],tempoControls=new Map();
     for(const [name,copy,beat,bpm] of [
@@ -135,12 +137,18 @@ export function setupFocus(api){
     }
     section.append(suggestions,node('p','field-hint','These are optional listening ideas, not scientifically established recipes for flow. Evidence for binaural brainwave entrainment is mixed; no frequency or BPM guarantees a mental state. Hz is the difference between the two ear tones; BPM controls the separate metronome. Adjust either independently, or turn a layer off.'));
     const action=button(audio.playing?'Pause audio':'Play audio',async()=>{
-      action.disabled=true;try{if(audio.playing)await audio.fadeOut();else await audio.play({...audioSettings,layout:personality()});action.textContent=audio.playing?'Pause audio':'Play audio';buttons();}catch(e){error=e.message;status();}finally{action.disabled=false;}
+      action.disabled=true;try{if(audio.playing)await audio.fadeOut();else await audio.play({...audioSettings,layout:audioSettings.soundtrack});action.textContent=audio.playing?'Pause audio':'Play audio';buttons();}catch(e){error=e.message;status();}finally{action.disabled=false;}
     },'primary');
-    for(const [key,label,volume] of [['binaural','Binaural tones','tonesVolume'],['ambient',musicProfile(personality()).label,'ambientVolume'],['warmAmbient','Warm ambient sound','warmVolume'],['metronome','Steady metronome','metronomeVolume']]){
+    for(const [key,label,volume] of [['binaural','Binaural tones','tonesVolume'],['ambient','Soundtrack','ambientVolume'],['warmAmbient','Warm ambient sound','warmVolume'],['metronome','Steady metronome','metronomeVolume']]){
       const row=node('div','focus-audio-row'),toggleLabel=node('label',''),toggle=node('input');toggle.type='checkbox';toggle.checked=audioSettings[key];toggleLabel.append(toggle,document.createTextNode(' '+label));
+      if(key==='ambient'){
+        const select=node('select','focus-soundtrack-select');select.setAttribute('aria-label','Focus soundtrack');
+        for(const [layout,name] of [['zen','Zen'],['builder','Builder'],['founder','Founder']]){const profile=musicProfile(layout),option=node('option','',profile.label+(layout===personality()?` · ${name} default`:''));option.value=layout;select.append(option);}
+        select.value=audioSettings.soundtrack;select.addEventListener('change',()=>{audioSettings.soundtrack=select.value;updateDescription();changeAudio();});
+        const group=node('div','focus-soundtrack-choice');group.append(toggleLabel,select);row.append(group);
+      }else row.append(toggleLabel);
       toggle.addEventListener('change',()=>{audioSettings[key]=toggle.checked;changeAudio();});
-      const range=node('input');range.type='range';range.min=0;range.max=100;range.value=audioSettings[volume];range.setAttribute('aria-label',label+' volume');range.addEventListener('input',()=>{audioSettings[volume]=Number(range.value);changeAudio();});row.append(toggleLabel,range);section.append(row);
+      const range=node('input');range.type='range';range.min=0;range.max=100;range.value=audioSettings[volume];range.setAttribute('aria-label',label+' volume');range.addEventListener('input',()=>{audioSettings[volume]=Number(range.value);changeAudio();});row.append(range);section.append(row);
     }
     for(const [key,label,min,max] of [['bpm','Metronome tempo (BPM)',30,180],['beat','Binaural frequency difference (Hz)',2,15]]){
       const row=node('div','focus-tempo-control'),labelNode=node('label','',label),range=node('input'),input=node('input');
@@ -154,7 +162,7 @@ export function setupFocus(api){
       row.append(labelNode,range,input);section.append(row);
     }
     const help=node('p','field-hint','Presets update both sliders. Fine-tune either value below; layer switches stay as you set them.');help.id='focus-preset-help';section.append(help);syncTempos();
-    async function changeAudio(){save();if(audio.playing){try{await audio.play({...audioSettings,layout:personality()});}catch(e){error=e.message;status();}}}
+    async function changeAudio(){save();if(audio.playing){try{await audio.play({...audioSettings,layout:audioSettings.soundtrack});}catch(e){error=e.message;status();}}}
     section.append(action);return section;
   }
   function active(){
@@ -201,10 +209,11 @@ export function setupFocus(api){
     if(unreadable){recover();return;}
     api.flushEditor();
     try{const raw=localStorage.getItem(KEY);if(raw)session=validFocusDraft(JSON.parse(raw));}catch{unreadable=true;recover();return;}
-    if(!session){session=newFocus(api.getState(),Date.now(),crypto.randomUUID(),owner);session.mantra=focusMantras(MANTRAS)[0];}open();
+    if(!session){audioSettings.soundtrack=musicProfile(personality()).layout;audioPersonality=personality();session=newFocus(api.getState(),Date.now(),crypto.randomUUID(),owner);session.mantra=focusMantras(MANTRAS)[0];}open();
   }
   function open(){
     if(!session)return;api.flushEditor();session.owner=owner;
+    audioPersonality=personality();audioSettings.soundtrack=session.audio?.soundtrackPersonality===audioPersonality&&['zen','builder','founder'].includes(session.audio?.soundtrack)?session.audio.soundtrack:musicProfile(audioPersonality).layout;
     if(session.audio)for(const key of Object.keys(defaults)){const value=session.audio[key];if(typeof defaults[key]==='boolean'&&typeof value==='boolean')audioSettings[key]=value;else if(Number.isFinite(value))audioSettings[key]=Math.min(key==='bpm'?180:key==='beat'?15:100,Math.max(key==='bpm'?30:key==='beat'?2:0,value));}
     advanceFocus(session,api.getState(),Date.now());save(true);render();if(!dialog.open)dialog.showModal();dialog.scrollTop=0;buttons();
   }
@@ -246,7 +255,7 @@ export function setupFocus(api){
       flushNote();audio.stop();session=incoming;dialog.close();buttons();
     }catch{error='A focus draft from another tab could not be read.';status();}
   });
-  window.addEventListener('dayline:appearance',()=>{if(audio.playing)audio.play({...audioSettings,layout:personality()}).catch(e=>{error=e.message;status();});if(session&&dialog.open&&!transition)render();});
+  window.addEventListener('dayline:appearance',()=>{if(audioPersonality!==personality()){audioPersonality=personality();audioSettings.soundtrack=musicProfile(audioPersonality).layout;if(session)save();}if(audio.playing)audio.play({...audioSettings,layout:audioSettings.soundtrack}).catch(e=>{error=e.message;status();});if(session&&dialog.open&&!transition)render();});
   window.addEventListener('dayline:notes-changed',refreshNotes);
   buttons();return {refresh(){buttons();refreshNotes();},minimize};
 }
