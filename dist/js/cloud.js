@@ -67,14 +67,19 @@ export class CloudClient {
     if (!this.config) throw new Error('Account setup has not been completed yet.');
     let response;
     try {
-      response = await this.fetcher(`${this.config.url}${path}`, {
+      // Window.fetch requires a Window receiver in some browsers (notably
+      // Safari). Calling it as this.fetcher makes CloudClient the receiver.
+      response = await this.fetcher.call(globalThis, `${this.config.url}${path}`, {
         method,
         headers: { apikey: this.config.publishableKey, 'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}), ...headers },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
         signal: AbortSignal.timeout(15000),
       });
-    } catch {
+    } catch (error) {
+      if (error?.name === 'TimeoutError' || error?.name === 'AbortError') {
+        throw new CloudError('The account service took too long to respond. Please try again. Your notes are kept on this device.');
+      }
       throw new CloudError('Could not connect. Your unsynced notes are kept on this device.');
     }
     const data = await response.json().catch(() => null);

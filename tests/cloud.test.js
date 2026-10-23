@@ -24,6 +24,21 @@ test('email-code verification saves a session and authenticated requests use its
   assert.equal(calls[2].headers.Authorization, 'Bearer test-access');
   assert.equal(client.readSession().user.id, 'one');
 });
+
+test('browser fetch receives its global receiver instead of the CloudClient instance', async () => {
+  const client = new CloudClient(config, {storage:storage(), fetcher:async function () {
+    assert.equal(this, globalThis, 'Window.fetch must be called with the browser global');
+    return new Response('{}');
+  }});
+  await client.sendCode('test@example.com');
+});
+
+test('timeouts have a specific retry message and never imply notes were lost', async () => {
+  const client = new CloudClient(config, {storage:storage(), fetcher:async () => {
+    throw new DOMException('timeout', 'TimeoutError');
+  }});
+  await assert.rejects(client.sendCode('test@example.com'), /too long.*try again.*kept on this device/);
+});
 test('expired sessions refresh once for concurrent requests', async () => {
   let refreshed = 0;
   const client = new CloudClient(config, { storage: storage(), locks: null, fetcher: async url => {

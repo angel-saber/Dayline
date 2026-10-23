@@ -1,5 +1,5 @@
-import { cloudConfig } from './config.js?v=private-accounts-1';
-import { CloudClient, takeSignInReturn } from './cloud.js?v=private-accounts-1';
+import { cloudConfig } from './config.js?v=private-accounts-2';
+import { CloudClient, takeSignInReturn } from './cloud.js?v=private-accounts-2';
 import { SyncEngine, mergeGuestDays, clearSyncedDrafts } from './sync.js?v=weekly-notes-1';
 import { load, save, validState } from './storage.js?v=weekly-notes-1';
 
