@@ -4,9 +4,9 @@ import {setupActivities,renderGuidedReports} from './activities.js?v=activities-
 import {attachGuidedPlan} from './activities-model.js?v=exact-note-times-1';
 import {setupWelcome} from './welcome.js?v=zen-name-1';
 import {voice,personality,applyPersonality} from './personality.js?v=intention-labels-3';
-import {setupFocus} from './focus.js?v=exact-note-times-1';
+import {setupFocus} from './focus.js?v=focus-live-notes-1';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
-import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=exact-note-times-1';
+import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=focus-live-notes-1';
 import {setupMonthly} from './monthly.js?v=type-chips-1';
 import {moveToDay,quickNote} from './month-model.js?v=exact-note-times-1';
 import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,timeLabel} from './model.js?v=exact-note-times-1';
@@ -25,7 +25,7 @@ const announce=text=>{$('#announcer').textContent=text;};
 function toast(text,withUndo=false){$('#toast-text').textContent=text;$('#undo').hidden=!withUndo;$('#toast').hidden=false;announce(text);}
 function persist(){
   if(readFailed){$('#save-status').textContent='● Saving paused';toast('Stored data could not be read. Export a recovery copy or restore a valid backup before saving.');return false;}
-  try{if(accounts)accounts.persist(state);else save(state);if(!accounts?.isSignedIn())$('#save-status').textContent='● Saved on this device';return true;}
+  try{if(accounts)accounts.persist(state);else save(state);if(!accounts?.isSignedIn())$('#save-status').textContent='● Saved on this device';window.dispatchEvent(new Event('dayline:notes-changed'));return true;}
   catch{$('#save-status').textContent='● Not saved';toast('Your browser could not save this change. Download a backup in Settings to keep your notes.');return false;}
 }
 function entries(){return state.days[selected]||[];}
@@ -232,7 +232,7 @@ $('#restore-dialog').addEventListener('close',()=>{
   }pendingImport=null;
 });
 window.addEventListener('pagehide',flushEditor);
-window.addEventListener('storage',event=>{if(event.key==='dayline.v1'&&!accounts?.isSignedIn()){try{state=load();readFailed=false;undo=null;if(!editor){if(view==='daily')renderTimeline();else if(view==='monthly')monthly.render();else if(view==='settings')renderSettings();}toast('Notes updated from another tab.');}catch{toast('Another tab saved data that could not be read.');}}});
+window.addEventListener('storage',event=>{if(event.key==='dayline.v1'&&!accounts?.isSignedIn()){try{state=load();readFailed=false;undo=null;window.dispatchEvent(new Event('dayline:notes-changed'));if(!editor){if(view==='daily')renderTimeline();else if(view==='monthly')monthly.render();else if(view==='settings')renderSettings();}toast('Notes updated from another tab.');}catch{toast('Another tab saved data that could not be read.');}}});
 setInterval(()=>{renderDailyQuote();if(view==='daily'&&!editor){const current=$('#timeline .current'),now=new Date(),minute=now.getHours()*60+now.getMinutes();if(selected===dayKey()&&Number(current?.dataset.minute)!==Math.floor(minute/state.settings.interval)*state.settings.interval)renderTimeline();}},30000);
 window.addEventListener('focus',renderDailyQuote);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderDailyQuote();});
@@ -241,7 +241,7 @@ accounts=setupAccounts({
   getState:()=>state, flushEditor, toast,
   setState(next,options={}){
     const changed=JSON.stringify(state.days[selected]||[])!==JSON.stringify(next.days[selected]||[]);
-    state=next;readFailed=options.readFailed??readFailed;
+    state=next;readFailed=options.readFailed??readFailed;window.dispatchEvent(new Event('dayline:notes-changed'));
     if(changed){undo=null;renderTimeline();}
     if(view==='monthly')monthly.render();
     else if(!editor&&view==='daily')renderTimeline();

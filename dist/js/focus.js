@@ -2,7 +2,7 @@ import {typeBadge} from './note-types.js?v=type-chips-1';
 import {musicProfile} from './focus-music.js?v=cyber-mission-12';
 import {voice,personality,focusMantras,focusIdeas} from './personality.js?v=intention-labels-3';
 import {dayKey,timeLabel,bucket} from './model.js?v=exact-note-times-1';
-import {newFocus,advanceFocus,commitFocus,findFocusNote,validFocusDraft,durationLabel,MANTRAS,INSPIRATION} from './focus-model.js?v=exact-note-times-1';
+import {focusIntervalNotes,newFocus,advanceFocus,commitFocus,findFocusNote,validFocusDraft,durationLabel,MANTRAS,INSPIRATION} from './focus-model.js?v=focus-live-notes-1';
 import {FocusAudio} from './focus-audio.js?v=speaker-playback-1';
 import {createNoteEditor} from './note-editor.js?v=exact-note-times-1';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
@@ -15,7 +15,7 @@ export function setupFocus(api){
   const owner=crypto.randomUUID(),audio=new FocusAudio(),launch=document.querySelector('#launch-focus');
   const dialog=node('dialog','focus-window');dialog.setAttribute('aria-label','Dayline Focus Mode');document.body.append(dialog);
   const mini=button('',()=>open(),'focus-mini');mini.hidden=true;document.body.append(mini);
-  let session=null,noteEditor=null,error='',unreadable=false,transition=false,audioSettings={...defaults};
+  let notesSignature='',session=null,noteEditor=null,error='',unreadable=false,transition=false,audioSettings={...defaults};
   try{const raw=localStorage.getItem(KEY);if(raw)session=validFocusDraft(JSON.parse(raw));}catch{unreadable=true;}
   function save(claim=false){
     if(!session)return true;
@@ -41,37 +41,52 @@ export function setupFocus(api){
   }
   function minimize(){flushNote();if(session&&session.owner===owner)save();dialog.close();buttons();}
   function refreshPageSnapshot(p=page()){
-    const found=resolve(p);if(found){p.title=found.entry.title||'';p.text=found.entry.text;p.noteId=found.entry.id;}
+    const choices=focusIntervalNotes(api.getState(),p);
+    const entry=choices.find(e=>e.id===p.noteId)||choices.find(e=>!e.done)||choices[0];
+    if(entry){p.title=entry.title||'';p.text=entry.text;p.noteId=entry.id;}
+    else if(p===session.pages.at(-1)){p.title='';p.text='';p.noteId=null;}
+    else{const found=resolve(p);if(found){p.title=found.entry.title||'';p.text=found.entry.text;}}
   }
-  function editNote(host){
-    flushNote();const p=page(),found=resolve(p);
-    noteEditor=createNoteEditor({entry:found?.entry,minute:p.minute,label:'Focus interval note',
+  function editNote(host,entry=null){
+    flushNote();const p=page(),date=entry?findFocusNote(api.getState().days,entry.id,p.date)?.date||p.date:p.date;let id=entry?.id||null;
+    noteEditor=createNoteEditor({entry,minute:p.minute,label:'Focus interval note',
       onChange(values){
-        const result=api.editNote(found?.date||p.date,p.noteId,p.minute,values);
-        if(result){p.noteId=result.id;p.title=values.title;p.text=values.text;save();}
+        const result=api.editNote(date,id,p.minute,values);
+        if(result){id=result.id;p.noteId=id;p.title=values.title;p.text=values.text;save();}
       },onDone(){flushNote();render();},
     });host.replaceChildren(noteEditor.element);noteEditor.focus();
   }
+  function noteSignature(){const p=page();return JSON.stringify({page:p.key,clock:api.getState().settings.clock,entries:focusIntervalNotes(api.getState(),p)});}
   function noteSection(){
-    const p=page(),found=resolve(p),entry=found?.entry;
-    const section=node('section','focus-section'),heading=node('div','focus-section-heading');
-    heading.append(node('h2','',voice('Intention')),button(entry?'Edit note':'Add a note',()=>editNote(body)));
+    refreshPageSnapshot();const p=page(),choices=focusIntervalNotes(api.getState(),p);
+    const section=node('section','focus-section focus-notes-section'),heading=node('div','focus-section-heading');
+    const addHost=node('div','focus-add-note');
+    heading.append(node('h2','',voice('Intention')),button('Add a note',()=>editNote(addHost)));
     section.append(heading,node('p','focus-interval-label',`${p.date} · ${timeLabel(p.minute,api.getState().settings.clock)} – ${timeLabel(Math.min(1440,p.minute+(p.interval||session.interval)),api.getState().settings.clock)}`));
-    const body=node('div','focus-note');section.append(body);
-    if(entry){
-      const badge=typeBadge(entry.noteType);if(badge)body.append(badge);
+    if(choices.length>1)section.append(node('p','field-hint','All notes in this interval. Choose which note receives the session summary.'));
+    for(const entry of choices){
+      const card=node('article',`focus-note-card${entry.id===p.noteId?' selected-focus-note':''}`),body=node('div','focus-note'),tools=node('div','focus-note-actions');card.dataset.noteId=entry.id;
+      const badge=typeBadge(entry.noteType);if(badge)card.append(badge);
+      card.append(node('p','focus-interval-label',timeLabel(entry.minute,api.getState().settings.clock)));
       if(entry.title)body.append(node('h3','',entry.title));
       let start=0;
       for(const line of entry.text.split('\n')){
         const row=node('div','note-line'),task=noteTasks(entry).find(t=>t.start===start),anchor=start;
-        if(task){const check=node('input','line-checkbox');check.type='checkbox';check.checked=task.done;check.setAttribute('aria-label',`Complete focus task: ${line}`);check.addEventListener('change',()=>{api.checkTask(found.date,entry.id,anchor);refreshPageSnapshot();render();});row.append(check);}
+        if(task){const check=node('input','line-checkbox');check.type='checkbox';check.checked=task.done;check.setAttribute('aria-label',`Complete focus task: ${line}`);check.addEventListener('change',()=>{api.checkTask(p.date,entry.id,anchor);refreshPageSnapshot();render();});row.append(check);}
         if(!task&&entry.bullets?.some(item=>item.start===start)){const marker=node('span','bullet-marker','•');marker.setAttribute('aria-hidden','true');row.append(marker);}
         const text=node('span','note-text');const marks=(entry.format||[]).filter(m=>m.start<start+line.length&&m.end>start).map(m=>({...m,start:Math.max(0,m.start-start),end:Math.min(line.length,m.end-start)}));renderFormatted(text,line||'\u200b',marks);text.classList.toggle('task-completed',!!task?.done);row.append(text);body.append(row);start+=line.length+1;
       }
-      const choices=(api.getState().days[p.date]||[]).filter(e=>bucket(e.minute,p.interval||session.interval)===p.minute);
-      if(choices.length>1){const select=node('select');select.setAttribute('aria-label','Choose a note for this interval');for(const item of choices){const option=node('option','',item.title||item.text.split('\n')[0]||'Untitled note');option.value=item.id;select.append(option);}select.value=p.noteId;select.addEventListener('change',()=>{p.noteId=select.value;refreshPageSnapshot();save();render();});section.append(select);}
-    }else body.append(node('p','field-hint',p.text?`Earlier note: ${p.title||p.text}`:'No note is planned for this interval yet. You can add one here.'));
-    return section;
+      tools.append(button('Edit note',()=>editNote(body,entry)));
+      if(choices.length>1){const choose=button(entry.id===p.noteId?'Session summary note':'Use for session summary',()=>{flushNote();p.noteId=entry.id;refreshPageSnapshot();save();render();});choose.setAttribute('aria-pressed',String(entry.id===p.noteId));tools.append(choose);}
+      card.append(body,tools);section.append(card);
+    }
+    if(!choices.length)section.append(node('p','field-hint',p.text?`Earlier note: ${p.title||p.text}`:'No note is planned for this interval yet. You can add one here.'));
+    section.append(addHost);notesSignature=noteSignature();return section;
+  }
+  function refreshNotes(){
+    if(!session||!dialog.open||transition||noteEditor||session.phase==='reflect')return;
+    const signature=noteSignature();if(signature===notesSignature)return;
+    const section=dialog.querySelector('.focus-notes-section');if(section){section.replaceWith(noteSection());if(session.owner===owner)save();}
   }
   function prepare(){
     base(voice("A little commitment. A steady beginning."));const fields=node('div','focus-prep-fields');
@@ -211,7 +226,7 @@ export function setupFocus(api){
       const now=new Date(),key=`${dayKey(now)}:${bucket(now.getHours()*60+now.getMinutes(),slot.settings.interval)}:${slot.settings.interval}`;
       if(last!==key){flushNote();if(advanceFocus(session,slot,Date.now())){save();if(dialog.open&&!transition)render();}}
     }
-    tickLabels();
+    refreshNotes();tickLabels();
   }
   setInterval(tick,1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick();});
   window.addEventListener('pagehide',()=>{flushNote();if(session?.owner===owner)save();audio.stop();});
@@ -224,5 +239,6 @@ export function setupFocus(api){
     }catch{error='A focus draft from another tab could not be read.';status();}
   });
   window.addEventListener('dayline:appearance',()=>{if(audio.playing)audio.play({...audioSettings,layout:personality()}).catch(e=>{error=e.message;status();});if(session&&dialog.open&&!transition)render();});
-  buttons();return {refresh:buttons,minimize};
+  window.addEventListener('dayline:notes-changed',refreshNotes);
+  buttons();return {refresh(){buttons();refreshNotes();},minimize};
 }

@@ -30,8 +30,11 @@ export function findFocusNote(days,id,date){
   for(const [key,list] of Object.entries(days)){const entry=list.find(e=>e.id===id);if(entry)return {date:key,entry};}
   return null;
 }
+export function focusIntervalNotes(state,page){
+  return (state.days[page.date]||[]).filter(entry=>bucket(entry.minute,page.interval||state.settings.interval)===page.minute).slice().sort((a,b)=>a.minute-b.minute);
+}
 export function focusPage(state,at){
-  const slot=intervalAt(at,state.settings.interval),list=(state.days[slot.date]||[]).filter(e=>bucket(e.minute,state.settings.interval)===slot.minute);
+  const slot=intervalAt(at,state.settings.interval),list=focusIntervalNotes(state,{...slot,interval:state.settings.interval});
   const note=list.find(e=>!e.done)||list[0];
   return {...slot,interval:state.settings.interval,startedAt:at,noteId:note?.id||null,title:note?.title||'',text:note?.text||'',log:''};
 }
