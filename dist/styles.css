@@ -229,3 +229,9 @@ main{padding-bottom:180px}
 .attachment-list li{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
 .attachment-list button{font-size:.8rem;max-width:100%;overflow-wrap:anywhere;text-align:left}
 .attachment-list .field-hint:empty{display:none}
+.compression-review{border-top:1px solid var(--line,#aaa);padding-top:12px;margin-top:12px}
+.compression-review h4{margin:0 0 8px;overflow-wrap:anywhere}
+.compression-review label{display:inline-flex;gap:8px;align-items:center;margin:4px 12px 10px 0}
+.compression-review img{max-width:100%;max-height:280px;object-fit:contain;border-radius:8px;margin-top:10px}
+.compression-review p,.share-file-section p{font-size:.85rem;line-height:1.5}
+.share-file-section{padding:10px 0}

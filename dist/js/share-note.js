@@ -1,3 +1,5 @@
+import {shareAttachments,prepareShareFiles,supportsFileShare} from './share-files.js?v=file-sharing-1';
+import {attachmentList} from './attachments.js?v=attachments-1';
 import {parseDay,timeLabel} from './model.js';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 import {NOTE_TYPES,categoryLabel,noteTags} from './note-types.js?v=multi-tags-1';
@@ -5,7 +7,7 @@ import {safeLink} from './links.js?v=hyperlinks-1';
 import {durationLabel} from './focus-model.js?v=focus-1';
 import {dimensions,compassTitle,compassDates} from './activities-model.js?v=activities-2';
 import {activityCatalog,activityFields} from './activity-catalog.js?v=activities-2';
-export const SHARE_DEFAULTS={dateTime:true,type:true,focusReports:false,guidedReports:false};
+export const SHARE_DEFAULTS={dateTime:true,type:true,focusReports:false,guidedReports:false,attachments:false};
 function linkedLine(text,start,format=[]){
   const end=start+text.length,links=[];
   for(const mark of format.filter(m=>m.href&&m.start<end&&m.end>start).sort((a,b)=>a.start-b.start)){
@@ -65,18 +67,42 @@ function openShareItems(items,clock,multiple){
   const node=(tag,cls,text)=>{const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;};
   const dialog=node('dialog','share-note-dialog'),heading=node('h2','','Share note');heading.id='share-note-heading';dialog.setAttribute('aria-labelledby',heading.id);
   const intro=node('p','field-hint','Share a clean text copy. Recipients do not need a Dayline account. Choose what to include below.');
+  let preparedFiles=[],loadingFiles=false,fileError='',fileLoad=0;
+  const fileItems=shareAttachments(items);
   const options={...SHARE_DEFAULTS},choices=node('fieldset','share-note-options');choices.append(node('legend','','Include in shared text'));
   const preview=node('textarea','share-note-preview');preview.readOnly=true;preview.rows=12;preview.setAttribute('aria-label','Shared note preview');
   const status=node('p','field-hint');status.setAttribute('role','status');
   const email=node('a','secondary','Email'),titleInput=node('input');titleInput.type='text';titleInput.maxLength=200;titleInput.value='Dayline plan';titleInput.setAttribute('aria-label','Shared plan heading');
   const shareTitle=()=>multiple?(titleInput.value.trim()||'Dayline plan'):(entry.title?.trim()||'Dayline note');
-  function refresh(){preview.value=multiple?shareNotesText(items,options,clock,shareTitle()):shareNoteText(entry,date,options,clock);email.href=emailNoteUrl(shareTitle(),preview.value);status.textContent='';}
-  for(const [key,label,available] of [['dateTime','Date and time',true],['type','Tags',items.some(item=>noteTags(item.entry).length>0)],['focusReports','Focus reports, including reflections and interruption logs',items.some(item=>!!item.entry.focusReports?.length)],['guidedReports','Guided activity reports',items.some(item=>!!item.entry.guidedActivities?.length)]]){
-    const wrapper=node('label',''),check=node('input');check.type='checkbox';check.checked=available&&options[key];check.disabled=!available;check.addEventListener('change',()=>{options[key]=check.checked;refresh();});wrapper.append(check,document.createTextNode(label));choices.append(wrapper);
+  function refresh(){preview.value=multiple?shareNotesText(items,options,clock,shareTitle()):shareNoteText(entry,date,options,clock);email.href=emailNoteUrl(shareTitle(),preview.value);email.textContent=options.attachments?'Email text only':'Email';status.textContent='';refreshFiles();}
+  for(const [key,label,available] of [['dateTime','Date and time',true],['type','Tags',items.some(item=>noteTags(item.entry).length>0)],['focusReports','Focus reports, including reflections and interruption logs',items.some(item=>!!item.entry.focusReports?.length)],['guidedReports','Guided activity reports',items.some(item=>!!item.entry.guidedActivities?.length)],['attachments','Include attachments',fileItems.length>0]]){
+    const wrapper=node('label',''),check=node('input');check.type='checkbox';check.checked=available&&options[key];check.disabled=!available;check.addEventListener('change',()=>{options[key]=check.checked;if(key==='attachments')loadFiles();refresh();});wrapper.append(check,document.createTextNode(label));choices.append(wrapper);
   }
   const actions=node('div','inline');const action=(text,fn,cls='secondary')=>{const button=node('button',cls,text);button.type='button';button.onclick=fn;return button;};
-  const share=action('Share…',async()=>{try{await navigator.share({title:shareTitle(),text:preview.value});status.textContent='Shared.';}catch(error){status.textContent=error.name==='AbortError'?'Sharing cancelled.':'Sharing is unavailable here. Use Copy text or Email instead.';}},'primary');
-  share.disabled=typeof navigator.share!=='function';
+  const filesSection=node('section','share-file-section'),filesStatus=node('p','field-hint');filesStatus.setAttribute('role','status');
+  filesSection.append(node('h3','','Attachments'),attachmentList(fileItems),filesStatus);
+  function refreshFiles(){
+    filesSection.hidden=!options.attachments;
+    const supported=supportsFileShare(preparedFiles);
+    share.disabled=typeof navigator.share!=='function'||(options.attachments&&(loadingFiles||!!fileError||!supported));
+    filesStatus.textContent=loadingFiles?'Preparing files…':fileError||(!supported?'This browser cannot share these files together. Download them above, then attach them in your email or messaging app.':'Share… includes these files. Choose Mail or a messaging app from the share menu. The receiving app controls size limits and whether accompanying text is included.');
+    if(options.attachments)filesStatus.textContent+=' Copy text and Email text only do not include files.';
+  }
+  async function loadFiles(){
+    const request=++fileLoad;fileError='';preparedFiles=[];loadingFiles=options.attachments;
+    if(!options.attachments)return;
+    try{const files=await prepareShareFiles(items);if(request===fileLoad)preparedFiles=files;}
+    catch(error){if(request===fileLoad)fileError=error.message;}
+    finally{if(request===fileLoad){loadingFiles=false;refreshFiles();}}
+  }
+  // Read files before the click: native sharing requires a fresh user gesture.
+  const share=action('Share…',async()=>{
+    try{
+      const data={title:shareTitle(),text:preview.value};
+      if(options.attachments){if(!supportsFileShare(preparedFiles)||loadingFiles||fileError)throw new Error('Files cannot be shared here. Download them instead.');data.files=preparedFiles;}
+      await navigator.share(data);status.textContent='Shared.';
+    }catch(error){status.textContent=error.name==='AbortError'?'Sharing cancelled.':options.attachments?'Could not share these files. Try fewer files, or download them and attach them in your email or messaging app.':'Sharing is unavailable here. Use Copy text or Email instead.';}
+  },'primary');
   const copy=action('Copy text',async()=>{try{await navigator.clipboard.writeText(preview.value);status.textContent='Copied to clipboard.';}catch{preview.focus();preview.select();status.textContent='Copy the selected preview using your device’s Copy command.';}});
   actions.append(share,copy,email,action('Close',()=>dialog.close()));
   dialog.append(heading,intro);if(multiple){const label=node('label','share-preview-label','Heading (optional)');label.append(titleInput);dialog.append(label);titleInput.oninput=refresh;
@@ -84,9 +110,9 @@ function openShareItems(items,clock,multiple){
     for(const [key,text] of [['date','Date & time'],['category','Category']]){const label=node('label',''),radio=node('input');radio.type='radio';radio.name='share-organize';radio.checked=key==='date';radio.addEventListener('change',()=>{options.organize=key;refresh();});label.append(radio,document.createTextNode(text));organize.append(label);}
     dialog.append(organize,node('p','field-hint','Category groups are sorted alphabetically (untagged notes last), with notes ordered by date and time inside each group. Multiple tags form one combined heading, so each note appears once. Turn Tags off to hide category headings.'));
   }
-  dialog.append(choices,node('label','share-preview-label','Preview'),preview,actions,status);
-  if(share.disabled)dialog.append(node('p','field-hint','Your browser does not offer a sharing menu. Copy text and Email are available.'));
-  dialog.addEventListener('close',()=>dialog.remove(),{once:true});
+  dialog.append(choices,node('label','share-preview-label','Preview'),preview,filesSection,actions,status);
+  if(typeof navigator.share!=='function')dialog.append(node('p','field-hint','Your browser does not offer a sharing menu. Copy text and Email are available.'));
+  dialog.addEventListener('close',()=>{fileLoad++;preparedFiles=[];dialog.remove();},{once:true});
   const onAccount=()=>dialog.close();window.addEventListener('dayline:account',onAccount,{once:true});dialog.addEventListener('close',()=>window.removeEventListener('dayline:account',onAccount),{once:true});
   document.body.append(dialog);refresh();dialog.showModal();
 }

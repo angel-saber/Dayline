@@ -1,3 +1,4 @@
+import {prepareUploadFiles,reviewCompression} from './file-compression.js?v=file-sharing-1';
 import {addFiles,attachmentList} from './attachments.js?v=attachments-1';
 import {typeChips,noteTags} from './note-types.js?v=multi-tags-1';
 import {safeLink} from './links.js?v=hyperlinks-1';
@@ -151,14 +152,19 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
   linkInput.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();applyLink.click();}else if(event.key==='Escape'){event.preventDefault();closeLink();}});
   // Keep the caret and mobile keyboard in the editable text when a tool is tapped.
   toolbar.addEventListener('pointerdown',event=>{if(event.target.closest('button'))event.preventDefault();});
+  const compressionAbort=new AbortController();
   const attachments=element('section','attachment-editor'),fileInput=element('input');fileInput.type='file';fileInput.multiple=true;fileInput.hidden=true;
-  const upload=makeButton('Attach files','Upload attachments',()=>fileInput.click()),fileStatus=element('p','field-hint','Drop files here · Up to 10 files, 10 MB each · Stored on this device');fileStatus.setAttribute('role','status');
+  const upload=makeButton('Attach files','Upload attachments',()=>fileInput.click()),fileStatus=element('p','field-hint','Drop files here · Up to 10 files, 10 MB each · Larger PDFs and JPEG/PNG/WebP images can try size reduction · Stored on this device');fileStatus.setAttribute('role','status');
   const filesHost=element('div');let uploading=false;
   function renderFiles(){filesHost.replaceChildren(attachmentList(state.attachments,id=>{const previous=state.attachments;state={...state,attachments:previous.filter(item=>item.id!==id)};if(publish()===false){state={...state,attachments:previous};fileStatus.textContent='Could not save this change. Please try again.';}renderFiles();}));}
   async function uploadFiles(files){
     if(uploading)return;uploading=true;upload.disabled=true;fileStatus.textContent='Saving files…';
     try{
-      const added=await addFiles(files,state.attachments);
+      if(state.attachments.length+files.length>10)throw new Error('Use up to 10 attachments per note.');
+      const prepared=await prepareUploadFiles(files,file=>reviewCompression(file,attachments,compressionAbort.signal));
+      if(!prepared){fileStatus.textContent='Upload cancelled. No files were added.';return;}
+      if(destroyed)return;
+      const added=await addFiles(prepared,state.attachments);
       if(destroyed){alert('The note was closed before the upload finished. Reopen the note to attach your files.');return;}
       const previous=state.attachments;state={...state,attachments:[...previous,...added]};if(publish()===false){state={...state,attachments:previous};throw new Error('Could not save the note. Free browser storage and try again.');}renderFiles();fileStatus.textContent='Files saved on this device. Include them in a Dayline backup to transfer them.';
     }catch(error){fileStatus.textContent=error.message;}
@@ -257,5 +263,5 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
   document.addEventListener('pointerdown',onPointerStart,true);
   document.addEventListener('click',onOutsideClick,true);
   render(false);
-  return {element:wrapper,focus:restoreSelection,attachFiles:uploadFiles,flush,destroy(){destroyed=true;document.removeEventListener('selectionchange',onSelection);document.removeEventListener('pointerdown',onPointerStart,true);document.removeEventListener('click',onOutsideClick,true);}};
+  return {element:wrapper,focus:restoreSelection,attachFiles:uploadFiles,flush,destroy(){destroyed=true;compressionAbort.abort();document.removeEventListener('selectionchange',onSelection);document.removeEventListener('pointerdown',onPointerStart,true);document.removeEventListener('click',onOutsideClick,true);}};
 }
