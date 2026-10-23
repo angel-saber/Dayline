@@ -5,6 +5,11 @@ export class Reminders {
     this.getState=getState; this.onDue=onDue; this.onError=onError; this.onOpen=onOpen;this.onAudioState=onAudioState;
     this.last=Date.now(); this.fired=new Set();
     this.timer=setInterval(()=>this.tick(),1000);
+    // Visibility changes never pause reminders. Recheck promptly when a
+    // throttled page resumes; the browser still controls whether it can run.
+    this.resume=()=>this.tick();
+    globalThis.document?.addEventListener('visibilitychange',this.resume);
+    globalThis.addEventListener?.('pageshow',this.resume);
   }
   get audioReady(){return this.unlocked===true&&!this.audio?.error;}
   ensureAudio(){
@@ -49,13 +54,15 @@ export class Reminders {
     }
   }
   tick() {
-    const now=Date.now(),state=this.getState(),key=dayKey(new Date(now));
+    const now=Date.now(),state=this.getState();
     // Avoid stale alarms when a sleeping device resumes hours later.
-    const from=Math.max(this.last,now-60000);this.last=now;
+    const gap=now-this.last;
+    const from=gap<=300000?this.last:now-60000;this.last=now;
     const testDue=this.testAt&&now>=this.testAt;if(testDue)this.testAt=null;
     if(!state.settings.notifications)return;
     const alerts=[];
-    for(const entry of dueEntries(state.days[key]||[],key,state.settings.interval,from,now)){
+    const dates=[...new Set([dayKey(new Date(from)),dayKey(new Date(now))])];
+    for(const key of dates)for(const entry of dueEntries(state.days[key]||[],key,state.settings.interval,from,now)){
       const token=`${key}:${entry.id}:${entry.minute}`;
       if(this.fired.has(token))continue;this.fired.add(token);
       alerts.push({entry,target:{date:key,id:entry.id,minute:entry.minute},token});

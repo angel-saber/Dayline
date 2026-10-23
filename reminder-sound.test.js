@@ -48,3 +48,20 @@ test('simultaneous due notes chime once, later ticks do not repeat, and sound-of
  try{const r=reminder(state);let count=0;r.chime=async()=>count++;r.last=now-1000;r.tick();assert.equal(count,1);r.tick();assert.equal(count,1);state.settings.sound=false;const silent=reminder(state);silent.chime=async()=>count++;silent.last=now-1000;silent.tick();assert.equal(count,1);}
  finally{Date.now=oldNow;}
 });
+
+test('a throttled background tick still sounds a due note and never repeats it',()=>{
+ const oldNow=Date.now,descriptor=Object.getOwnPropertyDescriptor(globalThis,'document');
+ let now=new Date(2026,9,23,10,0).getTime();Date.now=()=>now;
+ Object.defineProperty(globalThis,'document',{configurable:true,value:{hidden:true,addEventListener(){}}});
+ const key=dayKey(new Date(now)),state={settings:{notifications:true,sound:true,interval:60},days:{[key]:[{id:'background',minute:601,text:'Work',done:false}]}};
+ try{const r=reminder(state);let sounds=0,alerts=0;r.chime=async()=>sounds++;r.onDue=()=>alerts++;now+=135000;r.tick();assert.equal(sounds,1);assert.equal(alerts,1);r.tick();assert.equal(sounds,1);}
+ finally{Date.now=oldNow;if(descriptor)Object.defineProperty(globalThis,'document',descriptor);else delete globalThis.document;}
+});
+
+test('background catch-up includes midnight but avoids hours-old reminders after sleep',()=>{
+ const oldNow=Date.now;let now=new Date(2026,9,23,23,58).getTime();Date.now=()=>now;
+ const key=dayKey(new Date(now)),state={settings:{notifications:true,sound:true,interval:60},days:{[key]:[{id:'late',minute:1439,text:'Late task',done:false}]}};
+ try{const r=reminder(state),due=[];r.chime=async()=>{};r.onDue=e=>due.push(e.id);now+=180000;r.tick();assert.deepEqual(due,['late']);
+ const sleeping=reminder(state);sleeping.onDue=e=>due.push(e.id);sleeping.chime=async()=>{};sleeping.last=now-7200000;sleeping.tick();assert.deepEqual(due,['late']);}
+ finally{Date.now=oldNow;}
+});

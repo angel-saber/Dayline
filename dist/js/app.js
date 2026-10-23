@@ -1,3 +1,4 @@
+import {rescheduleNote} from './reschedule.js?v=reschedule-background-1';
 import {changeWeekly} from './weekly-model.js?v=weekly-notes-1';
 import {indentLevel} from './indents.js?v=indentation-1';
 import {availableHours,validAvailableHours,hourInput,inputMinute,dailySlotVisible} from './available-hours.js?v=available-hours-1';
@@ -16,10 +17,10 @@ import {renderFocusReports} from './focus-reports.js?v=focus-1';
 import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=weekly-notes-1';
 import {setupMonthly} from './monthly.js?v=weekly-notes-1';
 import {moveToDay,quickNote} from './month-model.js?v=note-drop-1';
-import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,dropEntry,timeLabel} from './model.js?v=weekly-notes-1';
+import {dayKey,parseDay,offsetDay,slots,grouped,dropEntry,timeLabel} from './model.js?v=weekly-notes-1';
 import {load,save,validState} from './storage.js?v=weekly-notes-1';
 import {attachGestures} from './gestures.js?v=bulk-notes-1';
-import {Reminders,resolveReminder} from './reminders.js?v=weekly-notes-1';
+import {Reminders,resolveReminder} from './reminders.js?v=reschedule-background-1';
 import {setupAccounts} from './accounts.js?v=private-accounts-2';
 import {dailyQuote} from './quotes.js?v=intention-labels-3';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
@@ -43,7 +44,6 @@ function commit(next,message){
 }
 function complete(id){const e=entries().find(e=>e.id===id);if(e)commit(entries().map(e=>e.id===id?{...e,done:!e.done}:e),e.done?'Note reopened':'A little progress. Note completed.');}
 function remove(id){commit(entries().filter(e=>e.id!==id),'Note deleted');}
-function move(id,minute){commit(moveEntry(entries(),id,minute,state.settings.interval),`Note moved to ${timeLabel(minute,state.settings.clock)}`);}
 const reminders=new Reminders(()=>accounts?.isLoginVisible()?{...state,settings:{...state.settings,notifications:false}}:state,e=>toast(`It’s time · ${e.title||e.text}`),toast,openReminder,notificationStatus);
 const readyReminderAudio=()=>{if(state.settings.sound&&!reminders.audioReady)reminders.unlockAudio().catch(()=>{});};
 // Retry after later interactions too: audio may be suspended after switching tabs.
@@ -98,7 +98,7 @@ function renderTimeline(){
         commit(entries().map(item=>item.id===e.id?{...item,tasks,task:false}:item),'Task updated');
       },()=>openEditor(notes,slot.minute,e),e.bullets,e.indents);renderFocusReports(content,e.focusReports);renderGuidedReports(content,e.guidedActivities);content.append(attachmentList(e.attachments));bindFileDrop(card,files=>openEditor(notes,slot.minute,e)?.attachFiles(files));card.append(content);
       const tools=node('div','entry-tools');
-      tools.append(button('Share',`Share note: ${e.title||e.text.split('\n')[0]||'Untitled note'}`,()=>openShareNote(e,selected,state.settings.clock),'share-note'),button('↗','Move note to a different time',()=>openMove(e.id),'move-note'),button('×','Delete note',()=>remove(e.id),'delete-note'));
+      tools.append(button('Share',`Share note: ${e.title||e.text.split('\n')[0]||'Untitled note'}`,()=>openShareNote(e,selected,state.settings.clock),'share-note'),button('↗','Reschedule note to another date or time',()=>openMove(e.id),'move-note'),button('×','Delete note',()=>remove(e.id),'delete-note'));
       const handle=node('span','drag-handle','⠿');handle.tabIndex=0;handle.setAttribute('role','button');handle.setAttribute('aria-label','Hold and drag to move, or press Enter to choose a time');
       handle.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openMove(e.id);}});tools.append(handle);card.append(tools);notes.append(card);
     }
@@ -151,11 +151,22 @@ function openEditor(container,minute,entry,focusTime=false){
 }
 function flushEditor(){if(editor){editor.sync();editor.destroy();editor=null;}monthly?.flushWeekly();}
 function openMove(id){
-  flushEditor();renderTimeline();moveId=id;const e=entries().find(e=>e.id===id);if(!e)return;
-  $('#move-time').replaceChildren(...slots(state.settings.interval).map(m=>{const o=node('option','',timeLabel(m,state.settings.clock));o.value=m;return o;}));
-  $('#move-time').value=Math.floor(e.minute/state.settings.interval)*state.settings.interval;$('#move-dialog').showModal();
+  flushEditor();renderTimeline();const e=entries().find(e=>e.id===id);if(!e)return;moveId={id,date:selected};
+  $('#move-date').value=selected;
+  $('#move-time').value=`${String(Math.floor(e.minute/60)).padStart(2,'0')}:${String(e.minute%60).padStart(2,'0')}`;
+  $('#move-dialog').showModal();
 }
-$('#move-dialog').addEventListener('close',()=>{if($('#move-dialog').returnValue==='move')move(moveId,Number($('#move-time').value));});
+$('#move-dialog').addEventListener('close',()=>{
+  if($('#move-dialog').returnValue!=='move'||!moveId)return;
+  const source=moveId.date,target=$('#move-date').value,before=state.days;
+  try{
+    const next=rescheduleNote(before,source,moveId.id,target,$('#move-time').value);
+    state.days=next;if(!persist()){state.days=before;return;}
+    undo={days:{[source]:structuredClone(before[source]||[]),[target]:structuredClone(before[target]||[])}};
+    renderTimeline();toast(`Note moved to ${parseDay(target).toLocaleDateString(undefined,{month:'short',day:'numeric'})} at ${timeLabel(next[target].find(e=>e.id===moveId.id).minute,state.settings.clock)}`,true);
+  }catch(error){toast(error.message);}
+  finally{moveId=null;}
+});
 attachGestures($('#timeline'),{complete,remove,move(id,minute,targetId){commit(dropEntry(entries(),id,minute,state.settings.interval,targetId),targetId?'Notes swapped':`Note added to ${timeLabel(minute,state.settings.clock)} interval`);},announce});
 function openReminder(target){
   if(accounts?.isLoginVisible()){toast('Continue past sign-in to open your planned note.');return;}
@@ -214,7 +225,7 @@ setupActivities({root:$('#more-view'),savePlan(report){
 $('#more-tab').onclick=()=>switchView('more');
 $('#daily-tab').onclick=()=>switchView('daily');$('#monthly-tab').onclick=()=>switchView('monthly');$('#settings-tab').onclick=()=>switchView('settings');$('#interval-shortcut').onclick=()=>switchView('settings');
 function renderSettings(){tagSettings?.render();const s=state.settings,isPreset=[15,30,60,120,240].includes(s.interval);$('#interval').value=isPreset?s.interval:'custom';$('#custom-field').hidden=isPreset;$('#custom-minutes').value=s.interval;$('#clock').value=s.clock;$('#notifications').checked=s.notifications;$('#sound').checked=s.sound;const hours=availableHours(s);$('#available-from').value=hourInput(hours.from);$('#available-until').value=hourInput(hours.to);$('#hide-before-hours').checked=hours.hideBefore;$('#hide-after-hours').checked=hours.hideAfter;notificationStatus();}
-function notificationStatus(){let status='Keep Dayline open for reminders. Closed-app alerts aren’t supported in this version. Device settings may silence sound.';if(!globalThis.Notification)status+=' System notifications are unavailable here; in-app reminders still work.';else if(Notification.permission==='denied')status+=' System notifications are blocked in browser settings; in-app reminders still work.';$('#notification-status').textContent=status;$('#sound-status').textContent=!state.settings.sound?'Reminder sound is off. Turn on Play a sound to hear planned-note reminders.':reminders.audioReady?'Reminder player is enabled in this tab. Planned notes use this same player.':'Sound is enabled. Click Test sound to activate audio in this tab.';}
+function notificationStatus(){let status='Keep Dayline open. Sounds can play while you use another tab after audio is activated here. Browsers may delay or suspend background reminders, especially on a locked phone. Closed-tab alerts are not supported; device settings may silence sounds.';if(!globalThis.Notification)status+=' System notifications are unavailable here; in-app reminders still work.';else if(Notification.permission==='denied')status+=' System notifications are blocked in browser settings; in-app reminders still work.';$('#notification-status').textContent=status;$('#sound-status').textContent=!state.settings.sound?'Reminder sound is off. Turn on Play a sound to hear planned-note reminders.':reminders.audioReady?'Reminder player is enabled in this tab. Planned notes use this same player.':'Sound is enabled. Click Test sound to activate audio in this tab.';}
 function setIntervalLength(value){if(!Number.isInteger(value)||value<1||value>1440){toast('Choose a whole number from 1 to 1440 minutes.');return;}state.settings.interval=value;undo=null;persist();renderSettings();toast('Timeline updated. All your notes are kept.');}
 $('#interval').onchange=e=>{if(e.target.value==='custom'){$('#custom-field').hidden=false;$('#custom-minutes').focus();}else setIntervalLength(Number(e.target.value));};
 $('#apply-custom').onclick=()=>setIntervalLength(Number($('#custom-minutes').value));
