@@ -17,7 +17,7 @@ import {moveToDay,quickNote} from './month-model.js?v=note-drop-1';
 import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,dropEntry,timeLabel} from './model.js?v=note-drop-1';
 import {load,save,validState} from './storage.js?v=available-hours-1';
 import {attachGestures} from './gestures.js?v=bulk-notes-1';
-import {Reminders,resolveReminder} from './reminders.js?v=exact-note-times-1';
+import {Reminders,resolveReminder} from './reminders.js?v=reminder-sound-1';
 import {setupAccounts} from './accounts.js?v=available-hours-1';
 import {dailyQuote} from './quotes.js?v=intention-labels-3';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
@@ -41,8 +41,10 @@ function commit(next,message){
 function complete(id){const e=entries().find(e=>e.id===id);if(e)commit(entries().map(e=>e.id===id?{...e,done:!e.done}:e),e.done?'Note reopened':'A little progress. Note completed.');}
 function remove(id){commit(entries().filter(e=>e.id!==id),'Note deleted');}
 function move(id,minute){commit(moveEntry(entries(),id,minute,state.settings.interval),`Note moved to ${timeLabel(minute,state.settings.clock)}`);}
-const reminders=new Reminders(()=>accounts?.isLoginVisible()?{...state,settings:{...state.settings,notifications:false}}:state,e=>toast(`It’s time · ${e.title||e.text}`),toast,openReminder);
-document.addEventListener('pointerdown',()=>{if(state.settings.sound)reminders.unlockAudio().catch(()=>{});},{once:true});
+const reminders=new Reminders(()=>accounts?.isLoginVisible()?{...state,settings:{...state.settings,notifications:false}}:state,e=>toast(`It’s time · ${e.title||e.text}`),toast,openReminder,notificationStatus);
+const readyReminderAudio=()=>{if(state.settings.sound&&!reminders.audioReady)reminders.unlockAudio().catch(()=>{});};
+// Retry after later interactions too: audio may be suspended after switching tabs.
+document.addEventListener('click',readyReminderAudio);document.addEventListener('keydown',readyReminderAudio);
 function node(tag,className,text){const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;}
 function button(text,label,fn,className=''){const b=node('button',className,text);b.type='button';b.setAttribute('aria-label',label);b.addEventListener('click',fn);return b;}
 function renderHeader(){
@@ -207,7 +209,7 @@ setupActivities({root:$('#more-view'),savePlan(report){
 $('#more-tab').onclick=()=>switchView('more');
 $('#daily-tab').onclick=()=>switchView('daily');$('#monthly-tab').onclick=()=>switchView('monthly');$('#settings-tab').onclick=()=>switchView('settings');$('#interval-shortcut').onclick=()=>switchView('settings');
 function renderSettings(){tagSettings?.render();const s=state.settings,isPreset=[15,30,60,120,240].includes(s.interval);$('#interval').value=isPreset?s.interval:'custom';$('#custom-field').hidden=isPreset;$('#custom-minutes').value=s.interval;$('#clock').value=s.clock;$('#notifications').checked=s.notifications;$('#sound').checked=s.sound;const hours=availableHours(s);$('#available-from').value=hourInput(hours.from);$('#available-until').value=hourInput(hours.to);$('#hide-before-hours').checked=hours.hideBefore;$('#hide-after-hours').checked=hours.hideAfter;notificationStatus();}
-function notificationStatus(){let status='Keep Dayline open for reminders. Closed-app alerts aren’t supported in this version. Device settings may silence sound.';if(!globalThis.Notification)status+=' System notifications are unavailable here; in-app reminders still work.';else if(Notification.permission==='denied')status+=' System notifications are blocked in browser settings; in-app reminders still work.';$('#notification-status').textContent=status;}
+function notificationStatus(){let status='Keep Dayline open for reminders. Closed-app alerts aren’t supported in this version. Device settings may silence sound.';if(!globalThis.Notification)status+=' System notifications are unavailable here; in-app reminders still work.';else if(Notification.permission==='denied')status+=' System notifications are blocked in browser settings; in-app reminders still work.';$('#notification-status').textContent=status;$('#sound-status').textContent=!state.settings.sound?'Reminder sound is off. Turn on Play a sound to hear planned-note reminders.':reminders.audioReady?'Reminder audio is ready in this tab. Device volume and tab muting still apply.':'Sound is enabled. Click Test sound to activate audio in this tab.';}
 function setIntervalLength(value){if(!Number.isInteger(value)||value<1||value>1440){toast('Choose a whole number from 1 to 1440 minutes.');return;}state.settings.interval=value;undo=null;persist();renderSettings();toast('Timeline updated. All your notes are kept.');}
 $('#interval').onchange=e=>{if(e.target.value==='custom'){$('#custom-field').hidden=false;$('#custom-minutes').focus();}else setIntervalLength(Number(e.target.value));};
 $('#apply-custom').onclick=()=>setIntervalLength(Number($('#custom-minutes').value));
@@ -228,8 +230,8 @@ $('#notifications').onchange=async e=>{
   if(e.target.checked&&globalThis.Notification?.permission==='default'){try{await Notification.requestPermission();}catch{toast('System notification permission is unavailable. In-app reminders are enabled.');}}
   notificationStatus();
 };
-$('#sound').onchange=async e=>{state.settings.sound=e.target.checked;if(e.target.checked){try{await reminders.chime();}catch(error){state.settings.sound=false;toast(error.message);}}persist();renderSettings();};
-$('#test-sound').onclick=()=>reminders.chime().then(()=>toast('Sound is ready for this session.')).catch(e=>toast(e.message));
+$('#sound').onchange=async e=>{state.settings.sound=e.target.checked;if(e.target.checked){try{await reminders.chime();}catch(error){toast(error.message);}}persist();renderSettings();};
+$('#test-sound').onclick=async()=>{const test=$('#test-sound');test.disabled=true;try{await reminders.chime();toast(state.settings.sound?'Test chime played. If silent, check device volume and whether this tab is muted.':'Test chime played. Turn on Play a sound to use it for reminders.');}catch(error){toast(error.message);}finally{test.disabled=false;notificationStatus();}};
 $('#undo').onclick=()=>{
   if(!undo)return;
   if(undo.days)Object.assign(state.days,undo.days);else state.days[undo.date]=undo.entries;
