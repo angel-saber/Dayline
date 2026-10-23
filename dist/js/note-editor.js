@@ -5,7 +5,7 @@ import {safeLink} from './links.js?v=hyperlinks-1';
 import {toggleBullets,editBullets,selectedLines} from './bullets.js?v=bullets-1';
 import {HIGHLIGHTS,renderFormatted,editFormat,setLink} from './format.js?v=hyperlinks-1';
 import {lineRange,noteTasks,editTasks} from './tasks.js?v=line-tasks-1';
-import {recognizeBullets,replaceText,insertLineBreak,applyStyle,applyCheckbox,checkTask,selectionStyle} from './editor-state.js?v=typed-bullets-1';
+import {recognizeBullets,replaceText,insertLineBreak,applyStyle,applyCheckbox,checkTask,selectionStyle} from './editor-state.js?v=selected-checkboxes-1';
 
 const element=(tag,className,text)=>{
   const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;
@@ -71,10 +71,10 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
   function refreshToolbar(){
     const style=typingStyle||selectionStyle(state,selection.start,selection.end);
     for(const {button,key,value} of buttons)button.setAttribute('aria-pressed',String(style[key]===value));
-    const hasTask=state.tasks.some(t=>t.start===lineRange(state.text,selection.start).start);
-    taskButton.textContent=hasTask?'Remove checkbox':'Add checkbox';
+    const lines=selectedLines(state.text,selection.start,selection.end),hasTask=lines.every(at=>state.tasks.some(task=>task.start===at));
+    taskButton.textContent=(hasTask?'Remove checkbox':'Add checkbox')+(lines.length>1?'es':'');
     taskButton.setAttribute('aria-label',taskButton.textContent);taskButton.setAttribute('aria-pressed',String(hasTask));
-    const lines=selectedLines(state.text,selection.start,selection.end),hasBullets=lines.every(at=>state.bullets.some(item=>item.start===at));
+    const hasBullets=lines.every(at=>state.bullets.some(item=>item.start===at));
     bulletButton.setAttribute('aria-pressed',String(hasBullets));
   }
   function render(focus=true){
@@ -128,7 +128,7 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
     const button=makeButton(color[0].toUpperCase()+color.slice(1),`Highlight ${color}`,()=>format('highlight',color));button.className='format-highlight';
     button.style.setProperty('--highlight',HIGHLIGHTS[color]);buttons.push({button,key:'highlight',value:color});toolbar.append(button);
   }
-  const taskButton=makeButton('Add checkbox','Add checkbox',()=>{readSelection();update(applyCheckbox(state,selection.start),selection);});
+  const taskButton=makeButton('Add checkbox','Add checkbox',()=>{readSelection();update(applyCheckbox(state,selection.start,selection.end),selection);});
   taskButton.className='format-task';toolbar.append(taskButton);
   const bulletButton=makeButton('• Bullets','Bullet list',()=>{readSelection();update(toggleBullets(state,selection.start,selection.end),selection);});bulletButton.className='format-bullets';bulletButton.title='Bullet list · Or type - followed by a space at the start of a line';toolbar.append(bulletButton);
   const linkPanel=element('div','link-panel');linkPanel.hidden=true;

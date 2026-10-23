@@ -9,7 +9,7 @@ import {setupActivities,renderGuidedReports} from './activities.js?v=activities-
 import {attachGuidedPlan} from './activities-model.js?v=note-drop-1';
 import {setupWelcome} from './welcome.js?v=available-hours-1';
 import {voice,personality,applyPersonality} from './personality.js?v=approved-mantras-1';
-import {setupFocus} from './focus.js?v=typed-bullets-1';
+import {setupFocus} from './focus.js?v=selected-checkboxes-1';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
 import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=approved-mantras-1';
 import {setupMonthly} from './monthly.js?v=multi-tags-1';
@@ -21,7 +21,7 @@ import {Reminders,resolveReminder} from './reminders.js?v=exact-note-times-1';
 import {setupAccounts} from './accounts.js?v=available-hours-1';
 import {dailyQuote} from './quotes.js?v=intention-labels-3';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
-import {createNoteEditor} from './note-editor.js?v=typed-bullets-1';
+import {createNoteEditor} from './note-editor.js?v=selected-checkboxes-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const $=s=>document.querySelector(s);
 let expandedDay=null;

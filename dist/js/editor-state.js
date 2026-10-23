@@ -1,6 +1,6 @@
-import {editBullets} from './bullets.js?v=bullets-1';
+import {editBullets,selectedLines} from './bullets.js?v=bullets-1';
 import {segments,toggleFormat,editFormat} from './format.js?v=hyperlinks-1';
-import {lineRange,editTasks,toggleTask} from './tasks.js?v=line-tasks-1';
+import {lineRange,editTasks} from './tasks.js?v=line-tasks-1';
 
 export function replaceText(state,start,end,text,typingStyle){
   const next=state.text.slice(0,start)+text+state.text.slice(end);
@@ -19,7 +19,11 @@ export function replaceText(state,start,end,text,typingStyle){
 export function applyStyle(state,start,end,key,value=true){
   return {...state,format:toggleFormat(state.text,state.format,start,end,key,value)};
 }
-export function applyCheckbox(state,caret){return {...state,tasks:toggleTask(state.text,state.tasks,caret),...(state.bullets?{bullets:state.bullets.filter(item=>item.start!==lineRange(state.text,caret).start)}:{})};}
+export function applyCheckbox(state,start,end=start){
+  const lines=new Set(selectedLines(state.text,start,end)),remove=[...lines].every(at=>state.tasks.some(task=>task.start===at));
+  const tasks=remove?state.tasks.filter(task=>!lines.has(task.start)):[...state.tasks,...[...lines].filter(at=>!state.tasks.some(task=>task.start===at)).map(start=>({start,done:false}))].sort((a,b)=>a.start-b.start);
+  return {...state,tasks,...(state.bullets?{bullets:remove?state.bullets:state.bullets.filter(item=>!lines.has(item.start))}:{})};
+}
 export function checkTask(state,start){return {...state,tasks:state.tasks.map(t=>t.start===start?{...t,done:!t.done}:t)};}
 export function selectionStyle(state,start,end){
   if(start===end)({start,end}=lineRange(state.text,start));
