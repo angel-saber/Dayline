@@ -1,3 +1,4 @@
+import {reminderChime} from './reminder-chime.js?v=media-reminders-1';
 import { dayKey, dueEntries, bucket } from './model.js?v=exact-note-times-1';
 export class Reminders {
   constructor(getState, onDue, onError, onOpen=()=>{},onAudioState=()=>{}) {
@@ -5,53 +6,64 @@ export class Reminders {
     this.last=Date.now(); this.fired=new Set();
     this.timer=setInterval(()=>this.tick(),1000);
   }
-  get audioReady(){return this.audio?.state==='running';}
-  async unlockAudio() {
-    const Audio=globalThis.AudioContext || globalThis.webkitAudioContext;
-    if(!Audio)throw new Error('Sound is unavailable in this browser.');
-    // Request speaker playback just as Focus audio does, before creating audio.
+  get audioReady(){return this.unlocked===true&&!this.audio?.error;}
+  ensureAudio(){
     try{if(globalThis.navigator?.audioSession)globalThis.navigator.audioSession.type='playback';}catch{/* Optional browser capability. */}
-    if(!this.audio||this.audio.state==='closed'){
-      this.audio=new Audio();
-      this.audio.addEventListener?.('statechange',()=>this.onAudioState());
+    if(!this.audio){
+      const Audio=globalThis.Audio;if(!Audio)throw new Error('Sound is unavailable in this browser.');
+      this.chimeSource=reminderChime();this.audio=new Audio();this.audio.preload='auto';
+      this.audio.addEventListener?.('error',()=>{this.unlocked=false;this.onAudioState();});
     }
-    let timeout;
-    try{
-      // Call resume immediately in the click/key handler, not after another await.
-      await Promise.race([this.audio.resume(),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('Sound is blocked or interrupted. Click Test sound in Settings to enable it.')),2000);})]);
-      if(!this.audioReady)throw new Error('Sound is paused by your browser. Click Test sound in Settings to enable it.');
-    }finally{clearTimeout(timeout);this.onAudioState();}
   }
-  async chime() {
-    await this.unlockAudio();
-    const t=this.audio.currentTime+.03;
-    [660,880].forEach((hz,i)=>{
-      const o=this.audio.createOscillator(),g=this.audio.createGain(),start=t+i*.22;
-      o.type='sine';o.frequency.value=hz;g.gain.setValueAtTime(0,start);
-      g.gain.linearRampToValueAtTime(.22,start+.025);g.gain.exponentialRampToValueAtTime(.001,start+.65);
-      o.connect(g);g.connect(this.audio.destination);o.onended=()=>{o.disconnect();g.disconnect();};o.start(start);o.stop(start+.65);
-    });
+  async playAudio(prime=false){
+    this.ensureAudio();
+    if(this.playOperation){if(!prime&&this.priming)return this.playOperation.then(()=>this.playAudio());return this.playOperation;}
+    if(prime&&this.audioReady)return;
+    this.priming=prime;let timeout;
+    try{
+      // A single media element retains its user-granted playback permission.
+      // Silent PCM primes it on a click; the real chime uses that same player.
+      const source=prime?(this.silentSource??=reminderChime(true)):this.chimeSource;
+      if(this.audio.src!==source)this.audio.src=source;
+      this.audio.currentTime=0;
+      const playback=this.audio.play(); // Must happen before any await in a click.
+      this.playOperation=Promise.race([Promise.resolve(playback),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('Reminder audio did not start. Click Test sound in Settings and check this site’s autoplay permission.')),2500);})]);
+      await this.playOperation;
+      if(prime){this.audio.pause();this.audio.src=this.chimeSource;this.audio.load?.();}
+      this.unlocked=true;
+    }catch(error){
+      this.unlocked=false;this.audio.pause();
+      throw new Error(error.name==='NotAllowedError'?'Your browser blocked the reminder sound. Click Test sound in Settings; in Safari, allow autoplay for Dayline.':error.message);
+    }finally{clearTimeout(timeout);this.playOperation=null;this.priming=false;this.onAudioState();}
+  }
+  unlockAudio(){return this.playAudio(true);}
+  chime(){return this.playAudio(false);}
+  scheduleTest(){this.testAt=Date.now()+10000;}
+  notify(entry,target,token){
+    this.onDue(entry,target);
+    if(globalThis.Notification?.permission==='granted'){
+      try{
+        const notification=new Notification('Dayline · It’s time',{body:entry.title?`${entry.title}\n${entry.text}`:entry.text,tag:token});
+        notification.onclick=()=>{notification.close();globalThis.focus?.();if(target)this.onOpen(target);};
+      }catch{/* In-app reminder remains available. */}
+    }
   }
   tick() {
-    const now=Date.now(),state=this.getState(),key=dayKey();
+    const now=Date.now(),state=this.getState(),key=dayKey(new Date(now));
     // Avoid stale alarms when a sleeping device resumes hours later.
     const from=Math.max(this.last,now-60000);this.last=now;
-    if(!state.settings.notifications) return;
-    let shouldChime=false;
-    for(const entry of dueEntries(state.days[key]||[],key,state.settings.interval,from,now)) {
+    const testDue=this.testAt&&now>=this.testAt;if(testDue)this.testAt=null;
+    if(!state.settings.notifications)return;
+    const alerts=[];
+    for(const entry of dueEntries(state.days[key]||[],key,state.settings.interval,from,now)){
       const token=`${key}:${entry.id}:${entry.minute}`;
-      if(this.fired.has(token)) continue; this.fired.add(token);
-      const target={date:key,id:entry.id,minute:entry.minute};
-      this.onDue(entry,target);
-      if(globalThis.Notification?.permission==='granted') {
-        try {
-          const notification=new Notification('Dayline · It’s time',{body:entry.title?`${entry.title}\n${entry.text}`:entry.text,tag:token});
-          notification.onclick=()=>{notification.close();globalThis.focus?.();this.onOpen(target);};
-        } catch { /* In-app reminder remains available. */ }
-      }
-      if(state.settings.sound)shouldChime=true;
+      if(this.fired.has(token))continue;this.fired.add(token);
+      alerts.push({entry,target:{date:key,id:entry.id,minute:entry.minute},token});
     }
-    if(shouldChime)this.chime().catch(error=>this.onError(error.message));
+    if(testDue)alerts.push({entry:{title:'Reminder sound test',text:'This is the same playback path used for planned notes.'},target:null,token:'dayline-reminder-test'});
+    // Start the shared player before displaying the system notification.
+    if(alerts.length&&state.settings.sound)this.chime().catch(error=>this.onError(error.message));
+    for(const {entry,target,token} of alerts)this.notify(entry,target,token);
   }
 }
 
