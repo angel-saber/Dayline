@@ -1,3 +1,4 @@
+import {openAvailability} from './availability-ui.js?v=availability-1';
 import {selectionKey,selectedNotes,matchingNotes,scopeRange} from './bulk-model.js?v=multi-tags-1';
 import {categoryOptions,typeChips} from './note-types.js?v=multi-tags-1';
 import {openShareNotes} from './share-note.js?v=file-sharing-1';
@@ -34,7 +35,7 @@ export function setupBulk(api){
   function preview(){try{const range=scopeRange(anchor.value,scope),count=matchingNotes(api.getState().days,anchor.value,scope,categories).length;summary.textContent=`${range.start} – ${range.end} · ${count} matching notes. Week ranges run Sunday to Saturday. Matches are added to your existing selection.`;add.disabled=!count;}catch{summary.textContent='Choose a valid date.';add.disabled=true;}}
   anchor.onchange=preview;const label=node('label','','Date within the day, week, or month');label.append(anchor);d.append(label,scopeOptions,categoryOptionsElement,summary,add,button('Cancel',()=>d.close()));preview();d.showModal();
  }
- function controls(){const container=node('div','bulk-controls');if(!active)container.append(button('Select notes',start));else container.append(button('Select by category',selectByCategory),button('Clear selection',()=>{keys.clear();refresh();}),button('Cancel selection',clear));return container;}
+ function controls(){const container=node('div','bulk-controls');if(!active)container.append(button('Select notes',start));else container.append(button('Select by category',selectByCategory),button('Clear selection',()=>{keys.clear();refresh();}),button('Cancel selection',clear));container.append(button('Share availability',()=>openAvailability(api)));return container;}
  function checkbox(date,entry){if(!active)return null;const label=node('label','note-selection'),check=node('input');check.type='checkbox';check.checked=keys.has(selectionKey(date,entry.id));check.setAttribute('aria-label',`Select note: ${entry.title||entry.text.split('\n')[0]||'Untitled note'}`);check.onchange=()=>{const key=selectionKey(date,entry.id);if(check.checked)keys.add(key);else keys.delete(key);label.closest('.entry,.month-note')?.classList.toggle('bulk-selected',check.checked);updateBar();};label.append(check);return label;}
  window.addEventListener('dayline:account',()=>{active=false;keys.clear();document.body.classList.remove('bulk-mode');api.refresh();updateBar();});window.addEventListener('dayline:entry-view',updateBar);window.addEventListener('dayline:notes-changed',updateBar);
  return {get active(){return active;},controls,checkbox,updateBar,isSelected:(date,id)=>keys.has(selectionKey(date,id)),clear};
