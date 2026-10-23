@@ -1,3 +1,4 @@
+import {attachmentList,bindFileDrop,exportFiles,prepareFiles,storeFiles,MAX_BACKUP_SIZE} from './attachments.js?v=attachments-1';
 import {setupTagSettings} from './tag-settings.js?v=multi-tags-1';
 import {setupBulk} from './bulk-ui.js?v=share-order-1';
 import {bulkChange} from './bulk-model.js?v=multi-tags-1';
@@ -7,19 +8,19 @@ import {setupActivities,renderGuidedReports} from './activities.js?v=activities-
 import {attachGuidedPlan} from './activities-model.js?v=note-drop-1';
 import {setupWelcome} from './welcome.js?v=zen-name-1';
 import {voice,personality,applyPersonality} from './personality.js?v=intention-labels-3';
-import {setupFocus} from './focus.js?v=outside-note-save-1';
+import {setupFocus} from './focus.js?v=attachments-1';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
 import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=focus-live-notes-1';
 import {setupMonthly} from './monthly.js?v=multi-tags-1';
 import {moveToDay,quickNote} from './month-model.js?v=note-drop-1';
 import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,dropEntry,timeLabel} from './model.js?v=note-drop-1';
-import {load,save,validState} from './storage.js?v=multi-tags-1';
+import {load,save,validState} from './storage.js?v=attachments-1';
 import {attachGestures} from './gestures.js?v=bulk-notes-1';
 import {Reminders,resolveReminder} from './reminders.js?v=exact-note-times-1';
-import {setupAccounts} from './accounts.js?v=multi-tags-1';
+import {setupAccounts} from './accounts.js?v=attachments-1';
 import {dailyQuote} from './quotes.js?v=intention-labels-3';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
-import {createNoteEditor} from './note-editor.js?v=outside-note-save-1';
+import {createNoteEditor} from './note-editor.js?v=attachments-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const $=s=>document.querySelector(s);
 let state,readFailed=false,selected=dayKey(),view='daily',undo=null,editor=null,moveId=null,pendingImport=null,accounts=null,bulk=null,tagSettings=null;
@@ -84,7 +85,7 @@ function renderTimeline(){
       renderNoteLines(body,e.text,e.format,noteTasks(e),start=>{
         const tasks=noteTasks(e).map(t=>t.start===start?{...t,done:!t.done}:t);
         commit(entries().map(item=>item.id===e.id?{...item,tasks,task:false}:item),'Task updated');
-      },()=>openEditor(notes,slot.minute,e),e.bullets);renderFocusReports(content,e.focusReports);renderGuidedReports(content,e.guidedActivities);card.append(content);
+      },()=>openEditor(notes,slot.minute,e),e.bullets);renderFocusReports(content,e.focusReports);renderGuidedReports(content,e.guidedActivities);content.append(attachmentList(e.attachments));bindFileDrop(card,files=>openEditor(notes,slot.minute,e)?.attachFiles(files));card.append(content);
       const tools=node('div','entry-tools');
       tools.append(button('Share',`Share note: ${e.title||e.text.split('\n')[0]||'Untitled note'}`,()=>openShareNote(e,selected,state.settings.clock),'share-note'),button('↗','Move note to a different time',()=>openMove(e.id),'move-note'),button('×','Delete note',()=>remove(e.id),'delete-note'));
       const handle=node('span','drag-handle','⠿');handle.tabIndex=0;handle.setAttribute('role','button');handle.setAttribute('aria-label','Hold and drag to move, or press Enter to choose a time');
@@ -124,18 +125,18 @@ function openEditor(container,minute,entry,focusTime=false){
   let id=entry?.id;const date=selected;
   const noteEditor=createNoteEditor({
     entry,categories:categoryOptions(state.days,state.settings.tags),minute:entry?.minute??minute,label:'Note for '+timeLabel(minute,state.settings.clock),
-    onChange({title,text,format,tasks,bullets,noteType,tags,minute:noteMinute}){
+    onChange({title,text,format,tasks,bullets,noteType,tags,attachments,minute:noteMinute}){
       const list=state.days[date]||[];undo=null;$('#undo').hidden=true;
-      if(!text.trim()&&!title.trim()&&!list.find(e=>e.id===id)?.focusReports?.length&&!list.find(e=>e.id===id)?.guidedActivities?.length){if(id)state.days[date]=list.filter(e=>e.id!==id);}
-      else if(id&&list.some(e=>e.id===id)){state.days[date]=list.map(e=>e.id===id?{...e,title,text,minute:noteMinute,format,tasks,bullets,noteType,tags,task:false}:e).sort((a,b)=>a.minute-b.minute);}
-      else{id=crypto.randomUUID();state.days[date]=[...list,{id,title,text,minute:noteMinute,done:false,format,tasks,bullets,noteType,tags,task:false}].sort((a,b)=>a.minute-b.minute);}
-      persist();renderSummary();
+      if(!attachments.length&&!text.trim()&&!title.trim()&&!list.find(e=>e.id===id)?.focusReports?.length&&!list.find(e=>e.id===id)?.guidedActivities?.length){if(id)state.days[date]=list.filter(e=>e.id!==id);}
+      else if(id&&list.some(e=>e.id===id)){state.days[date]=list.map(e=>e.id===id?{...e,title,text,minute:noteMinute,format,tasks,bullets,noteType,tags,attachments,task:false}:e).sort((a,b)=>a.minute-b.minute);}
+      else{id=crypto.randomUUID();state.days[date]=[...list,{id,title,text,minute:noteMinute,done:false,format,tasks,bullets,noteType,tags,attachments,task:false}].sort((a,b)=>a.minute-b.minute);}
+      if(!persist()){state.days[date]=list;return false;}renderSummary();return true;
     },
     onDone:renderTimeline,
   });
   container.querySelector('.empty-add')?.remove();
   if(entry)container.querySelector(`[data-id="${CSS.escape(entry.id)}"]`)?.replaceWith(noteEditor.element);else container.insertBefore(noteEditor.element,container.querySelector('.slot-add'));
-  editor={sync:noteEditor.flush,destroy:noteEditor.destroy};noteEditor.focus();if(focusTime)noteEditor.element.querySelector('input[type=time]')?.focus();
+  editor={sync:noteEditor.flush,destroy:noteEditor.destroy};noteEditor.focus();if(focusTime)noteEditor.element.querySelector('input[type=time]')?.focus();return noteEditor;
 }
 function flushEditor(){if(editor){editor.sync();editor.destroy();editor=null;}}
 function openMove(id){
@@ -219,21 +220,25 @@ $('#undo').onclick=()=>{
   undo=null;persist();if(view==='monthly')monthly.render();else if(view==='daily')renderTimeline();else if(view==='settings')renderSettings();toast('Change undone.');
 };
 $('#dismiss-toast').onclick=()=>{$('#toast').hidden=true;};
-$('#export').onclick=()=>{
-  let data=JSON.stringify(state,null,2);if(readFailed){try{data=localStorage.getItem('dayline.v1')||data;}catch{}}
-  const url=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=node('a');a.href=url;a.download=`dayline-backup-${dayKey()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+$('#export').onclick=async()=>{
+  flushEditor();
+  try{
+    let backup=state;if(readFailed){const raw=localStorage.getItem('dayline.v1');if(raw)backup=JSON.parse(raw);}
+    const data=JSON.stringify(await exportFiles(structuredClone(backup)));
+    const url=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=node('a');a.href=url;a.download=`dayline-backup-${dayKey()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }catch(error){toast(`Could not export: ${error.message}`);}
 };
 $('#import').onclick=()=>$('#import-file').click();
 $('#import-file').onchange=async e=>{
   const file=e.target.files[0];if(!file)return;
-  try{if(file.size>10*1024*1024)throw new Error('Choose a backup under 10 MB.');pendingImport=validState(JSON.parse(await file.text()));$('#restore-dialog').showModal();}
+  try{if(file.size>MAX_BACKUP_SIZE)throw new Error('Choose a backup under 100 MB.');const data=JSON.parse(await file.text());pendingImport=prepareFiles(validState(data),data.attachmentFiles);$('#restore-dialog').showModal();}
   catch(error){toast(`Could not restore: ${error.message}`);}e.target.value='';
 };
-$('#restore-dialog').addEventListener('close',()=>{
+$('#restore-dialog').addEventListener('close',async()=>{
   if($('#restore-dialog').returnValue==='restore'&&pendingImport){
     // Permission and audio must be enabled deliberately on each new device.
-    pendingImport.settings.notifications=false;pendingImport.settings.sound=false;
-    try{if(accounts)accounts.persist(pendingImport);else save(pendingImport);state=pendingImport;readFailed=false;undo=null;renderSettings();toast('Backup restored. Enable reminders again when you’re ready.');}
+    const backup=pendingImport;pendingImport=null;backup.state.settings.notifications=false;backup.state.settings.sound=false;
+    try{await storeFiles(backup.files);if(accounts)accounts.persist(backup.state);else save(backup.state);state=backup.state;readFailed=false;undo=null;renderSettings();toast('Backup restored. Enable reminders again when you’re ready.');}
     catch{toast('Your browser could not save the backup. Existing data was kept.');}
   }pendingImport=null;
 });
@@ -283,7 +288,7 @@ const focus=setupFocus({
   refresh:refreshPlanner,
   editNote(date,id,minute,values){
     const found=findFocusNote(state.days,id,date),target=found?.date||date,previous=state.days[target]||[];
-    if(!found&&!values.title.trim()&&!values.text.trim())return null;
+    if(!found&&!values.attachments?.length&&!values.title.trim()&&!values.text.trim())return null;
     const entry={...(found?.entry||{id:crypto.randomUUID(),minute,done:false}),...values,task:false};
     state.days[target]=(found?previous.map(e=>e.id===entry.id?entry:e):[...previous,entry]).sort((a,b)=>a.minute-b.minute);
     if(!persist()){state.days[target]=previous;return null;}undo=null;refreshPlanner();return {id:entry.id};

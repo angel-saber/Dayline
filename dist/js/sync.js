@@ -1,4 +1,4 @@
-import { validState } from './storage.js?v=multi-tags-1';
+import { validState } from './storage.js?v=attachments-1';
 
 const copy = value => structuredClone(value);
 const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);

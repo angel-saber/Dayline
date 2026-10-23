@@ -1,3 +1,4 @@
+import {addFiles,attachmentList} from './attachments.js?v=attachments-1';
 import {typeChips,noteTags} from './note-types.js?v=multi-tags-1';
 import {safeLink} from './links.js?v=hyperlinks-1';
 import {toggleBullets,editBullets,selectedLines} from './bullets.js?v=bullets-1';
@@ -15,7 +16,7 @@ const makeButton=(text,label,action)=>{
 // The browser edits one surface. Only plain text, validated style ranges and line
 // tasks enter storage; pasted HTML is never installed in the document.
 export function createNoteEditor({entry,categories={},minute=0,label,onChange,onDone}){
-  let state={tags:noteTags(entry||{}),minute:entry?.minute??minute,noteType:entry?.noteType||'',title:entry?.title||'',text:entry?.text||'',format:structuredClone(entry?.format||[]),tasks:noteTasks(entry),bullets:structuredClone(entry?.bullets||[])};
+  let state={attachments:structuredClone(entry?.attachments||[]),tags:noteTags(entry||{}),minute:entry?.minute??minute,noteType:entry?.noteType||'',title:entry?.title||'',text:entry?.text||'',format:structuredClone(entry?.format||[]),tasks:noteTasks(entry),bullets:structuredClone(entry?.bullets||[])};
   let selection={start:state.text.length,end:state.text.length},typingStyle=null,composing=false,destroyed=false,pendingClose=false,pointerStartedInside=false;
   const past=[],future=[];
   const wrapper=element('div','editor'),toolbar=element('div','format-toolbar');
@@ -34,7 +35,7 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
   const controls=element('div','editor-actions');controls.append(element('small','','Saves as you write · Click outside to close'));
   const buttons=[];
   function snapshot(){return {state:structuredClone(state),selection:{...selection},typingStyle:typingStyle&&{...typingStyle}};}
-  function publish(){onChange(structuredClone(state));}
+  function publish(){return onChange(structuredClone(state));}
   function offset(node,offset){
     if(node===surface){const row=surface.children[offset];return row?Number(row.dataset.start):state.text.length;}
     const row=(node.nodeType===Node.ELEMENT_NODE?node:node.parentElement)?.closest('[data-editor-line]');
@@ -150,12 +151,30 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
   linkInput.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();applyLink.click();}else if(event.key==='Escape'){event.preventDefault();closeLink();}});
   // Keep the caret and mobile keyboard in the editable text when a tool is tapped.
   toolbar.addEventListener('pointerdown',event=>{if(event.target.closest('button'))event.preventDefault();});
-  controls.append(makeButton('Done','Close note editor',()=>{flush();onDone();}));controls.lastChild.className='primary';
-  wrapper.append(titleLabel,timeLabel,noteType.element,toolbar,linkPanel,surface,controls);
+  const attachments=element('section','attachment-editor'),fileInput=element('input');fileInput.type='file';fileInput.multiple=true;fileInput.hidden=true;
+  const upload=makeButton('Attach files','Upload attachments',()=>fileInput.click()),fileStatus=element('p','field-hint','Drop files here · Up to 10 files, 10 MB each · Stored on this device');fileStatus.setAttribute('role','status');
+  const filesHost=element('div');let uploading=false;
+  function renderFiles(){filesHost.replaceChildren(attachmentList(state.attachments,id=>{const previous=state.attachments;state={...state,attachments:previous.filter(item=>item.id!==id)};if(publish()===false){state={...state,attachments:previous};fileStatus.textContent='Could not save this change. Please try again.';}renderFiles();}));}
+  async function uploadFiles(files){
+    if(uploading)return;uploading=true;upload.disabled=true;fileStatus.textContent='Saving files…';
+    try{
+      const added=await addFiles(files,state.attachments);
+      if(destroyed){alert('The note was closed before the upload finished. Reopen the note to attach your files.');return;}
+      const previous=state.attachments;state={...state,attachments:[...previous,...added]};if(publish()===false){state={...state,attachments:previous};throw new Error('Could not save the note. Free browser storage and try again.');}renderFiles();fileStatus.textContent='Files saved on this device. Include them in a Dayline backup to transfer them.';
+    }catch(error){fileStatus.textContent=error.message;}
+    finally{uploading=false;upload.disabled=false;fileInput.value='';if(pendingClose&&!destroyed){pendingClose=false;closeOutside();}}
+  }
+  fileInput.addEventListener('change',()=>uploadFiles(fileInput.files));
+  wrapper.addEventListener('dragover',event=>{if([...event.dataTransfer.types].includes('Files')){event.preventDefault();event.stopPropagation();event.dataTransfer.dropEffect='copy';attachments.classList.add('file-drop-active');}});
+  wrapper.addEventListener('dragleave',event=>{if(!wrapper.contains(event.relatedTarget))attachments.classList.remove('file-drop-active');});
+  wrapper.addEventListener('drop',event=>{if(!event.dataTransfer.files.length)return;event.preventDefault();event.stopPropagation();attachments.classList.remove('file-drop-active');uploadFiles(event.dataTransfer.files);});
+  attachments.append(upload,fileInput,fileStatus,filesHost);renderFiles();
+  controls.append(makeButton('Done','Close note editor',()=>{closeOutside();}));controls.lastChild.className='primary';
+  wrapper.append(titleLabel,timeLabel,noteType.element,toolbar,linkPanel,surface,attachments,controls);
   function undo(redo=false){
     const source=redo?future:past,target=redo?past:future;
     if(!source.length)return;
-    target.push(snapshot());const previous=source.pop();state={...previous.state,title:state.title,minute:state.minute,noteType:state.noteType,tags:state.tags};selection=previous.selection;typingStyle=previous.typingStyle;render();publish();
+    target.push(snapshot());const previous=source.pop();state={...previous.state,title:state.title,minute:state.minute,noteType:state.noteType,tags:state.tags,attachments:state.attachments};selection=previous.selection;typingStyle=previous.typingStyle;render();publish();
   }
   function deletion(backward,word=false){
     let {start,end}=selection;
@@ -194,8 +213,8 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
       if(key==='k'){event.preventDefault();openLink();}
       else if(['b','i','u'].includes(key)){event.preventDefault();format({b:'bold',i:'italic',u:'underline'}[key]);}
       else if(key==='z'||key==='y'){event.preventDefault();readSelection();undo(key==='y'||event.shiftKey);}
-      else if(event.key==='Enter'){event.preventDefault();flush();onDone();}
-    }else if(event.key==='Escape'){event.preventDefault();flush();onDone();}
+      else if(event.key==='Enter'){event.preventDefault();closeOutside();}
+    }else if(event.key==='Escape'){event.preventDefault();closeOutside();}
   });
   // IME, dictation and browser-specific edits can run natively, then normalize to
   // the same safe model. Never rebuild the DOM in the middle of composition.
@@ -225,7 +244,7 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
   function flush(){if(!composing)syncNative();}
   function closeOutside(){
     if(destroyed||!wrapper.isConnected)return;
-    if(composing){pendingClose=true;return;}
+    if(composing||uploading){pendingClose=true;return;}
     flush();onDone();
   }
   const onPointerStart=event=>{pointerStartedInside=wrapper.contains(event.target);};
@@ -238,5 +257,5 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
   document.addEventListener('pointerdown',onPointerStart,true);
   document.addEventListener('click',onOutsideClick,true);
   render(false);
-  return {element:wrapper,focus:restoreSelection,flush,destroy(){destroyed=true;document.removeEventListener('selectionchange',onSelection);document.removeEventListener('pointerdown',onPointerStart,true);document.removeEventListener('click',onOutsideClick,true);}};
+  return {element:wrapper,focus:restoreSelection,attachFiles:uploadFiles,flush,destroy(){destroyed=true;document.removeEventListener('selectionchange',onSelection);document.removeEventListener('pointerdown',onPointerStart,true);document.removeEventListener('click',onOutsideClick,true);}};
 }

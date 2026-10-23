@@ -1,10 +1,11 @@
+import {attachmentList,bindFileDrop} from './attachments.js?v=attachments-1';
 import {tagBadges,categoryOptions} from './note-types.js?v=multi-tags-1';
 import {musicProfile} from './focus-music.js?v=cyber-mission-12';
 import {voice,personality,focusMantras,focusIdeas} from './personality.js?v=intention-labels-3';
 import {dayKey,timeLabel,bucket} from './model.js?v=exact-note-times-1';
 import {focusIntervalNotes,newFocus,advanceFocus,commitFocus,findFocusNote,validFocusDraft,durationLabel,MANTRAS,INSPIRATION} from './focus-model.js?v=focus-live-notes-1';
 import {FocusAudio} from './focus-audio.js?v=speaker-playback-1';
-import {createNoteEditor} from './note-editor.js?v=outside-note-save-1';
+import {createNoteEditor} from './note-editor.js?v=attachments-1';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const KEY='dayline.focus.v1';
@@ -56,9 +57,9 @@ export function setupFocus(api){
     noteEditor=createNoteEditor({entry,categories:categoryOptions(api.getState().days,api.getState().settings.tags),minute:p.minute,label:'Focus interval note',
       onChange(values){
         const result=api.editNote(date,id,p.minute,values);
-        if(result){id=result.id;p.noteId=id;p.title=values.title;p.text=values.text;save();}
+        if(result){id=result.id;p.noteId=id;p.title=values.title;p.text=values.text;save();}return !!result;
       },onDone(){flushNote();dialog.querySelector('.focus-notes-section')?.replaceWith(noteSection());},
-    });host.replaceChildren(noteEditor.element);noteEditor.focus();
+    });host.replaceChildren(noteEditor.element);noteEditor.focus();return noteEditor;
   }
   function noteSignature(){const p=page();return JSON.stringify({page:p.key,clock:api.getState().settings.clock,entries:focusIntervalNotes(api.getState(),p)});}
   function noteSection(){
@@ -85,7 +86,7 @@ export function setupFocus(api){
       card.addEventListener('keydown',event=>{if(event.target===card&&(event.key==='Enter'||event.key===' ')){event.preventDefault();editNote(body,entry);}});
 
       if(choices.length>1){const choose=button(entry.id===p.noteId?'Session summary note':'Use for session summary',()=>{flushNote();p.noteId=entry.id;refreshPageSnapshot();save();render();});choose.setAttribute('aria-pressed',String(entry.id===p.noteId));tools.append(choose);}
-      card.append(body);if(tools.childNodes.length)card.append(tools);section.append(card);
+      body.append(attachmentList(entry.attachments));bindFileDrop(card,files=>editNote(body,entry)?.attachFiles(files));card.append(body);if(tools.childNodes.length)card.append(tools);section.append(card);
     }
     if(!choices.length)section.append(node('p','field-hint',p.text?`Earlier note: ${p.title||p.text}`:'No note is planned for this interval yet. You can add one here.'));
     section.append(addHost);notesSignature=noteSignature();return section;
