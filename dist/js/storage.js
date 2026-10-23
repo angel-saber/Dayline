@@ -1,4 +1,4 @@
-import {validNoteType} from './note-types.js?v=bulk-notes-1';
+import {validNoteType,validTags,validTagSettings} from './note-types.js?v=multi-tags-1';
 import {validGuidedReports} from './activities-model.js?v=activities-2';
 import {validBullets} from './bullets.js?v=bullets-1';
 import {validFocusReports} from './focus-model.js?v=focus-1';
@@ -19,6 +19,7 @@ export function validState(value) {
       seen.add(e.id);
       const result={id:e.id,text:e.text,minute:e.minute,done:e.done};
       if(e.noteType!==undefined)result.noteType=validNoteType(e.noteType);
+      if(e.tags!==undefined)result.tags=validTags(e.tags);
       if(e.guidedActivities!==undefined)result.guidedActivities=validGuidedReports(e.guidedActivities);
       if(e.focusReports!==undefined)result.focusReports=validFocusReports(e.focusReports);
       if(e.title!==undefined){if(typeof e.title!=='string'||e.title.length>200)throw new Error('Invalid note title.');result.title=e.title;}
@@ -31,7 +32,7 @@ export function validState(value) {
   }
   const s={...DEFAULT_SETTINGS,...value.settings};
   if(!Number.isInteger(s.interval) || s.interval<1 || s.interval>1440) throw new Error('Invalid interval.');
-  return {version:1,days,settings:{interval:s.interval,clock:s.clock==='24'?'24':'12',notifications:s.notifications===true,sound:s.sound===true}};
+  return {version:1,days,settings:{interval:s.interval,clock:s.clock==='24'?'24':'12',notifications:s.notifications===true,sound:s.sound===true,...(s.tags!==undefined?{tags:validTagSettings(s.tags)}:{})}};
 }
 export function load(storage=localStorage) {
   const raw=storage.getItem(KEY);

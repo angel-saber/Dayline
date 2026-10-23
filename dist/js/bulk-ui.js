@@ -1,6 +1,6 @@
-import {selectionKey,selectedNotes,matchingNotes,scopeRange} from './bulk-model.js?v=bulk-notes-1';
-import {categoryOptions,typeChips} from './note-types.js?v=bulk-notes-1';
-import {openShareNotes} from './share-note.js?v=bulk-notes-1';
+import {selectionKey,selectedNotes,matchingNotes,scopeRange} from './bulk-model.js?v=multi-tags-1';
+import {categoryOptions,typeChips} from './note-types.js?v=multi-tags-1';
+import {openShareNotes} from './share-note.js?v=multi-tags-1';
 const node=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
 const button=(text,fn,cls='secondary')=>{const e=node('button',cls,text);e.type='button';e.onclick=fn;return e;};
 export function setupBulk(api){
@@ -15,17 +15,20 @@ export function setupBulk(api){
  const choices=node('fieldset','bulk-options');choices.append(node('legend','','Move dates'));
  for(const [value,text] of [[true,'Keep the spacing between days (start on this date)'],[false,'Put all selected notes on this date']]){const l=node('label',''),r=node('input');r.type='radio';r.name='bulk-move-mode';r.checked=value;r.onchange=()=>keepSpacing=value;l.append(r,document.createTextNode(text));choices.append(l);}
  d.append(label,choices,node('p','field-hint','Each note keeps its exact time and contents. Existing destination notes stay in place.'),button('Move notes',()=>{if(date.reportValidity())apply(d,{kind:'move',date:date.value,keepSpacing});},'primary'),button('Cancel',()=>d.close()));d.showModal();}
- function category(){const d=modal(`Categorize ${items().length} notes`);let value='';const applyButton=button('Apply category',()=>apply(d,{kind:'category',category:value}),'primary');applyButton.disabled=true;const chips=typeChips('','Choose or create a category',v=>{value=v;applyButton.disabled=!v;},categoryOptions(api.getState().days));d.append(chips.element,applyButton,button('Remove category',()=>apply(d,{kind:'category',category:''})),button('Cancel',()=>d.close()));d.showModal();}
+ function category(){const d=modal(`Tag ${items().length} notes`);let value=[],mode='add';const applyButton=button('Apply tags',()=>apply(d,{kind:'category',tags:value,mode}),'primary');applyButton.disabled=true;
+  const chips=typeChips([],'Choose or create tags',v=>{value=v;applyButton.disabled=!v.length;},categoryOptions(api.getState().days,api.getState().settings.tags));
+  const modes=node('fieldset','bulk-options');modes.append(node('legend','','Tag action'));for(const [key,text] of [['add','Add these tags (keep existing tags)'],['remove','Remove these tags'],['replace','Replace all tags with these']]){const label=node('label',''),radio=node('input');radio.type='radio';radio.name='bulk-tag-mode';radio.checked=key==='add';radio.onchange=()=>mode=key;label.append(radio,document.createTextNode(text));modes.append(label);}
+  d.append(chips.element,modes,applyButton,button('Clear all tags',()=>apply(d,{kind:'category',tags:[],mode:'replace'})),button('Cancel',()=>d.close()));d.showModal();}
  function remove(){const count=items().length;if(!count)return;const d=modal(`Delete ${count} notes?`);d.append(node('p','', 'This removes the selected notes and their attached reports. You can undo the deletion using Dayline’s Undo message.'),button('Delete notes',()=>apply(d,{kind:'delete'}),'primary'),button('Cancel',()=>d.close()));d.showModal();}
  function updateBar(){
   const selected=items();bar.hidden=!active||!api.visible();bar.replaceChildren();const count=node('span','',`${selected.length} selected`);count.setAttribute('role','status');bar.append(count);
-  for(const [text,action] of [['Share',()=>{api.flush();openShareNotes(items(),api.getState().settings.clock);}],['Move',move],['Category',category],['Delete',remove]]){const b=button(text,action);b.disabled=!selected.length;bar.append(b);}bar.append(button('Cancel',clear));
+  for(const [text,action] of [['Share',()=>{api.flush();openShareNotes(items(),api.getState().settings.clock);}],['Move',move],['Tags',category],['Delete',remove]]){const b=button(text,action);b.disabled=!selected.length;bar.append(b);}bar.append(button('Cancel',clear));
  }
  function selectByCategory(){
   const d=modal('Select notes by category'),anchor=node('input');anchor.type='date';anchor.required=true;anchor.value=api.anchor();anchor.setAttribute('aria-label','Selection anchor date');let scope=api.getView()==='monthly'?'month':'day';
   const scopeOptions=node('fieldset','bulk-options');scopeOptions.append(node('legend','','Select across'));
   for(const value of ['day','week','month']){const label=node('label',''),r=node('input');r.type='radio';r.name='bulk-scope';r.checked=scope===value;r.onchange=()=>{scope=value;preview();};label.append(r,document.createTextNode(value[0].toUpperCase()+value.slice(1)));scopeOptions.append(label);}
-  const types=categoryOptions(api.getState().days),categories=new Set(['none',...Object.keys(types)]),categoryOptionsElement=node('fieldset','bulk-options');categoryOptionsElement.append(node('legend','','Categories (choose any)'));
+  const types=categoryOptions(api.getState().days,api.getState().settings.tags,true),categories=new Set(['none',...Object.keys(types)]),categoryOptionsElement=node('fieldset','bulk-options');categoryOptionsElement.append(node('legend','','Categories (choose any)'));
   for(const [key,text] of [['none','None'],...Object.entries(types)]){const label=node('label',''),check=node('input');check.type='checkbox';check.checked=true;check.onchange=()=>{if(check.checked)categories.add(key);else categories.delete(key);preview();};label.append(check,document.createTextNode(text));categoryOptionsElement.append(label);}
   const summary=node('p','field-hint');summary.setAttribute('role','status');const add=button('Add matching notes',()=>{if(!anchor.reportValidity())return;for(const {date,entry} of matchingNotes(api.getState().days,anchor.value,scope,categories))keys.add(selectionKey(date,entry.id));d.close();refresh();},'primary');
   function preview(){try{const range=scopeRange(anchor.value,scope),count=matchingNotes(api.getState().days,anchor.value,scope,categories).length;summary.textContent=`${range.start} – ${range.end} · ${count} matching notes. Week ranges run Sunday to Saturday. Matches are added to your existing selection.`;add.disabled=!count;}catch{summary.textContent='Choose a valid date.';add.disabled=true;}}

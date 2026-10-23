@@ -1,6 +1,6 @@
 import {parseDay,timeLabel} from './model.js';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
-import {categoryLabel} from './note-types.js?v=bulk-notes-1';
+import {categoryLabel,noteTags} from './note-types.js?v=multi-tags-1';
 import {safeLink} from './links.js?v=hyperlinks-1';
 import {durationLabel} from './focus-model.js?v=focus-1';
 import {dimensions,compassTitle,compassDates} from './activities-model.js?v=activities-2';
@@ -20,7 +20,7 @@ function linkedLine(text,start,format=[]){
 export function shareNoteText(entry,date,options={},clock='12'){
   const settings={...SHARE_DEFAULTS,...options},parts=[entry.title?.trim()||'Dayline note'];
   if(settings.dateTime)parts.push(`${parseDay(date).toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'})} · ${timeLabel(entry.minute,clock)}`);
-  if(settings.type&&categoryLabel(entry.noteType))parts.push(categoryLabel(entry.noteType));
+  if(settings.type&&noteTags(entry).length)parts.push(noteTags(entry).map(categoryLabel).join(' · '));
   const tasks=noteTasks(entry);let start=0;
   const body=entry.text.split('\n').map(line=>{const task=tasks.find(t=>t.start===start),bullet=entry.bullets?.some(b=>b.start===start),text=linkedLine(line,start,entry.format);start+=line.length+1;return `${task?(task.done?'☑ ':'☐ '):bullet?'• ':''}${text}`;}).join('\n');
   if(body.trim())parts.push('',body);
@@ -60,7 +60,7 @@ function openShareItems(items,clock,multiple){
   const email=node('a','secondary','Email'),titleInput=node('input');titleInput.type='text';titleInput.maxLength=200;titleInput.value='Dayline plan';titleInput.setAttribute('aria-label','Shared plan heading');
   const shareTitle=()=>multiple?(titleInput.value.trim()||'Dayline plan'):(entry.title?.trim()||'Dayline note');
   function refresh(){preview.value=multiple?shareNotesText(items,options,clock,shareTitle()):shareNoteText(entry,date,options,clock);email.href=emailNoteUrl(shareTitle(),preview.value);status.textContent='';}
-  for(const [key,label,available] of [['dateTime','Date and time',true],['type','Note type',items.some(item=>!!item.entry.noteType)],['focusReports','Focus reports, including reflections and interruption logs',items.some(item=>!!item.entry.focusReports?.length)],['guidedReports','Guided activity reports',items.some(item=>!!item.entry.guidedActivities?.length)]]){
+  for(const [key,label,available] of [['dateTime','Date and time',true],['type','Tags',items.some(item=>noteTags(item.entry).length>0)],['focusReports','Focus reports, including reflections and interruption logs',items.some(item=>!!item.entry.focusReports?.length)],['guidedReports','Guided activity reports',items.some(item=>!!item.entry.guidedActivities?.length)]]){
     const wrapper=node('label',''),check=node('input');check.type='checkbox';check.checked=available&&options[key];check.disabled=!available;check.addEventListener('change',()=>{options[key]=check.checked;refresh();});wrapper.append(check,document.createTextNode(label));choices.append(wrapper);
   }
   const actions=node('div','inline');const action=(text,fn,cls='secondary')=>{const button=node('button',cls,text);button.type='button';button.onclick=fn;return button;};

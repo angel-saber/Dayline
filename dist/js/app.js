@@ -1,33 +1,34 @@
-import {setupBulk} from './bulk-ui.js?v=bulk-notes-1';
-import {bulkChange} from './bulk-model.js?v=bulk-notes-1';
-import {openShareNote} from './share-note.js?v=bulk-notes-1';
-import {typeBadge,categoryOptions} from './note-types.js?v=bulk-notes-1';
+import {setupTagSettings} from './tag-settings.js?v=multi-tags-1';
+import {setupBulk} from './bulk-ui.js?v=multi-tags-1';
+import {bulkChange} from './bulk-model.js?v=multi-tags-1';
+import {openShareNote} from './share-note.js?v=multi-tags-1';
+import {tagBadges,categoryOptions,collectTagSettings} from './note-types.js?v=multi-tags-1';
 import {setupActivities,renderGuidedReports} from './activities.js?v=activities-2';
 import {attachGuidedPlan} from './activities-model.js?v=note-drop-1';
 import {setupWelcome} from './welcome.js?v=zen-name-1';
 import {voice,personality,applyPersonality} from './personality.js?v=intention-labels-3';
-import {setupFocus} from './focus.js?v=bulk-notes-1';
+import {setupFocus} from './focus.js?v=multi-tags-1';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
 import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=focus-live-notes-1';
-import {setupMonthly} from './monthly.js?v=bulk-notes-1';
+import {setupMonthly} from './monthly.js?v=multi-tags-1';
 import {moveToDay,quickNote} from './month-model.js?v=note-drop-1';
 import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,dropEntry,timeLabel} from './model.js?v=note-drop-1';
-import {load,save,validState} from './storage.js?v=bulk-notes-1';
+import {load,save,validState} from './storage.js?v=multi-tags-1';
 import {attachGestures} from './gestures.js?v=bulk-notes-1';
 import {Reminders,resolveReminder} from './reminders.js?v=exact-note-times-1';
-import {setupAccounts} from './accounts.js?v=bulk-notes-1';
+import {setupAccounts} from './accounts.js?v=multi-tags-1';
 import {dailyQuote} from './quotes.js?v=intention-labels-3';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
-import {createNoteEditor} from './note-editor.js?v=bulk-notes-1';
+import {createNoteEditor} from './note-editor.js?v=multi-tags-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const $=s=>document.querySelector(s);
-let state,readFailed=false,selected=dayKey(),view='daily',undo=null,editor=null,moveId=null,pendingImport=null,accounts=null,bulk=null;
+let state,readFailed=false,selected=dayKey(),view='daily',undo=null,editor=null,moveId=null,pendingImport=null,accounts=null,bulk=null,tagSettings=null;
 try{state=load();}catch{readFailed=true;state={version:1,days:{},settings:{interval:60,clock:'12',notifications:false,sound:false}};}
 const announce=text=>{$('#announcer').textContent=text;};
 function toast(text,withUndo=false){$('#toast-text').textContent=text;$('#undo').hidden=!withUndo;$('#toast').hidden=false;announce(text);}
 function persist(){
   if(readFailed){$('#save-status').textContent='● Saving paused';toast('Stored data could not be read. Export a recovery copy or restore a valid backup before saving.');return false;}
-  try{if(accounts)accounts.persist(state);else save(state);if(!accounts?.isSignedIn())$('#save-status').textContent='● Saved on this device';window.dispatchEvent(new Event('dayline:notes-changed'));return true;}
+  try{const tags=collectTagSettings(state.settings.tags,state.days);if(state.settings.tags||tags.custom.length)state.settings.tags=tags;if(accounts)accounts.persist(state);else save(state);if(!accounts?.isSignedIn())$('#save-status').textContent='● Saved on this device';window.dispatchEvent(new Event('dayline:notes-changed'));return true;}
   catch{$('#save-status').textContent='● Not saved';toast('Your browser could not save this change. Download a backup in Settings to keep your notes.');return false;}
 }
 function entries(){return state.days[selected]||[];}
@@ -76,7 +77,7 @@ function renderTimeline(){
       const card=node('article',`entry${e.done?' done':''}`);card.dataset.id=e.id;
       const pick=bulk?.checkbox(selected,e);if(pick)card.append(pick);card.classList.toggle('bulk-selected',!!bulk?.isSelected(selected,e.id));
       const content=node('div','note-content'),body=node('div','note-body');
-      const badge=typeBadge(e.noteType);if(badge)content.append(badge);
+      const badge=tagBadges(e);if(badge)content.append(badge);
       content.append(button(timeLabel(e.minute,state.settings.clock),'Edit note time: '+timeLabel(e.minute,state.settings.clock),()=>openEditor(notes,slot.minute,e,true),'note-specific-time'));
       if(e.title?.trim())content.append(button(e.title,`Edit note title: ${e.title}`,()=>openEditor(notes,slot.minute,e),'daily-note-title'));
       content.append(body);
@@ -122,12 +123,12 @@ function openEditor(container,minute,entry,focusTime=false){
   if(editor){flushEditor();renderTimeline();container=$(`#timeline .slot[data-minute="${slotMinute}"] .slot-notes`);}
   let id=entry?.id;const date=selected;
   const noteEditor=createNoteEditor({
-    entry,categories:categoryOptions(state.days),minute:entry?.minute??minute,label:'Note for '+timeLabel(minute,state.settings.clock),
-    onChange({title,text,format,tasks,bullets,noteType,minute:noteMinute}){
+    entry,categories:categoryOptions(state.days,state.settings.tags),minute:entry?.minute??minute,label:'Note for '+timeLabel(minute,state.settings.clock),
+    onChange({title,text,format,tasks,bullets,noteType,tags,minute:noteMinute}){
       const list=state.days[date]||[];undo=null;$('#undo').hidden=true;
       if(!text.trim()&&!title.trim()&&!list.find(e=>e.id===id)?.focusReports?.length&&!list.find(e=>e.id===id)?.guidedActivities?.length){if(id)state.days[date]=list.filter(e=>e.id!==id);}
-      else if(id&&list.some(e=>e.id===id)){state.days[date]=list.map(e=>e.id===id?{...e,title,text,minute:noteMinute,format,tasks,bullets,noteType,task:false}:e).sort((a,b)=>a.minute-b.minute);}
-      else{id=crypto.randomUUID();state.days[date]=[...list,{id,title,text,minute:noteMinute,done:false,format,tasks,bullets,noteType,task:false}].sort((a,b)=>a.minute-b.minute);}
+      else if(id&&list.some(e=>e.id===id)){state.days[date]=list.map(e=>e.id===id?{...e,title,text,minute:noteMinute,format,tasks,bullets,noteType,tags,task:false}:e).sort((a,b)=>a.minute-b.minute);}
+      else{id=crypto.randomUUID();state.days[date]=[...list,{id,title,text,minute:noteMinute,done:false,format,tasks,bullets,noteType,tags,task:false}].sort((a,b)=>a.minute-b.minute);}
       persist();renderSummary();
     },
     onDone:renderTimeline,
@@ -176,9 +177,9 @@ const monthly=setupMonthly({root:$('#monthly-view'),getState:()=>state,announce,
     selected=date;switchView('daily');
     if(id){const entry=entries().find(e=>e.id===id);if(entry){const slot=$(`#timeline .slot[data-minute="${Math.floor(entry.minute/state.settings.interval)*state.settings.interval}"] .slot-notes`);openEditor(slot,entry.minute,entry);slot.scrollIntoView({block:'center'});}}
   },
-  onAdd(date,title,time,noteType){
+  onAdd(date,title,time,tags){
     try{
-      const entry={...quickNote(title,time,crypto.randomUUID()),noteType},previous=state.days[date]||[];
+      const entry={...quickNote(title,time,crypto.randomUUID()),tags,noteType:tags[0]||''},previous=state.days[date]||[];
       state.days[date]=[...previous,entry].sort((a,b)=>a.minute-b.minute);
       if(!persist()){state.days[date]=previous;return false;}
       undo={days:{[date]:structuredClone(previous)}};monthly.render();toast('Note added. Open its title to write more.',true);
@@ -198,7 +199,7 @@ setupActivities({root:$('#more-view'),savePlan(report){
 },onSaved({date,minute}){selected=date;switchView('daily');$(`#timeline .slot[data-minute="${minute}"]`)?.scrollIntoView({block:'center'});}});
 $('#more-tab').onclick=()=>switchView('more');
 $('#daily-tab').onclick=()=>switchView('daily');$('#monthly-tab').onclick=()=>switchView('monthly');$('#settings-tab').onclick=()=>switchView('settings');$('#interval-shortcut').onclick=()=>switchView('settings');
-function renderSettings(){const s=state.settings,isPreset=[15,30,60,120,240].includes(s.interval);$('#interval').value=isPreset?s.interval:'custom';$('#custom-field').hidden=isPreset;$('#custom-minutes').value=s.interval;$('#clock').value=s.clock;$('#notifications').checked=s.notifications;$('#sound').checked=s.sound;notificationStatus();}
+function renderSettings(){tagSettings?.render();const s=state.settings,isPreset=[15,30,60,120,240].includes(s.interval);$('#interval').value=isPreset?s.interval:'custom';$('#custom-field').hidden=isPreset;$('#custom-minutes').value=s.interval;$('#clock').value=s.clock;$('#notifications').checked=s.notifications;$('#sound').checked=s.sound;notificationStatus();}
 function notificationStatus(){let status='Keep Dayline open for reminders. Closed-app alerts aren’t supported in this version. Device settings may silence sound.';if(!globalThis.Notification)status+=' System notifications are unavailable here; in-app reminders still work.';else if(Notification.permission==='denied')status+=' System notifications are blocked in browser settings; in-app reminders still work.';$('#notification-status').textContent=status;}
 function setIntervalLength(value){if(!Number.isInteger(value)||value<1||value>1440){toast('Choose a whole number from 1 to 1440 minutes.');return;}state.settings.interval=value;undo=null;persist();renderSettings();toast('Timeline updated. All your notes are kept.');}
 $('#interval').onchange=e=>{if(e.target.value==='custom'){$('#custom-field').hidden=false;$('#custom-minutes').focus();}else setIntervalLength(Number(e.target.value));};
@@ -214,7 +215,8 @@ $('#test-sound').onclick=()=>reminders.chime().then(()=>toast('Sound is ready fo
 $('#undo').onclick=()=>{
   if(!undo)return;
   if(undo.days)Object.assign(state.days,undo.days);else state.days[undo.date]=undo.entries;
-  undo=null;persist();if(view==='monthly')monthly.render();else if(view==='daily')renderTimeline();toast('Change undone.');
+  if(Object.hasOwn(undo,'settingsTags')){if(undo.settingsTags===undefined)delete state.settings.tags;else state.settings.tags=structuredClone(undo.settingsTags);}
+  undo=null;persist();if(view==='monthly')monthly.render();else if(view==='daily')renderTimeline();else if(view==='settings')renderSettings();toast('Change undone.');
 };
 $('#dismiss-toast').onclick=()=>{$('#toast').hidden=true;};
 $('#export').onclick=()=>{
@@ -240,6 +242,12 @@ window.addEventListener('storage',event=>{if(event.key==='dayline.v1'&&!accounts
 setInterval(()=>{renderDailyQuote();if(view==='daily'&&!editor){const current=$('#timeline .current'),now=new Date(),minute=now.getHours()*60+now.getMinutes();if(selected===dayKey()&&Number(current?.dataset.minute)!==Math.floor(minute/state.settings.interval)*state.settings.interval)renderTimeline();}},30000);
 window.addEventListener('focus',renderDailyQuote);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderDailyQuote();});
+tagSettings=setupTagSettings({root:$('#tag-settings'),getState:()=>state,
+ apply(result,message,undoable){flushEditor();const before=state.days,beforeTags=state.settings.tags;state.days=result.days;state.settings.tags=result.config;
+  if(!persist()){state.days=before;if(beforeTags===undefined)delete state.settings.tags;else state.settings.tags=beforeTags;return false;}
+  undo=undoable?{days:structuredClone(before),settingsTags:structuredClone(beforeTags)}:null;renderSettings();toast(message,undoable);return true;
+ },
+});
 bulk=setupBulk({getState:()=>state,getView:()=>view,flush:flushEditor,
   visible:()=>!$('#planner').hidden&&['daily','monthly'].includes(view),
   anchor:()=>view==='monthly'?monthly.getMonth()+'-01':selected,

@@ -1,4 +1,4 @@
-import {NOTE_TYPES,categoryOptions,typeChips,typeBadge,matchesNoteType} from './note-types.js?v=bulk-notes-1';
+import {NOTE_TYPES,categoryOptions,typeChips,tagBadges,matchesNoteType,typeBadge} from './note-types.js?v=multi-tags-1';
 import {voice,focusMantras,focusIdeas} from './personality.js?v=intention-labels-3';
 import {dateActions} from './date-actions.js?v=quick-add-1';
 import {dayKey,parseDay,timeLabel} from './model.js';
@@ -15,14 +15,14 @@ export function setupMonthly({root,getState,onOpen,onMove,onAdd,announce,selecti
     const heading=node('h2','',`Quick note · ${dateLabel}`);heading.id='quick-note-heading';dialog.setAttribute('aria-labelledby',heading.id);
     const titleLabel=node('label','','Note title'),title=node('input');title.type='text';title.required=true;title.maxLength=200;title.placeholder='What would you like to plan?';title.setAttribute('aria-label','Quick note title');titleLabel.append(title);
     const timeLabel=node('label','','Time'),time=node('input');time.type='time';time.required=true;time.step='60';time.value='09:00';time.setAttribute('aria-label','Quick note time');timeLabel.append(time);
-    const noteType=typeChips('', 'Type (optional)',()=>{},categoryOptions(getState().days));
+    const noteType=typeChips([], 'Tags (optional)',()=>{},categoryOptions(getState().days,getState().settings.tags));
     const actions=node('div','inline'),add=node('button','primary','Add note');add.type='submit';
     actions.append(add,button('Cancel','Cancel quick note',()=>dialog.close()),button('Open day','Open this date in Daily',()=>{dialog.close();onOpen(date);}));
     form.append(heading,titleLabel,timeLabel,noteType.element,actions);dialog.append(form);document.body.append(dialog);
     title.addEventListener('input',()=>title.setCustomValidity(''));
     form.addEventListener('submit',event=>{
       event.preventDefault();title.setCustomValidity(title.value.trim()?'':'Enter a note title.');
-      if(!form.reportValidity())return;if(onAdd(date,title.value,time.value,noteType.value)!==false){filters.add(noteType.value||'none');render();dialog.close();}
+      if(!form.reportValidity())return;if(onAdd(date,title.value,time.value,noteType.value)!==false){for(const tag of noteType.value.length?noteType.value:['none'])filters.add(tag);render();dialog.close();}
     });
     dialog.addEventListener('close',()=>{dialog.remove();if(!root.hidden)root.querySelector(`[data-date="${date}"] .month-day-heading`)?.focus({preventScroll:true});});
     dialog.showModal();title.focus();
@@ -37,7 +37,7 @@ export function setupMonthly({root,getState,onOpen,onMove,onAdd,announce,selecti
     dialog.addEventListener('close',()=>dialog.remove());dialog.showModal();input.focus();
   }
   function render(){
-    dates.reset();const types=categoryOptions(getState().days),filterKeys=['none',...Object.keys(types)];if(allFilters)for(const key of filterKeys)filters.add(key);
+    dates.reset();const types=categoryOptions(getState().days,getState().settings.tags,true),filterKeys=['none',...Object.keys(types)];if(allFilters)for(const key of filterKeys)filters.add(key);
     const content=document.createDocumentFragment(),head=node('div','month-heading'),heading=node('h1','',parseDay(month+'-01').toLocaleDateString(undefined,{month:'long',year:'numeric'}));heading.id='month-heading';
     const nav=node('div','month-navigation');
     const previous=button('←','Previous month',()=>shift(-1)),next=button('→','Next month',()=>shift(1));previous.dataset.monthStep=-1;next.dataset.monthStep=1;
@@ -45,14 +45,14 @@ export function setupMonthly({root,getState,onOpen,onMove,onAdd,announce,selecti
     nav.append(previous,picker,next,button('This month','Go to this month',()=>{month=dayKey().slice(0,7);render();}));head.append(heading,nav);
     content.append(node('div','eyebrow',voice("A LITTLE ROOM TO SEE AHEAD")),head,node('p','intro','Click or tap a date to add a title and time. Double-click or double-tap to open its day. Drag titles to reschedule.'));
     const selectionControls=selection?.controls();if(selectionControls)content.append(selectionControls);
-    const filter=node('fieldset','month-type-filters');filter.append(node('legend','','Show note types'));
-    const all=button('All types','Show all note types',()=>{allFilters=true;for(const key of filterKeys)filters.add(key);render();root.querySelector('.month-type-all')?.focus();});all.className='secondary month-type-all';all.setAttribute('aria-pressed',String(filterKeys.every(key=>filters.has(key))));filter.append(all);
+    const filter=node('fieldset','month-type-filters');filter.append(node('legend','','Show tags'));
+    const all=button('All tags','Show all tags',()=>{allFilters=true;for(const key of filterKeys)filters.add(key);render();root.querySelector('.month-type-all')?.focus();});all.className='secondary month-type-all';all.setAttribute('aria-pressed',String(filterKeys.every(key=>filters.has(key))));filter.append(all);
     for(const key of filterKeys){
       const label=node('label',''),check=node('input');check.type='checkbox';check.checked=filters.has(key);check.dataset.typeFilter=key;check.setAttribute('aria-label',`Show ${types[key]||'None'} notes`);
       check.addEventListener('change',()=>{allFilters=false;if(check.checked)filters.add(key);else filters.delete(key);render();root.querySelector(`[data-type-filter="${CSS.escape(key)}"]`)?.focus();});
       label.append(check,typeBadge(key)||node('span','','None'));filter.append(label);
     }
-    content.append(filter);if(!filters.size)content.append(node('p','field-hint','No note types selected. Choose a type above to show its notes.'));
+    content.append(filter);if(!filters.size)content.append(node('p','field-hint','No tags selected. Choose a tag above to show its notes.'));
     for(const week of monthWeeks(month)){
       const section=node('section','month-week');const weekHeading=node('h2','',`Week of ${parseDay(week[0]).toLocaleDateString(undefined,{month:'short',day:'numeric'})}`);section.append(weekHeading);
       const grid=node('div','month-grid');
@@ -65,7 +65,7 @@ export function setupMonthly({root,getState,onOpen,onMove,onAdd,announce,selecti
         const list=node('div','month-notes');
         for(const entry of (getState().days[date]||[]).filter(entry=>matchesNoteType(entry,filters))){
           const card=node('div',`month-note${entry.done?' completed':''}`);card.draggable=!selection?.active;card.dataset.id=entry.id;card.dataset.source=date;const pick=selection?.checkbox(date,entry);if(pick)card.append(pick);card.classList.toggle('bulk-selected',!!selection?.isSelected(date,entry.id));
-          const title=noteTitle(entry),edit=button(title,`Open note: ${title}`,()=>onOpen(date,entry.id));edit.className='month-note-title';const badge=typeBadge(entry.noteType);if(badge)edit.append(badge);edit.append(node('span','month-note-time',timeLabel(entry.minute,getState().settings.clock)));
+          const title=noteTitle(entry),edit=button(title,`Open note: ${title}`,()=>onOpen(date,entry.id));edit.className='month-note-title';const badge=tagBadges(entry);if(badge)edit.append(badge);edit.append(node('span','month-note-time',timeLabel(entry.minute,getState().settings.clock)));
           const handle=button('⠿',`Hold to drag ${title}, or choose a date`,()=>chooseDate(date,entry.id));handle.className='month-drag';
           const move=button('↗',`Move ${title} to another date`,()=>chooseDate(date,entry.id));move.className='month-move';
           card.append(handle,edit,move);list.append(card);
