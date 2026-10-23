@@ -1,4 +1,4 @@
-import { dayKey, dueEntries, bucket } from './model.js?v=monthly-1';
+import { dayKey, dueEntries, bucket } from './model.js?v=exact-note-times-1';
 export class Reminders {
   constructor(getState, onDue, onError, onOpen=()=>{}) {
     this.getState=getState; this.onDue=onDue; this.onError=onError; this.onOpen=onOpen;
@@ -26,7 +26,7 @@ export class Reminders {
     const from=Math.max(this.last,now-60000);this.last=now;
     if(!state.settings.notifications) return;
     for(const entry of dueEntries(state.days[key]||[],key,state.settings.interval,from,now)) {
-      const token=`${key}:${entry.id}:${Math.floor(entry.minute/state.settings.interval)*state.settings.interval}`;
+      const token=`${key}:${entry.id}:${entry.minute}`;
       if(this.fired.has(token)) continue; this.fired.add(token);
       const target={date:key,id:entry.id,minute:entry.minute};
       this.onDue(entry,target);

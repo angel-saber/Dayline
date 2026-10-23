@@ -1,21 +1,21 @@
 import {typeBadge} from './note-types.js?v=type-chips-1';
 import {setupActivities,renderGuidedReports} from './activities.js?v=activities-2';
-import {attachGuidedPlan} from './activities-model.js?v=activities-2';
+import {attachGuidedPlan} from './activities-model.js?v=exact-note-times-1';
 import {setupWelcome} from './welcome.js?v=zen-name-1';
 import {voice,personality,applyPersonality} from './personality.js?v=intention-labels-3';
-import {setupFocus} from './focus.js?v=type-chips-1';
+import {setupFocus} from './focus.js?v=exact-note-times-1';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
-import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=focus-1';
+import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=exact-note-times-1';
 import {setupMonthly} from './monthly.js?v=type-chips-1';
-import {moveToDay,quickNote} from './month-model.js?v=quick-add-1';
-import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,timeLabel} from './model.js?v=monthly-1';
+import {moveToDay,quickNote} from './month-model.js?v=exact-note-times-1';
+import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,timeLabel} from './model.js?v=exact-note-times-1';
 import {load,save,validState} from './storage.js?v=type-chips-1';
 import {attachGestures} from './gestures.js';
-import {Reminders,resolveReminder} from './reminders.js?v=notification-links-1';
+import {Reminders,resolveReminder} from './reminders.js?v=exact-note-times-1';
 import {setupAccounts} from './accounts.js?v=type-chips-1';
 import {dailyQuote} from './quotes.js?v=intention-labels-3';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
-import {createNoteEditor} from './note-editor.js?v=type-chips-1';
+import {createNoteEditor} from './note-editor.js?v=exact-note-times-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const $=s=>document.querySelector(s);
 let state,readFailed=false,selected=dayKey(),view='daily',undo=null,editor=null,moveId=null,pendingImport=null,accounts=null;
@@ -72,6 +72,7 @@ function renderTimeline(){
       const card=node('article',`entry${e.done?' done':''}`);card.dataset.id=e.id;
       const content=node('div','note-content'),body=node('div','note-body');
       const badge=typeBadge(e.noteType);if(badge)content.append(badge);
+      content.append(button(timeLabel(e.minute,state.settings.clock),'Edit note time: '+timeLabel(e.minute,state.settings.clock),()=>openEditor(notes,slot.minute,e,true),'note-specific-time'));
       if(e.title?.trim())content.append(button(e.title,`Edit note title: ${e.title}`,()=>openEditor(notes,slot.minute,e),'daily-note-title'));
       content.append(body);
       renderNoteLines(body,e.text,e.format,noteTasks(e),start=>{
@@ -84,6 +85,7 @@ function renderTimeline(){
       handle.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openMove(e.id);}});tools.append(handle);card.append(tools);notes.append(card);
     }
     if(!slot.entries.length)notes.append(button('','Add a note at '+timeLabel(slot.minute,state.settings.clock),()=>openEditor(notes,slot.minute),'empty-add'));
+    else notes.append(button('+ Add note','Add another note in the '+timeLabel(slot.minute,state.settings.clock)+' interval',()=>openEditor(notes,slot.minute),'slot-add'));
     row.append(time,notes);fragment.append(row);
   }
   $('#timeline').replaceChildren(fragment);
@@ -110,23 +112,24 @@ function renderNoteLines(container,text,format=[],tasks=[],onCheck,onEdit,bullet
     start+=line.length+1;
   }
 }
-function openEditor(container,minute,entry){
-  if(editor){flushEditor();renderTimeline();container=$(`#timeline .slot[data-minute="${minute}"] .slot-notes`);}
+function openEditor(container,minute,entry,focusTime=false){
+  const slotMinute=Math.floor(minute/state.settings.interval)*state.settings.interval;
+  if(editor){flushEditor();renderTimeline();container=$(`#timeline .slot[data-minute="${slotMinute}"] .slot-notes`);}
   let id=entry?.id;const date=selected;
   const noteEditor=createNoteEditor({
-    entry,label:'Note for '+timeLabel(minute,state.settings.clock),
-    onChange({title,text,format,tasks,bullets,noteType}){
+    entry,minute:entry?.minute??minute,label:'Note for '+timeLabel(minute,state.settings.clock),
+    onChange({title,text,format,tasks,bullets,noteType,minute:noteMinute}){
       const list=state.days[date]||[];undo=null;$('#undo').hidden=true;
       if(!text.trim()&&!title.trim()&&!list.find(e=>e.id===id)?.focusReports?.length&&!list.find(e=>e.id===id)?.guidedActivities?.length){if(id)state.days[date]=list.filter(e=>e.id!==id);}
-      else if(id&&list.some(e=>e.id===id)){state.days[date]=list.map(e=>e.id===id?{...e,title,text,format,tasks,bullets,noteType,task:false}:e);}
-      else{id=crypto.randomUUID();state.days[date]=[...list,{id,title,text,minute,done:false,format,tasks,bullets,noteType,task:false}].sort((a,b)=>a.minute-b.minute);}
+      else if(id&&list.some(e=>e.id===id)){state.days[date]=list.map(e=>e.id===id?{...e,title,text,minute:noteMinute,format,tasks,bullets,noteType,task:false}:e).sort((a,b)=>a.minute-b.minute);}
+      else{id=crypto.randomUUID();state.days[date]=[...list,{id,title,text,minute:noteMinute,done:false,format,tasks,bullets,noteType,task:false}].sort((a,b)=>a.minute-b.minute);}
       persist();renderSummary();
     },
     onDone:renderTimeline,
   });
   container.querySelector('.empty-add')?.remove();
-  if(entry)container.querySelector(`[data-id="${CSS.escape(entry.id)}"]`)?.replaceWith(noteEditor.element);else container.append(noteEditor.element);
-  editor={sync:noteEditor.flush,destroy:noteEditor.destroy};noteEditor.focus();
+  if(entry)container.querySelector(`[data-id="${CSS.escape(entry.id)}"]`)?.replaceWith(noteEditor.element);else container.insertBefore(noteEditor.element,container.querySelector('.slot-add'));
+  editor={sync:noteEditor.flush,destroy:noteEditor.destroy};noteEditor.focus();if(focusTime)noteEditor.element.querySelector('input[type=time]')?.focus();
 }
 function flushEditor(){if(editor){editor.sync();editor.destroy();editor=null;}}
 function openMove(id){

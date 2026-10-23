@@ -26,17 +26,17 @@ export function moveEntry(entries, id, targetMinute, interval) {
   const source=bucket(moved.minute,interval);
   if (source===targetMinute) return entries;
   return entries.map(e=>{
-    if(e.id===id) return {...e,minute:targetMinute};
+    if(e.id===id) return {...e,minute:Math.min(1439,targetMinute+e.minute-source)};
     const b=bucket(e.minute,interval);
-    if(source<targetMinute && b>source && b<=targetMinute) return {...e,minute:b-interval};
-    if(source>targetMinute && b>=targetMinute && b<source) return {...e,minute:b+interval};
+    if(source<targetMinute && b>source && b<=targetMinute) return {...e,minute:e.minute-interval};
+    if(source>targetMinute && b>=targetMinute && b<source) return {...e,minute:Math.min(1439,e.minute+interval)};
     return e;
   }).sort((a,b)=>a.minute-b.minute);
 }
 export function dueEntries(entries, key, interval, from, now) {
   return entries.filter(e=>{
     if(e.done || !(e.title?.trim()||e.text).trim()) return false;
-    const date=parseDay(key); date.setHours(0,0,0,0); date.setMinutes(bucket(e.minute,interval));
+    const date=parseDay(key); date.setHours(0,0,0,0); date.setMinutes(e.minute);
     return date.getTime()>from && date.getTime()<=now;
   });
 }

@@ -1,10 +1,10 @@
 import {typeBadge} from './note-types.js?v=type-chips-1';
 import {musicProfile} from './focus-music.js?v=cyber-mission-12';
 import {voice,personality,focusMantras,focusIdeas} from './personality.js?v=intention-labels-3';
-import {dayKey,timeLabel,bucket} from './model.js';
-import {newFocus,advanceFocus,commitFocus,findFocusNote,validFocusDraft,durationLabel,MANTRAS,INSPIRATION} from './focus-model.js?v=focus-1';
+import {dayKey,timeLabel,bucket} from './model.js?v=exact-note-times-1';
+import {newFocus,advanceFocus,commitFocus,findFocusNote,validFocusDraft,durationLabel,MANTRAS,INSPIRATION} from './focus-model.js?v=exact-note-times-1';
 import {FocusAudio} from './focus-audio.js?v=speaker-playback-1';
-import {createNoteEditor} from './note-editor.js?v=type-chips-1';
+import {createNoteEditor} from './note-editor.js?v=exact-note-times-1';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const KEY='dayline.focus.v1';
@@ -45,7 +45,7 @@ export function setupFocus(api){
   }
   function editNote(host){
     flushNote();const p=page(),found=resolve(p);
-    noteEditor=createNoteEditor({entry:found?.entry,label:'Focus interval note',
+    noteEditor=createNoteEditor({entry:found?.entry,minute:p.minute,label:'Focus interval note',
       onChange(values){
         const result=api.editNote(found?.date||p.date,p.noteId,p.minute,values);
         if(result){p.noteId=result.id;p.title=values.title;p.text=values.text;save();}

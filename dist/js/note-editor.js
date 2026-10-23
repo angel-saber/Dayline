@@ -14,8 +14,8 @@ const makeButton=(text,label,action)=>{
 
 // The browser edits one surface. Only plain text, validated style ranges and line
 // tasks enter storage; pasted HTML is never installed in the document.
-export function createNoteEditor({entry,label,onChange,onDone}){
-  let state={noteType:entry?.noteType||'',title:entry?.title||'',text:entry?.text||'',format:structuredClone(entry?.format||[]),tasks:noteTasks(entry),bullets:structuredClone(entry?.bullets||[])};
+export function createNoteEditor({entry,minute=0,label,onChange,onDone}){
+  let state={minute:entry?.minute??minute,noteType:entry?.noteType||'',title:entry?.title||'',text:entry?.text||'',format:structuredClone(entry?.format||[]),tasks:noteTasks(entry),bullets:structuredClone(entry?.bullets||[])};
   let selection={start:state.text.length,end:state.text.length},typingStyle=null,composing=false,destroyed=false;
   const past=[],future=[];
   const wrapper=element('div','editor'),toolbar=element('div','format-toolbar');
@@ -26,6 +26,9 @@ export function createNoteEditor({entry,label,onChange,onDone}){
   const titleLabel=element('label','note-title-label','Note title');
   const titleInput=element('input','note-title-input');titleInput.type='text';titleInput.maxLength=200;titleInput.placeholder='Title (optional)';titleInput.value=state.title;
   titleInput.setAttribute('aria-label','Note title');titleLabel.append(titleInput);
+  const timeLabel=element('label','note-time-label','Note time'),timeInput=element('input');timeInput.type='time';timeInput.step='60';timeInput.required=true;timeInput.setAttribute('aria-label','Note time');
+  timeInput.value=`${String(Math.floor(state.minute/60)).padStart(2,'0')}:${String(state.minute%60).padStart(2,'0')}`;timeLabel.append(timeInput);
+  timeInput.addEventListener('change',()=>{if(!timeInput.reportValidity())return;const [hour,minute]=timeInput.value.split(':').map(Number);state={...state,minute:hour*60+minute};publish();});
   const noteType=typeChips(state.noteType,'Type (optional)',value=>{state={...state,noteType:value};publish();});
   titleInput.addEventListener('input',()=>{state={...state,title:titleInput.value};publish();});
   const controls=element('div','editor-actions');controls.append(element('small','','Saves as you write · Ctrl/⌘ + Enter to close'));
@@ -148,11 +151,11 @@ export function createNoteEditor({entry,label,onChange,onDone}){
   // Keep the caret and mobile keyboard in the editable text when a tool is tapped.
   toolbar.addEventListener('pointerdown',event=>{if(event.target.closest('button'))event.preventDefault();});
   controls.append(makeButton('Done','Close note editor',()=>{flush();onDone();}));controls.lastChild.className='primary';
-  wrapper.append(titleLabel,noteType.element,toolbar,linkPanel,surface,controls);
+  wrapper.append(titleLabel,timeLabel,noteType.element,toolbar,linkPanel,surface,controls);
   function undo(redo=false){
     const source=redo?future:past,target=redo?past:future;
     if(!source.length)return;
-    target.push(snapshot());const previous=source.pop();state={...previous.state,title:state.title,noteType:state.noteType};selection=previous.selection;typingStyle=previous.typingStyle;render();publish();
+    target.push(snapshot());const previous=source.pop();state={...previous.state,title:state.title,minute:state.minute,noteType:state.noteType};selection=previous.selection;typingStyle=previous.typingStyle;render();publish();
   }
   function deletion(backward,word=false){
     let {start,end}=selection;
