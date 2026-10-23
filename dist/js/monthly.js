@@ -8,6 +8,10 @@ const button=(text,label,action)=>{const el=node('button','',text);el.type='butt
 export function setupMonthly({root,getState,onOpen,onMove,onAdd,announce,selection}){
   let allFilters=true;const filters=new Set(['none',...Object.keys(NOTE_TYPES)]);
   let month=dayKey().slice(0,7),drag=null,hoverTimer=null,touch=null,suppressClick=false;
+  let overflowUpdates=[];
+  const observer=typeof ResizeObserver==='function'?new ResizeObserver(()=>measureOverflow()):null;
+  function measureOverflow(){if(root.hidden)return;for(const update of overflowUpdates)update();}
+  window.addEventListener('resize',measureOverflow);
   const dates=dateActions({onAdd:quickAdd,onOpen,isActive:()=>!root.hidden});
   function quickAdd(date){
     const dialog=node('dialog','month-quick-dialog'),form=node('form');
@@ -36,14 +40,28 @@ export function setupMonthly({root,getState,onOpen,onMove,onAdd,announce,selecti
     form.addEventListener('submit',event=>{event.preventDefault();if(!input.reportValidity())return;if(onMove(source,id,input.value)!==false)dialog.close();});
     dialog.addEventListener('close',()=>dialog.remove());dialog.showModal();input.focus();
   }
+  function expandDay(date){
+    dates.reset();
+    const dialog=node('dialog','month-expanded-day'),heading=node('h2','',parseDay(date).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'}));heading.id='expanded-day-heading';dialog.setAttribute('aria-labelledby',heading.id);
+    const count=node('p','field-hint'),list=node('ul','month-expanded-list');list.setAttribute('aria-label','All notes for this day');
+    function refresh(){
+      const entries=(getState().days[date]||[]).slice().sort((a,b)=>a.minute-b.minute);list.replaceChildren();count.textContent=`${entries.length} ${entries.length===1?'note':'notes'} · All tags shown. Select a title to open its note in Daily.`;
+      for(const entry of entries){const row=node('li','month-expanded-note'+(entry.done?' completed':'')),open=button(noteTitle(entry),`Open note: ${noteTitle(entry)}`,()=>{dialog.close();onOpen(date,entry.id);});open.className='month-expanded-title';row.append(node('span','month-expanded-time',timeLabel(entry.minute,getState().settings.clock)),open);const tags=tagBadges(entry);if(tags)row.append(tags);list.append(row);}
+      if(!entries.length)list.append(node('li','field-hint','No notes for this day yet.'));
+    }
+    const actions=node('div','inline');actions.append(button('Open day','Open this date in Daily',()=>{dialog.close();onOpen(date);}),button('Close','Close expanded day',()=>dialog.close()));
+    dialog.append(heading,count,list,actions);refresh();document.body.append(dialog);
+    const onAccount=()=>dialog.close();window.addEventListener('dayline:notes-changed',refresh);window.addEventListener('dayline:account',onAccount);
+    dialog.addEventListener('close',()=>{window.removeEventListener('dayline:notes-changed',refresh);window.removeEventListener('dayline:account',onAccount);dialog.remove();if(!root.hidden)root.querySelector(`[data-date="${date}"] .month-expand-day`)?.focus({preventScroll:true});},{once:true});dialog.showModal();
+  }
   function render(){
-    dates.reset();const types=categoryOptions(getState().days,getState().settings.tags,true),filterKeys=['none',...Object.keys(types)];if(allFilters)for(const key of filterKeys)filters.add(key);
+    dates.reset();observer?.disconnect();overflowUpdates=[];const types=categoryOptions(getState().days,getState().settings.tags,true),filterKeys=['none',...Object.keys(types)];if(allFilters)for(const key of filterKeys)filters.add(key);
     const content=document.createDocumentFragment(),head=node('div','month-heading'),heading=node('h1','',parseDay(month+'-01').toLocaleDateString(undefined,{month:'long',year:'numeric'}));heading.id='month-heading';
     const nav=node('div','month-navigation');
     const previous=button('←','Previous month',()=>shift(-1)),next=button('→','Next month',()=>shift(1));previous.dataset.monthStep=-1;next.dataset.monthStep=1;
     const picker=node('input');picker.type='month';picker.value=month;picker.setAttribute('aria-label','Go to month');picker.addEventListener('change',()=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(picker.value)){month=picker.value;render();}});
     nav.append(previous,picker,next,button('This month','Go to this month',()=>{month=dayKey().slice(0,7);render();}));head.append(heading,nav);
-    content.append(node('div','eyebrow',voice("A LITTLE ROOM TO SEE AHEAD")),head,node('p','intro','Click or tap a date to add a title and time. Double-click or double-tap to open its day. Drag titles to reschedule.'));
+    content.append(node('div','eyebrow',voice("A LITTLE ROOM TO SEE AHEAD")),head,node('p','intro','Click or tap a date to add a title and time. Double-click or double-tap to open its day. Drag titles to reschedule. Scroll a day’s list for more notes, or use Expand day to read every title.'));
     const selectionControls=selection?.controls();if(selectionControls)content.append(selectionControls);
     const filter=node('fieldset','month-type-filters');filter.append(node('legend','','Show tags'));
     const all=button('All tags','Show all tags',()=>{allFilters=true;for(const key of filterKeys)filters.add(key);render();root.querySelector('.month-type-all')?.focus();});all.className='secondary month-type-all';all.setAttribute('aria-pressed',String(filterKeys.every(key=>filters.has(key))));filter.append(all);
@@ -60,9 +78,9 @@ export function setupMonthly({root,getState,onOpen,onMove,onAdd,announce,selecti
         const day=node('section',`month-day${date.slice(0,7)!==month?' outside-month':''}${date===dayKey()?' month-today':''}`);day.dataset.date=date;
         const dateLabel=parseDay(date).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'});day.setAttribute('aria-label',dateLabel);
         const open=button(parseDay(date).toLocaleDateString(undefined,{weekday:'short',day:'numeric'}),`Add a note on ${dateLabel}`,event=>dates.click(date,event.detail));open.className='month-day-heading';open.title='Click to add a note · Double-click to open Daily';
-        open.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();dates.reset();onOpen(date);}});day.append(open);
-        day.addEventListener('click',event=>{if(event.target.closest('button,input,.month-note'))return;dates.click(date,event.detail);});
-        const list=node('div','month-notes');
+        open.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();dates.reset();onOpen(date);}});const dateHeader=node('div','month-date-header'),expand=button('⤢',`Expand day: ${dateLabel}`,()=>expandDay(date));expand.className='month-expand-day';expand.title='Expand day';dateHeader.append(open,expand);day.append(dateHeader);
+        day.addEventListener('click',event=>{if(event.target.closest('button,input,.month-note,.month-notes-wrap'))return;dates.click(date,event.detail);});
+        const list=node('div','month-notes'),wrap=node('div','month-notes-wrap'),more=button('','Scroll to more notes',()=>{const below=list.scrollHeight-list.clientHeight-list.scrollTop>2;list.scrollTo({top:below?list.scrollTop+Math.max(60,list.clientHeight*.8):0,behavior:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});});more.className='month-more-notes';more.hidden=true;list.tabIndex=0;list.setAttribute('role','region');list.setAttribute('aria-label',`Notes for ${dateLabel}. Scroll to read all titles.`);
         for(const entry of (getState().days[date]||[]).filter(entry=>matchesNoteType(entry,filters))){
           const card=node('div',`month-note${entry.done?' completed':''}`);card.draggable=!selection?.active;card.dataset.id=entry.id;card.dataset.source=date;const pick=selection?.checkbox(date,entry);if(pick)card.append(pick);card.classList.toggle('bulk-selected',!!selection?.isSelected(date,entry.id));
           const title=noteTitle(entry),edit=button(title,`Open note: ${title}`,()=>onOpen(date,entry.id));edit.className='month-note-title';const badge=tagBadges(entry);if(badge)edit.append(badge);edit.append(node('span','month-note-time',timeLabel(entry.minute,getState().settings.clock)));
@@ -71,12 +89,20 @@ export function setupMonthly({root,getState,onOpen,onMove,onAdd,announce,selecti
           card.append(handle,edit,move);list.append(card);
         }
         if(!list.children.length)list.append(node('span','month-empty',(getState().days[date]||[]).length?'No matching notes':'—'));
-        day.append(list);grid.append(day);
+        function updateOverflow(){
+          const overflow=list.scrollHeight>list.clientHeight+2,below=overflow&&list.scrollHeight-list.clientHeight-list.scrollTop>2;
+          wrap.classList.toggle('has-notes-below',below);more.hidden=!overflow;
+          const bottom=list.getBoundingClientRect().bottom,remaining=[...list.querySelectorAll('.month-note')].filter(card=>card.getBoundingClientRect().bottom>bottom+1).length;
+          more.textContent=below?(remaining?`↓ ${remaining} more ${remaining===1?'note':'notes'}`:'↓ More notes'):'↑ Back to top';more.setAttribute('aria-label',below?'Scroll down to more notes':'Scroll notes back to top');
+        }
+        list.addEventListener('scroll',updateOverflow,{passive:true});overflowUpdates.push(updateOverflow);
+        wrap.append(list);day.append(wrap,more);grid.append(day);
       }
       section.append(grid);content.append(section);
     }
-    root.replaceChildren(content);
+    root.replaceChildren(content);for(const list of root.querySelectorAll('.month-notes'))observer?.observe(list);requestAnimationFrame(measureOverflow);
   }
+  function scrollNoteList(target,y){const list=target?.closest('.month-notes');if(!list)return;const rect=list.getBoundingClientRect();if(y<rect.top+28)list.scrollTop-=14;else if(y>rect.bottom-28)list.scrollTop+=14;}
   function highlight(target){root.querySelectorAll('.month-drop-target').forEach(el=>el.classList.remove('month-drop-target'));target?.closest('.month-day')?.classList.add('month-drop-target');}
   function hoverMonth(target){
     const step=target?.closest('[data-month-step]');
@@ -93,7 +119,7 @@ export function setupMonthly({root,getState,onOpen,onMove,onAdd,announce,selecti
     dates.reset();drag={source:card.dataset.source,id:card.dataset.id};event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',card.querySelector('.month-note-title').textContent);
     announce('Drop the note on a day. Hover over a month arrow to change months.');
   });
-  root.addEventListener('dragover',event=>{if(!drag)return;event.preventDefault();event.dataTransfer.dropEffect='move';highlight(event.target);hoverMonth(event.target);});
+  root.addEventListener('dragover',event=>{if(!drag)return;event.preventDefault();event.dataTransfer.dropEffect='move';highlight(event.target);hoverMonth(event.target);scrollNoteList(event.target,event.clientY);});
   root.addEventListener('drop',event=>{if(!drag)return;event.preventDefault();const day=event.target.closest('.month-day'),item=drag;clearDrag();if(day)onMove(item.source,item.id,day.dataset.date);});
   root.addEventListener('dragend',clearDrag);
   // Touch devices use a held drag handle, leaving normal page scrolling available.
@@ -105,7 +131,7 @@ export function setupMonthly({root,getState,onOpen,onMove,onAdd,announce,selecti
   root.addEventListener('pointermove',event=>{
     if(!touch||event.pointerId!==touch.pointer)return;
     if(!touch.active){if(Math.hypot(event.clientX-touch.x,event.clientY-touch.y)>10){clearTimeout(touch.timer);touch=null;}return;}
-    event.preventDefault();const target=document.elementFromPoint(event.clientX,event.clientY);highlight(target);hoverMonth(target);
+    event.preventDefault();const target=document.elementFromPoint(event.clientX,event.clientY);highlight(target);hoverMonth(target);scrollNoteList(target,event.clientY);
     if(event.clientY<100)window.scrollBy(0,-14);else if(event.clientY>innerHeight-100)window.scrollBy(0,14);
   });
   function release(event){

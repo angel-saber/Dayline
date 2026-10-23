@@ -267,3 +267,25 @@ main{padding-bottom:180px}
 .daily-hours-controls .field-hint{margin:0}
 @media(max-width:600px){.available-hours-fields{grid-template-columns:1fr;gap:0}}
 .note-line,.editable-line{padding-inline-start:calc(var(--indent-level,0) * min(1.25rem,3vw))}
+/* Weekly rows stay bounded; the complete note text scrolls inside each day. */
+.month-day{display:flex;flex-direction:column;max-height:340px;overflow:hidden}
+.month-date-header{display:flex;align-items:flex-start;justify-content:space-between;gap:5px;flex:none}
+.month-day-heading{min-width:0;flex:1}
+.month-expand-day{flex:none;padding:2px 4px;color:var(--green);font-size:15px;border-radius:4px;min-width:24px;min-height:24px}
+.month-notes-wrap{position:relative;display:flex;flex-direction:column;flex:1;min-height:0}
+.month-notes{overflow-y:auto;overflow-x:hidden;max-height:265px;min-height:0;scrollbar-width:thin;scrollbar-gutter:stable;padding:2px 2px 4px;scroll-padding-block:8px;touch-action:pan-y}
+.month-notes:focus-visible{outline-offset:-2px}
+.month-note{flex:none}
+.month-note-title{display:block;-webkit-line-clamp:unset;-webkit-box-orient:initial;overflow:visible;white-space:normal}
+.month-notes-wrap.has-notes-below::after{content:'';position:absolute;bottom:0;left:0;right:0;height:20px;pointer-events:none;background:linear-gradient(transparent,var(--white))}
+.month-more-notes{flex:none;text-align:left;font-size:10px;color:var(--green);padding:7px 1px 0;min-height:25px}
+.month-expanded-day{max-width:620px;max-height:88dvh;overflow:auto}
+.month-expanded-day h2{line-height:1.3}
+.month-expanded-list{list-style:none;padding:0;margin:18px 0}
+.month-expanded-note{padding:14px 0;border-bottom:1px solid var(--line)}
+.month-expanded-time{display:block;font-size:11px;color:var(--muted);margin-bottom:7px}
+.month-expanded-title{display:block;text-align:left;white-space:normal;overflow-wrap:anywhere;font-size:14px;line-height:1.6;padding:0;width:100%}
+.month-expanded-note.completed .month-expanded-title{text-decoration:line-through;color:var(--muted)}
+.month-expanded-note .note-tag-badges{margin-top:8px}
+.month-expanded-day>.inline{position:sticky;bottom:-28px;background:var(--paper);padding:14px 0;margin-bottom:-14px}
+@media(max-width:750px){.month-day{display:flex;min-height:90px;max-height:340px;gap:0}.month-notes{max-height:245px}.month-date-header{align-items:center}.month-day-heading{padding:4px 0 10px}.month-expand-day{min-width:32px;min-height:32px}.month-more-notes{font-size:11px}}
