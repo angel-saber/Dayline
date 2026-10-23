@@ -162,20 +162,26 @@ export const VOICE_QUOTES = {
 };
 const mantras = {
   "builder": [
-    "I will lock in on the next concrete action and move it forward.",
-    "I will give this block my attention and finish one useful piece.",
-    "I will start before the plan feels perfect.",
-    "I will capture distractions and return to the target.",
-    "I will ask for what I need and keep building.",
-    "I will define done and work toward it one step at a time."
+    "Hold the vision. Build in stages.",
+    "Think in systems. Build with purpose.",
+    "Define the scope. Protect the foundation.",
+    "Blueprint boldly. Build deliberately.",
+    "Prototype first. Refine with evidence.",
+    "Design for the whole. Work on the part.",
+    "Let the vision set the scale.",
+    "Revise the blueprint. Preserve the ambition.",
+    "Build what the next stage needs."
   ],
   "founder": [
-    "I will choose the move with the greatest useful upside.",
-    "I will test assumptions before spending more effort.",
-    "I will use this block to remove a real bottleneck.",
-    "I will ask a better question and act on the answer.",
-    "I will invest my attention where it can compound.",
-    "I will leave the next step easier than I found it."
+    "Read the room. Shape the terms.",
+    "Master the impulse. Keep the initiative.",
+    "Find the leverage. Move precisely.",
+    "Change the conditions. Create the advantage.",
+    "Spend emotion wisely. Act deliberately.",
+    "Choose position over reaction.",
+    "Reveal less. Observe more.",
+    "Keep your options. Increase your influence.",
+    "Make the move that opens more moves."
   ]
 };
 export function personality(){return typeof document==='undefined'?'zen':document.documentElement.dataset.layout||'zen';}

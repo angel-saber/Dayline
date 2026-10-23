@@ -1,13 +1,14 @@
 import {dayKey,parseDay,offsetDay,bucket,slots} from './model.js';
 export const MANTRAS=[
-  'I will give this interval a good effort. Small progress is still progress.',
-  'I can begin before I feel ready, and learn as I go.',
-  'My job is the next useful step, not the whole mountain.',
-  'I can work steadily without demanding perfection.',
-  'I will return gently when my attention wanders.',
-  'A thoughtful attempt is worth making. I can build from here.',
-  'I choose patient effort and a little more clarity.',
-  'I can make room for one meaningful thing right now.',
+  "Let it be imperfect. Let it be done.",
+  "Make it easy enough to begin.",
+  "Do it badly. Give it a chance.",
+  "A little done is better than none.",
+  "Start messy. Improve gently.",
+  "Make the attempt, release the judgment.",
+  "When in doubt, make it smaller.",
+  "Return gently. Keep going.",
+  "Good enough. Next step."
 ];
 export const INSPIRATION=[
   'Make the next action small enough that you can start it now.',
