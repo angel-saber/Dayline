@@ -4,7 +4,7 @@ import {voice,personality,focusMantras,focusIdeas} from './personality.js?v=inte
 import {dayKey,timeLabel,bucket} from './model.js?v=exact-note-times-1';
 import {focusIntervalNotes,newFocus,advanceFocus,commitFocus,findFocusNote,validFocusDraft,durationLabel,MANTRAS,INSPIRATION} from './focus-model.js?v=focus-live-notes-1';
 import {FocusAudio} from './focus-audio.js?v=speaker-playback-1';
-import {createNoteEditor} from './note-editor.js?v=multi-tags-1';
+import {createNoteEditor} from './note-editor.js?v=outside-note-save-1';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const KEY='dayline.focus.v1';
@@ -57,7 +57,7 @@ export function setupFocus(api){
       onChange(values){
         const result=api.editNote(date,id,p.minute,values);
         if(result){id=result.id;p.noteId=id;p.title=values.title;p.text=values.text;save();}
-      },onDone(){flushNote();render();},
+      },onDone(){flushNote();dialog.querySelector('.focus-notes-section')?.replaceWith(noteSection());},
     });host.replaceChildren(noteEditor.element);noteEditor.focus();
   }
   function noteSignature(){const p=page();return JSON.stringify({page:p.key,clock:api.getState().settings.clock,entries:focusIntervalNotes(api.getState(),p)});}

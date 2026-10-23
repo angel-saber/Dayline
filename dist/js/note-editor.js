@@ -16,7 +16,7 @@ const makeButton=(text,label,action)=>{
 // tasks enter storage; pasted HTML is never installed in the document.
 export function createNoteEditor({entry,categories={},minute=0,label,onChange,onDone}){
   let state={tags:noteTags(entry||{}),minute:entry?.minute??minute,noteType:entry?.noteType||'',title:entry?.title||'',text:entry?.text||'',format:structuredClone(entry?.format||[]),tasks:noteTasks(entry),bullets:structuredClone(entry?.bullets||[])};
-  let selection={start:state.text.length,end:state.text.length},typingStyle=null,composing=false,destroyed=false;
+  let selection={start:state.text.length,end:state.text.length},typingStyle=null,composing=false,destroyed=false,pendingClose=false,pointerStartedInside=false;
   const past=[],future=[];
   const wrapper=element('div','editor'),toolbar=element('div','format-toolbar');
   toolbar.setAttribute('role','group');toolbar.setAttribute('aria-label','Note formatting');
@@ -31,7 +31,7 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
   timeInput.addEventListener('change',()=>{if(!timeInput.reportValidity())return;const [hour,minute]=timeInput.value.split(':').map(Number);state={...state,minute:hour*60+minute};publish();});
   const noteType=typeChips(state.tags,'Tags (optional)',value=>{state={...state,tags:value,noteType:value[0]||''};publish();},categories);
   titleInput.addEventListener('input',()=>{state={...state,title:titleInput.value};publish();});
-  const controls=element('div','editor-actions');controls.append(element('small','','Saves as you write · Ctrl/⌘ + Enter to close'));
+  const controls=element('div','editor-actions');controls.append(element('small','','Saves as you write · Click outside to close'));
   const buttons=[];
   function snapshot(){return {state:structuredClone(state),selection:{...selection},typingStyle:typingStyle&&{...typingStyle}};}
   function publish(){onChange(structuredClone(state));}
@@ -219,10 +219,24 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
     const caret=Math.min(text.length,selection.end);update(next,{start:caret,end:caret});
   }
   surface.addEventListener('compositionstart',()=>{composing=true;});
-  surface.addEventListener('compositionend',()=>{composing=false;syncNative();});
+  surface.addEventListener('compositionend',()=>{composing=false;syncNative();if(pendingClose){pendingClose=false;queueMicrotask(closeOutside);}});
   surface.addEventListener('input',()=>{if(!composing)syncNative();});
   const onSelection=()=>{if(!destroyed&&!composing)readSelection();};document.addEventListener('selectionchange',onSelection);
   function flush(){if(!composing)syncNative();}
+  function closeOutside(){
+    if(destroyed||!wrapper.isConnected)return;
+    if(composing){pendingClose=true;return;}
+    flush();onDone();
+  }
+  const onPointerStart=event=>{pointerStartedInside=wrapper.contains(event.target);};
+  const onOutsideClick=event=>{
+    const startedInside=event.detail>0&&pointerStartedInside;pointerStartedInside=false;
+    if(destroyed||wrapper.contains(event.target)||startedInside)return;
+    // Let the clicked control act first; it may navigate or open a different note.
+    queueMicrotask(closeOutside);
+  };
+  document.addEventListener('pointerdown',onPointerStart,true);
+  document.addEventListener('click',onOutsideClick,true);
   render(false);
-  return {element:wrapper,focus:restoreSelection,flush,destroy(){destroyed=true;document.removeEventListener('selectionchange',onSelection);}};
+  return {element:wrapper,focus:restoreSelection,flush,destroy(){destroyed=true;document.removeEventListener('selectionchange',onSelection);document.removeEventListener('pointerdown',onPointerStart,true);document.removeEventListener('click',onOutsideClick,true);}};
 }
