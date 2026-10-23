@@ -289,3 +289,8 @@ main{padding-bottom:180px}
 .month-expanded-note .note-tag-badges{margin-top:8px}
 .month-expanded-day>.inline{position:sticky;bottom:-28px;background:var(--paper);padding:14px 0;margin-bottom:-14px}
 @media(max-width:750px){.month-day{display:flex;min-height:90px;max-height:340px;gap:0}.month-notes{max-height:245px}.month-date-header{align-items:center}.month-day-heading{padding:4px 0 10px}.month-expand-day{min-width:32px;min-height:32px}.month-more-notes{font-size:11px}}
+
+/* Compact month cards retain complete labels in tooltips and Expand day. */
+.month-day .month-note{align-items:center;min-height:28px;padding:5px 3px;border-color:var(--line)}
+.month-day .month-note-title{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal;line-height:1.5}
+.month-day .month-drag,.month-day .month-move{line-height:1.2}

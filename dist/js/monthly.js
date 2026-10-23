@@ -1,10 +1,21 @@
-import {NOTE_TYPES,categoryOptions,typeChips,tagBadges,matchesNoteType,typeBadge} from './note-types.js?v=multi-tags-1';
+import {NOTE_TYPES,categoryOptions,typeChips,tagBadges,matchesNoteType,typeBadge,noteTags,categoryLabel} from './note-types.js?v=multi-tags-1';
 import {voice,focusMantras,focusIdeas} from './personality.js?v=intention-labels-3';
 import {dateActions} from './date-actions.js?v=quick-add-1';
 import {dayKey,parseDay,timeLabel} from './model.js';
 import {monthWeeks,offsetMonth,noteTitle} from './month-model.js?v=monthly-1';
 const node=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;};
 const button=(text,label,action)=>{const el=node('button','',text);el.type='button';el.setAttribute('aria-label',label);el.addEventListener('click',action);return el;};
+function categoryColor(tag){
+  if(Object.hasOwn(NOTE_TYPES,tag))return `var(--type-${tag})`;
+  let hue=0;for(const character of tag)hue=(hue*31+character.codePointAt(0))%360;
+  return `hsl(${hue} 55% 48%)`;
+}
+function categoryBackground(tags){
+  if(!tags.length)return 'var(--white)';
+  if(tags.length===1)return `color-mix(in srgb, ${categoryColor(tags[0])} 24%, var(--white))`;
+  const stops=tags.map((tag,index)=>`color-mix(in srgb, ${categoryColor(tag)} 24%, var(--white)) ${index*100/tags.length}% ${(index+1)*100/tags.length}%`);
+  return `linear-gradient(to right, ${stops.join(', ')})`;
+}
 export function setupMonthly({root,getState,onOpen,onMove,onAdd,announce,selection}){
   let allFilters=true;const filters=new Set(['none',...Object.keys(NOTE_TYPES)]);
   let month=dayKey().slice(0,7),drag=null,hoverTimer=null,touch=null,suppressClick=false;
@@ -61,14 +72,14 @@ export function setupMonthly({root,getState,onOpen,onMove,onAdd,announce,selecti
     const previous=button('←','Previous month',()=>shift(-1)),next=button('→','Next month',()=>shift(1));previous.dataset.monthStep=-1;next.dataset.monthStep=1;
     const picker=node('input');picker.type='month';picker.value=month;picker.setAttribute('aria-label','Go to month');picker.addEventListener('change',()=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(picker.value)){month=picker.value;render();}});
     nav.append(previous,picker,next,button('This month','Go to this month',()=>{month=dayKey().slice(0,7);render();}));head.append(heading,nav);
-    content.append(node('div','eyebrow',voice("A LITTLE ROOM TO SEE AHEAD")),head,node('p','intro','Click or tap a date to add a title and time. Double-click or double-tap to open its day. Drag titles to reschedule. Scroll a day’s list for more notes, or use Expand day to read every title.'));
+    content.append(node('div','eyebrow',voice("A LITTLE ROOM TO SEE AHEAD")),head,node('p','intro','Click or tap a date to add a title and time. Double-click or double-tap to open its day. Drag titles to reschedule. Note colors show their tags; multiple tags split the colors evenly. Scroll for more notes, or use Expand day for full titles, times, and tags.'));
     const selectionControls=selection?.controls();if(selectionControls)content.append(selectionControls);
     const filter=node('fieldset','month-type-filters');filter.append(node('legend','','Show tags'));
     const all=button('All tags','Show all tags',()=>{allFilters=true;for(const key of filterKeys)filters.add(key);render();root.querySelector('.month-type-all')?.focus();});all.className='secondary month-type-all';all.setAttribute('aria-pressed',String(filterKeys.every(key=>filters.has(key))));filter.append(all);
     for(const key of filterKeys){
       const label=node('label',''),check=node('input');check.type='checkbox';check.checked=filters.has(key);check.dataset.typeFilter=key;check.setAttribute('aria-label',`Show ${types[key]||'None'} notes`);
       check.addEventListener('change',()=>{allFilters=false;if(check.checked)filters.add(key);else filters.delete(key);render();root.querySelector(`[data-type-filter="${CSS.escape(key)}"]`)?.focus();});
-      label.append(check,typeBadge(key)||node('span','','None'));filter.append(label);
+      const badge=typeBadge(key)||node('span','','None');if(key!=='none')badge.style.setProperty('--type-color',categoryColor(key));label.append(check,badge);filter.append(label);
     }
     content.append(filter);if(!filters.size)content.append(node('p','field-hint','No tags selected. Choose a tag above to show its notes.'));
     for(const week of monthWeeks(month)){
@@ -83,7 +94,7 @@ export function setupMonthly({root,getState,onOpen,onMove,onAdd,announce,selecti
         const list=node('div','month-notes'),wrap=node('div','month-notes-wrap'),more=button('','Scroll to more notes',()=>{const below=list.scrollHeight-list.clientHeight-list.scrollTop>2;list.scrollTo({top:below?list.scrollTop+Math.max(60,list.clientHeight*.8):0,behavior:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});});more.className='month-more-notes';more.hidden=true;list.tabIndex=0;list.setAttribute('role','region');list.setAttribute('aria-label',`Notes for ${dateLabel}. Scroll to read all titles.`);
         for(const entry of (getState().days[date]||[]).filter(entry=>matchesNoteType(entry,filters))){
           const card=node('div',`month-note${entry.done?' completed':''}`);card.draggable=!selection?.active;card.dataset.id=entry.id;card.dataset.source=date;const pick=selection?.checkbox(date,entry);if(pick)card.append(pick);card.classList.toggle('bulk-selected',!!selection?.isSelected(date,entry.id));
-          const title=noteTitle(entry),edit=button(title,`Open note: ${title}`,()=>onOpen(date,entry.id));edit.className='month-note-title';const badge=tagBadges(entry);if(badge)edit.append(badge);edit.append(node('span','month-note-time',timeLabel(entry.minute,getState().settings.clock)));
+          const title=noteTitle(entry),tags=noteTags(entry),details=`${title} · ${timeLabel(entry.minute,getState().settings.clock)} · ${tags.length?tags.map(categoryLabel).join(' + '):'No tags'}`,edit=button(title,`Open note: ${details}`,()=>onOpen(date,entry.id));edit.className='month-note-title';edit.title=details;card.title=details;card.style.setProperty('--month-note-background',categoryBackground(tags));card.style.background='var(--month-note-background)';
           const handle=button('⠿',`Hold to drag ${title}, or choose a date`,()=>chooseDate(date,entry.id));handle.className='month-drag';
           const move=button('↗',`Move ${title} to another date`,()=>chooseDate(date,entry.id));move.className='month-move';
           card.append(handle,edit,move);list.append(card);
