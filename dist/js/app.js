@@ -1,3 +1,4 @@
+import {openShareNote} from './share-note.js?v=share-notes-1';
 import {typeBadge} from './note-types.js?v=type-chips-1';
 import {setupActivities,renderGuidedReports} from './activities.js?v=activities-2';
 import {attachGuidedPlan} from './activities-model.js?v=exact-note-times-1';
@@ -80,7 +81,7 @@ function renderTimeline(){
         commit(entries().map(item=>item.id===e.id?{...item,tasks,task:false}:item),'Task updated');
       },()=>openEditor(notes,slot.minute,e),e.bullets);renderFocusReports(content,e.focusReports);renderGuidedReports(content,e.guidedActivities);card.append(content);
       const tools=node('div','entry-tools');
-      tools.append(button('↗','Move note to a different time',()=>openMove(e.id),'move-note'),button('×','Delete note',()=>remove(e.id),'delete-note'));
+      tools.append(button('Share',`Share note: ${e.title||e.text.split('\n')[0]||'Untitled note'}`,()=>openShareNote(e,selected,state.settings.clock),'share-note'),button('↗','Move note to a different time',()=>openMove(e.id),'move-note'),button('×','Delete note',()=>remove(e.id),'delete-note'));
       const handle=node('span','drag-handle','⠿');handle.tabIndex=0;handle.setAttribute('role','button');handle.setAttribute('aria-label','Hold and drag to move, or press Enter to choose a time');
       handle.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openMove(e.id);}});tools.append(handle);card.append(tools);notes.append(card);
     }
