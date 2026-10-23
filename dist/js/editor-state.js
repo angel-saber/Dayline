@@ -46,3 +46,19 @@ export function insertLineBreak(state,start,end,typingStyle){
   }
   return {state:next,caret,typingStyle:style};
 }
+
+// Only touched lines are recognized; existing notes are never rewritten on open.
+export function recognizeBullets(state,start,end,selection={start:end,end}){
+  const lines=[];let at=lineRange(state.text,start).start;
+  while(at<=end){lines.push(at);const next=state.text.indexOf('\n',at);if(next<0||next>=end)break;at=next+1;}
+  let next=state,caret={...selection};
+  for(const lineStart of lines.reverse()){
+    if(next.tasks.some(task=>task.start===lineStart))continue;
+    const prefix=next.text.slice(lineStart).match(/^(?:[-*+•][ \t]+)/)?.[0];if(!prefix)continue;
+    next=replaceText(next,lineStart,lineStart+prefix.length,'');
+    next.bullets=[...(next.bullets||[]).filter(item=>item.start!==lineStart),{start:lineStart}].sort((a,b)=>a.start-b.start);
+    const shift=position=>position<=lineStart?position:Math.max(lineStart,position-prefix.length);
+    caret={start:shift(caret.start),end:shift(caret.end)};
+  }
+  return {state:next,selection:caret};
+}

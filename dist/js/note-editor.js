@@ -5,7 +5,7 @@ import {safeLink} from './links.js?v=hyperlinks-1';
 import {toggleBullets,editBullets,selectedLines} from './bullets.js?v=bullets-1';
 import {HIGHLIGHTS,renderFormatted,editFormat,setLink} from './format.js?v=hyperlinks-1';
 import {lineRange,noteTasks,editTasks} from './tasks.js?v=line-tasks-1';
-import {replaceText,insertLineBreak,applyStyle,applyCheckbox,checkTask,selectionStyle} from './editor-state.js?v=hyperlinks-1';
+import {recognizeBullets,replaceText,insertLineBreak,applyStyle,applyCheckbox,checkTask,selectionStyle} from './editor-state.js?v=typed-bullets-1';
 
 const element=(tag,className,text)=>{
   const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;
@@ -107,7 +107,8 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
       typingStyle=next.typingStyle;refreshToolbar();
     }else{
       const next=replaceText(state,start,end,text,typingStyle);
-      update(next,{start:start+text.length,end:start+text.length});
+      const caret=start+text.length,recognized=text.length?recognizeBullets(next,start,caret,{start:caret,end:caret}):{state:next,selection:{start:caret,end:caret}};
+      update(recognized.state,recognized.selection);
     }
   }
   function format(key,value=true){
@@ -129,7 +130,7 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
   }
   const taskButton=makeButton('Add checkbox','Add checkbox',()=>{readSelection();update(applyCheckbox(state,selection.start),selection);});
   taskButton.className='format-task';toolbar.append(taskButton);
-  const bulletButton=makeButton('• Bullets','Bullet list',()=>{readSelection();update(toggleBullets(state,selection.start,selection.end),selection);});bulletButton.className='format-bullets';toolbar.append(bulletButton);
+  const bulletButton=makeButton('• Bullets','Bullet list',()=>{readSelection();update(toggleBullets(state,selection.start,selection.end),selection);});bulletButton.className='format-bullets';bulletButton.title='Bullet list · Or type - followed by a space at the start of a line';toolbar.append(bulletButton);
   const linkPanel=element('div','link-panel');linkPanel.hidden=true;
   const linkLabel=element('label','','Web address'),linkInput=element('input');linkInput.type='text';linkInput.inputMode='url';linkInput.placeholder='https://example.com';linkInput.setAttribute('aria-label','Web address');linkLabel.append(linkInput);
   const linkError=element('p','field-hint');linkError.setAttribute('role','alert');let linkSelection=null;
@@ -241,7 +242,9 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
     const text=rows.every(row=>row.nodeType===Node.ELEMENT_NODE&&row.hasAttribute('data-editor-line'))?rows.map(nativeText).join('\n'):nativeText(surface);
     if(text===state.text)return;
     readSelection();const next={...state,text,format:editFormat(state.text,text,state.format),tasks:editTasks(state.text,text,state.tasks),bullets:editBullets(state.text,text,state.bullets)};
-    const caret=Math.min(text.length,selection.end);update(next,{start:caret,end:caret});
+    let first=0,last=text.length;while(first<state.text.length&&first<text.length&&state.text[first]===text[first])first++;
+    let oldLast=state.text.length;while(last>first&&oldLast>first&&text[last-1]===state.text[oldLast-1]){last--;oldLast--;}
+    const caret=Math.min(text.length,selection.end),recognized=recognizeBullets(next,first,last,{start:caret,end:caret});update(recognized.state,recognized.selection);
   }
   surface.addEventListener('compositionstart',()=>{composing=true;});
   surface.addEventListener('compositionend',()=>{composing=false;syncNative();if(pendingClose){pendingClose=false;queueMicrotask(closeOutside);}});
