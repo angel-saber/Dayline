@@ -1,7 +1,9 @@
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {emptyIntervals,mergeAvailability,availabilityText,validTimeZone} from './dist/js/availability-model.js';
+import {emptyIntervals as actualEmptyIntervals,mergeAvailability,availabilityText as actualAvailabilityText,validTimeZone} from './dist/js/availability-model.js';
+const emptyIntervals=(days,options,now=Date.UTC(2026,0,1))=>actualEmptyIntervals(days,options,now);
+const availabilityText=(candidates,selected,options={})=>actualAvailabilityText(candidates,selected,{now:Date.UTC(2026,0,1),...options});
 const options={start:'2026-10-26',end:'2026-10-26',from:540,to:1020,weekdays:[1,2,3,4,5],interval:60};
 const choose=slots=>new Set(slots.map(slot=>slot.key));
 test('every kind of note blocks its entire interval, regardless of contents or exact minute',()=>{
@@ -41,10 +43,29 @@ test('separate days never merge even when their real endpoints touch',()=>{
 test('daylight-saving transitions skip nonexistent slots and block repeated-hour occupancy',()=>{
  const result=spawnSync(process.execPath,['--input-type=module','-e',`import {emptyIntervals} from './dist/js/availability-model.js';
  const settings={from:0,to:240,weekdays:[0],interval:60};
- const spring=emptyIntervals({},{...settings,start:'2026-03-08',end:'2026-03-08'});
+ const spring=emptyIntervals({},{...settings,start:'2026-03-08',end:'2026-03-08'},0);
  if(JSON.stringify(spring.map(slot=>slot.minute))!=='[0,60,180]')throw new Error('Nonexistent spring hour included');
- const fall=emptyIntervals({'2026-11-01':[{minute:75,text:'Meeting'}]},{...settings,start:'2026-11-01',end:'2026-11-01'});
+ const fall=emptyIntervals({'2026-11-01':[{minute:75,text:'Meeting'}]},{...settings,start:'2026-11-01',end:'2026-11-01'},0);
  if(fall.some(slot=>slot.minute===60))throw new Error('Repeated occupied hour included');
  `],{cwd:process.cwd(),env:{...process.env,TZ:'America/Los_Angeles'},encoding:'utf8'});
  assert.equal(result.status,0,result.stderr);
+});
+
+test('availability excludes past days, started intervals and the exact start boundary',()=>{
+ const now=new Date(2026,9,26,10,0,0,0).getTime();
+ const settings={...options,start:'2026-10-25',end:'2026-10-27',weekdays:[0,1,2]};
+ const slots=actualEmptyIntervals({},settings,now);
+ assert.ok(slots.every(slot=>slot.startAt>now));assert.ok(!slots.some(slot=>slot.date==='2026-10-25'));
+ assert.deepEqual(slots.filter(slot=>slot.date==='2026-10-26').map(slot=>slot.minute),[660,720,780,840,900,960]);
+ assert.equal(slots.filter(slot=>slot.date==='2026-10-27').length,8);
+ assert.equal(actualEmptyIntervals({},options,now-1)[0].minute,600);
+ assert.equal(actualEmptyIntervals({},options,now+30*60000)[0].minute,660);
+});
+test('fresh sharing drops intervals that began after selection, including across display time zones',()=>{
+ const before=new Date(2026,9,26,8).getTime(),boundary=new Date(2026,9,26,10).getTime();
+ const candidates=actualEmptyIntervals({},options,before),selected=choose(candidates);
+ const text=actualAvailabilityText(candidates,selected,{timeZone:'UTC',now:boundary});
+ const future=actualEmptyIntervals({},options,boundary);
+ assert.equal(text,actualAvailabilityText(future,selected,{timeZone:'UTC',now:boundary}));
+ assert.equal(actualAvailabilityText(candidates,selected,{timeZone:'Asia/Manila',now:new Date(2026,9,27).getTime()}),'');
 });

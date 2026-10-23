@@ -1,7 +1,7 @@
 import {dayKey,offsetDay,parseDay,slots,bucket} from './model.js';
 import {validDate} from './bulk-model.js?v=multi-tags-1';
 export const availabilityKey=(date,minute)=>`${date}:${minute}`;
-export function emptyIntervals(days,{start,end,from=540,to=1020,weekdays=[1,2,3,4,5],interval=60}){
+export function emptyIntervals(days,{start,end,from=540,to=1020,weekdays=[1,2,3,4,5],interval=60},now=Date.now()){
   if(!validDate(start)||!validDate(end)||end<start)throw new Error('Choose a valid start and end date.');
   if(!Number.isInteger(from)||!Number.isInteger(to)||from<0||to>1440||from>=to)throw new Error('Available hours must end after they start.');
   if(!Array.isArray(weekdays)||!weekdays.length||weekdays.some(day=>!Number.isInteger(day)||day<0||day>6))throw new Error('Choose at least one day of the week.');
@@ -16,6 +16,7 @@ export function emptyIntervals(days,{start,end,from=540,to=1020,weekdays=[1,2,3,
       const begins=parseDay(date);begins.setHours(0,minute,0,0);
       // A spring-forward wall-clock time may not exist in this device's zone.
       if(dayKey(begins)!==date||begins.getHours()*60+begins.getMinutes()!==minute)continue;
+      if(begins.getTime()<=now)continue;
       const ends=parseDay(date);ends.setHours(0,finish,0,0);
       if(ends<=begins)continue;
       result.push({key:availabilityKey(date,minute),date,minute,endMinute:finish,startAt:begins.getTime(),endAt:ends.getTime()});
@@ -35,7 +36,7 @@ export function mergeAvailability(candidates,selected){
 export function validTimeZone(zone){try{new Intl.DateTimeFormat('en',{timeZone:zone}).format();return typeof zone==='string'&&!!zone.trim();}catch{return false;}}
 export function availabilityText(candidates,selected,{timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone,clock='12',now=Date.now()}={}){
   if(!validTimeZone(timeZone))throw new Error('Choose a valid time zone, such as America/Los_Angeles.');
-  const ranges=mergeAvailability(candidates,selected);if(!ranges.length)return '';
+  const ranges=mergeAvailability(candidates.filter(slot=>slot.startAt>now),selected);if(!ranges.length)return '';
   const dateFormat=new Intl.DateTimeFormat(undefined,{timeZone,weekday:'long',year:'numeric',month:'long',day:'numeric'});
   const timeFormat=new Intl.DateTimeFormat(undefined,{timeZone,hour:'numeric',minute:'2-digit',hour12:clock!=='24',timeZoneName:'short'});
   const groups=new Map();
