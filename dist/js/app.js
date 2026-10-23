@@ -1,17 +1,17 @@
 import {openShareNote} from './share-note.js?v=share-notes-1';
 import {typeBadge} from './note-types.js?v=type-chips-1';
 import {setupActivities,renderGuidedReports} from './activities.js?v=activities-2';
-import {attachGuidedPlan} from './activities-model.js?v=exact-note-times-1';
+import {attachGuidedPlan} from './activities-model.js?v=note-drop-1';
 import {setupWelcome} from './welcome.js?v=zen-name-1';
 import {voice,personality,applyPersonality} from './personality.js?v=intention-labels-3';
 import {setupFocus} from './focus.js?v=focus-live-notes-1';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
 import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=focus-live-notes-1';
 import {setupMonthly} from './monthly.js?v=type-chips-1';
-import {moveToDay,quickNote} from './month-model.js?v=exact-note-times-1';
-import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,timeLabel} from './model.js?v=exact-note-times-1';
+import {moveToDay,quickNote} from './month-model.js?v=note-drop-1';
+import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,dropEntry,timeLabel} from './model.js?v=note-drop-1';
 import {load,save,validState} from './storage.js?v=type-chips-1';
-import {attachGestures} from './gestures.js';
+import {attachGestures} from './gestures.js?v=note-drop-1';
 import {Reminders,resolveReminder} from './reminders.js?v=exact-note-times-1';
 import {setupAccounts} from './accounts.js?v=type-chips-1';
 import {dailyQuote} from './quotes.js?v=intention-labels-3';
@@ -139,7 +139,7 @@ function openMove(id){
   $('#move-time').value=Math.floor(e.minute/state.settings.interval)*state.settings.interval;$('#move-dialog').showModal();
 }
 $('#move-dialog').addEventListener('close',()=>{if($('#move-dialog').returnValue==='move')move(moveId,Number($('#move-time').value));});
-attachGestures($('#timeline'),{complete,remove,move,announce});
+attachGestures($('#timeline'),{complete,remove,move(id,minute,targetId){commit(dropEntry(entries(),id,minute,state.settings.interval,targetId),targetId?'Notes swapped':`Note added to ${timeLabel(minute,state.settings.clock)} interval`);},announce});
 function openReminder(target){
   if(accounts?.isLoginVisible()){toast('Continue past sign-in to open your planned note.');return;}
   flushEditor();focus.minimize();

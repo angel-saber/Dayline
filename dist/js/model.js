@@ -33,6 +33,15 @@ export function moveEntry(entries, id, targetMinute, interval) {
     return e;
   }).sort((a,b)=>a.minute-b.minute);
 }
+// A normal drop joins a slot. A deliberately held target swaps just those notes.
+export function dropEntry(entries,id,targetMinute,interval,targetId=null){
+  const moved=entries.find(e=>e.id===id);if(!moved||!slots(interval).includes(targetMinute))return entries;
+  const target=targetId&&targetId!==id?entries.find(e=>e.id===targetId&&bucket(e.minute,interval)===targetMinute):null;
+  if(target)return entries.map(e=>e.id===id?{...e,minute:target.minute}:e.id===target.id?{...e,minute:moved.minute}:e).sort((a,b)=>a.minute-b.minute);
+  const source=bucket(moved.minute,interval);if(source===targetMinute)return entries;
+  const minute=Math.min(1439,targetMinute+moved.minute-source);
+  return entries.map(e=>e.id===id?{...e,minute}:e).sort((a,b)=>a.minute-b.minute);
+}
 export function dueEntries(entries, key, interval, from, now) {
   return entries.filter(e=>{
     if(e.done || !(e.title?.trim()||e.text).trim()) return false;
