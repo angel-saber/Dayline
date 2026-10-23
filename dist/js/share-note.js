@@ -1,6 +1,6 @@
 import {parseDay,timeLabel} from './model.js';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
-import {categoryLabel,noteTags} from './note-types.js?v=multi-tags-1';
+import {NOTE_TYPES,categoryLabel,noteTags} from './note-types.js?v=multi-tags-1';
 import {safeLink} from './links.js?v=hyperlinks-1';
 import {durationLabel} from './focus-model.js?v=focus-1';
 import {dimensions,compassTitle,compassDates} from './activities-model.js?v=activities-2';
@@ -38,10 +38,21 @@ export function shareNoteText(entry,date,options={},clock='12'){
   parts.push('','Planned with Dayline');return parts.join('\n');
 }
 export function shareNotesText(items,options={},clock='12',heading='Dayline plan'){
- const settings={...SHARE_DEFAULTS,...options},parts=[heading.trim()||'Dayline plan'];let previousDate=null;
- for(const {date,entry} of [...items].sort((a,b)=>a.date.localeCompare(b.date)||a.entry.minute-b.entry.minute)){
+ const settings={...SHARE_DEFAULTS,...options},parts=[heading.trim()||'Dayline plan'];
+ const ranks=Object.keys(NOTE_TYPES),orderedTags=entry=>noteTags(entry).slice().sort((a,b)=>{
+  const ar=ranks.indexOf(a),br=ranks.indexOf(b);if(ar>=0||br>=0)return (ar<0?ranks.length:ar)-(br<0?ranks.length:br);
+  return categoryLabel(a).localeCompare(categoryLabel(b));
+ });
+ const groupKey=entry=>JSON.stringify(orderedTags(entry)),groupLabel=entry=>orderedTags(entry).map(categoryLabel).join(' + ')||'Untagged';
+ const byCategory=settings.organize==='category';let previousDate=null,previousGroup=null;
+ const ordered=[...items].sort((a,b)=>{
+  if(byCategory){const at=noteTags(a.entry),bt=noteTags(b.entry);if(!at.length&&bt.length)return 1;if(at.length&&!bt.length)return -1;const group=groupLabel(a.entry).localeCompare(groupLabel(b.entry))||groupKey(a.entry).localeCompare(groupKey(b.entry));if(group)return group;}
+  return a.date.localeCompare(b.date)||a.entry.minute-b.entry.minute;
+ });
+ for(const {date,entry} of ordered){
+  if(byCategory&&groupKey(entry)!==previousGroup){previousGroup=groupKey(entry);if(settings.type){parts.push('',groupLabel(entry));previousDate=null;}}
   if(settings.dateTime&&date!==previousDate){parts.push('',parseDay(date).toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'}));previousDate=date;}
-  const text=shareNoteText(entry,date,{...settings,dateTime:false},clock).split('\n').slice(1,-2).join('\n');
+  const text=shareNoteText(entry,date,{...settings,dateTime:false,type:byCategory?false:settings.type},clock).split('\n').slice(1,-2).join('\n');
   parts.push('',`${settings.dateTime?timeLabel(entry.minute,clock)+' — ':''}${entry.title?.trim()||'Dayline note'}`);if(text.trim())parts.push(text);
  }
  parts.push('','Planned with Dayline');return parts.join('\n');
@@ -68,7 +79,11 @@ function openShareItems(items,clock,multiple){
   share.disabled=typeof navigator.share!=='function';
   const copy=action('Copy text',async()=>{try{await navigator.clipboard.writeText(preview.value);status.textContent='Copied to clipboard.';}catch{preview.focus();preview.select();status.textContent='Copy the selected preview using your device’s Copy command.';}});
   actions.append(share,copy,email,action('Close',()=>dialog.close()));
-  dialog.append(heading,intro);if(multiple){const label=node('label','share-preview-label','Heading (optional)');label.append(titleInput);dialog.append(label);titleInput.oninput=refresh;}
+  dialog.append(heading,intro);if(multiple){const label=node('label','share-preview-label','Heading (optional)');label.append(titleInput);dialog.append(label);titleInput.oninput=refresh;
+    const organize=node('fieldset','share-note-options');organize.append(node('legend','','Organize by'));
+    for(const [key,text] of [['date','Date & time'],['category','Category']]){const label=node('label',''),radio=node('input');radio.type='radio';radio.name='share-organize';radio.checked=key==='date';radio.addEventListener('change',()=>{options.organize=key;refresh();});label.append(radio,document.createTextNode(text));organize.append(label);}
+    dialog.append(organize,node('p','field-hint','Category groups are sorted alphabetically (untagged notes last), with notes ordered by date and time inside each group. Multiple tags form one combined heading, so each note appears once. Turn Tags off to hide category headings.'));
+  }
   dialog.append(choices,node('label','share-preview-label','Preview'),preview,actions,status);
   if(share.disabled)dialog.append(node('p','field-hint','Your browser does not offer a sharing menu. Copy text and Email are available.'));
   dialog.addEventListener('close',()=>dialog.remove(),{once:true});

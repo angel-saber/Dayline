@@ -1,6 +1,6 @@
 import {selectionKey,selectedNotes,matchingNotes,scopeRange} from './bulk-model.js?v=multi-tags-1';
 import {categoryOptions,typeChips} from './note-types.js?v=multi-tags-1';
-import {openShareNotes} from './share-note.js?v=multi-tags-1';
+import {openShareNotes} from './share-note.js?v=share-order-1';
 const node=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
 const button=(text,fn,cls='secondary')=>{const e=node('button',cls,text);e.type='button';e.onclick=fn;return e;};
 export function setupBulk(api){
