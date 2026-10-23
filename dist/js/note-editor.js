@@ -1,3 +1,4 @@
+import {applyIndent,editIndents,indentLevel,MAX_INDENT} from './indents.js?v=indentation-1';
 import {prepareUploadFiles,reviewCompression} from './file-compression.js?v=file-sharing-1';
 import {addFiles,attachmentList} from './attachments.js?v=attachments-1';
 import {typeChips,noteTags} from './note-types.js?v=multi-tags-1';
@@ -5,7 +6,7 @@ import {safeLink} from './links.js?v=hyperlinks-1';
 import {toggleBullets,editBullets,selectedLines} from './bullets.js?v=bullets-1';
 import {HIGHLIGHTS,renderFormatted,editFormat,setLink} from './format.js?v=hyperlinks-1';
 import {lineRange,noteTasks,editTasks} from './tasks.js?v=line-tasks-1';
-import {recognizeBullets,replaceText,insertLineBreak,applyStyle,applyCheckbox,checkTask,selectionStyle} from './editor-state.js?v=selected-checkboxes-1';
+import {recognizeBullets,replaceText,insertLineBreak,applyStyle,applyCheckbox,checkTask,selectionStyle} from './editor-state.js?v=indentation-1';
 
 const element=(tag,className,text)=>{
   const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;
@@ -17,7 +18,7 @@ const makeButton=(text,label,action)=>{
 // The browser edits one surface. Only plain text, validated style ranges and line
 // tasks enter storage; pasted HTML is never installed in the document.
 export function createNoteEditor({entry,categories={},minute=0,label,onChange,onDone}){
-  let state={attachments:structuredClone(entry?.attachments||[]),tags:noteTags(entry||{}),minute:entry?.minute??minute,noteType:entry?.noteType||'',title:entry?.title||'',text:entry?.text||'',format:structuredClone(entry?.format||[]),tasks:noteTasks(entry),bullets:structuredClone(entry?.bullets||[])};
+  let state={indents:structuredClone(entry?.indents||[]),attachments:structuredClone(entry?.attachments||[]),tags:noteTags(entry||{}),minute:entry?.minute??minute,noteType:entry?.noteType||'',title:entry?.title||'',text:entry?.text||'',format:structuredClone(entry?.format||[]),tasks:noteTasks(entry),bullets:structuredClone(entry?.bullets||[])};
   let selection={start:state.text.length,end:state.text.length},typingStyle=null,composing=false,destroyed=false,pendingClose=false,pointerStartedInside=false;
   const past=[],future=[];
   const wrapper=element('div','editor'),toolbar=element('div','format-toolbar');
@@ -33,7 +34,7 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
   timeInput.addEventListener('change',()=>{if(!timeInput.reportValidity())return;const [hour,minute]=timeInput.value.split(':').map(Number);state={...state,minute:hour*60+minute};publish();});
   const noteType=typeChips(state.tags,'Tags (optional)',value=>{state={...state,tags:value,noteType:value[0]||''};publish();},categories);
   titleInput.addEventListener('input',()=>{state={...state,title:titleInput.value};publish();});
-  const controls=element('div','editor-actions');controls.append(element('small','','Saves as you write · Click outside to close'));
+  const controls=element('div','editor-actions');controls.append(element('small','','Saves as you write · Tab / Shift+Tab to indent · Esc or click outside to close'));
   const buttons=[];
   function snapshot(){return {state:structuredClone(state),selection:{...selection},typingStyle:typingStyle&&{...typingStyle}};}
   function publish(){return onChange(structuredClone(state));}
@@ -76,11 +77,12 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
     taskButton.setAttribute('aria-label',taskButton.textContent);taskButton.setAttribute('aria-pressed',String(hasTask));
     const hasBullets=lines.every(at=>state.bullets.some(item=>item.start===at));
     bulletButton.setAttribute('aria-pressed',String(hasBullets));
+    indentButton.disabled=lines.every(at=>indentLevel(state.indents,at)>=MAX_INDENT);outdentButton.disabled=lines.every(at=>indentLevel(state.indents,at)===0);
   }
   function render(focus=true){
     surface.replaceChildren();let start=0;
     for(const line of state.text.split('\n')){
-      const row=element('div','editable-line');row.dataset.editorLine='';row.dataset.start=start;row.dataset.end=start+line.length;
+      const row=element('div','editable-line');row.style.setProperty('--indent-level',indentLevel(state.indents,start));row.dataset.editorLine='';row.dataset.start=start;row.dataset.end=start+line.length;
       const task=state.tasks.find(t=>t.start===start),anchor=start;
       if(task){
         const check=element('input','line-checkbox');check.type='checkbox';check.checked=task.done;check.contentEditable='false';
@@ -131,6 +133,8 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
   const taskButton=makeButton('Add checkbox','Add checkbox',()=>{readSelection();update(applyCheckbox(state,selection.start,selection.end),selection);});
   taskButton.className='format-task';toolbar.append(taskButton);
   const bulletButton=makeButton('• Bullets','Bullet list',()=>{readSelection();update(toggleBullets(state,selection.start,selection.end),selection);});bulletButton.className='format-bullets';bulletButton.title='Bullet list · Or type - followed by a space at the start of a line';toolbar.append(bulletButton);
+  function indent(delta){readSelection();const next=applyIndent(state,selection.start,selection.end,delta);if(next!==state)update(next,selection);else restoreSelection();}
+  const indentButton=makeButton('Indent →','Indent selected lines (Tab)',()=>indent(1)),outdentButton=makeButton('← Outdent','Outdent selected lines (Shift+Tab)',()=>indent(-1));toolbar.append(outdentButton,indentButton);
   const linkPanel=element('div','link-panel');linkPanel.hidden=true;
   const linkLabel=element('label','','Web address'),linkInput=element('input');linkInput.type='text';linkInput.inputMode='url';linkInput.placeholder='https://example.com';linkInput.setAttribute('aria-label','Web address');linkLabel.append(linkInput);
   const linkError=element('p','field-hint');linkError.setAttribute('role','alert');let linkSelection=null;
@@ -203,7 +207,8 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
     }else if(type==='insertParagraph'||type==='insertLineBreak'){event.preventDefault();replace('\n');}
     else if(['deleteContentBackward','deleteContentForward','deleteWordBackward','deleteWordForward'].includes(type)){
       event.preventDefault();deletion(type.endsWith('Backward'),type.includes('Word'));
-    }else if(type==='historyUndo'||type==='historyRedo'){event.preventDefault();undo(type==='historyRedo');}
+    }else if(type==='formatIndent'||type==='formatOutdent'){event.preventDefault();indent(type==='formatIndent'?1:-1);}
+    else if(type==='historyUndo'||type==='historyRedo'){event.preventDefault();undo(type==='historyRedo');}
     else if(['formatBold','formatItalic','formatUnderline'].includes(type)){
       event.preventDefault();format({formatBold:'bold',formatItalic:'italic',formatUnderline:'underline'}[type]);
     }
@@ -215,6 +220,7 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
   });
   surface.addEventListener('drop',event=>event.preventDefault());
   surface.addEventListener('keydown',event=>{
+    if(event.key==='Tab'&&!event.target.closest('input,button,a')&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&!composing&&!event.isComposing){event.preventDefault();indent(event.shiftKey?-1:1);return;}
     if((event.ctrlKey||event.metaKey)&&!event.altKey){
       const key=event.key.toLowerCase();
       if(key==='k'){event.preventDefault();openLink();}
@@ -241,7 +247,7 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
     const rows=[...surface.childNodes];
     const text=rows.every(row=>row.nodeType===Node.ELEMENT_NODE&&row.hasAttribute('data-editor-line'))?rows.map(nativeText).join('\n'):nativeText(surface);
     if(text===state.text)return;
-    readSelection();const next={...state,text,format:editFormat(state.text,text,state.format),tasks:editTasks(state.text,text,state.tasks),bullets:editBullets(state.text,text,state.bullets)};
+    readSelection();const next={...state,text,format:editFormat(state.text,text,state.format),tasks:editTasks(state.text,text,state.tasks),bullets:editBullets(state.text,text,state.bullets),indents:editIndents(state.text,text,state.indents)};
     let first=0,last=text.length;while(first<state.text.length&&first<text.length&&state.text[first]===text[first])first++;
     let oldLast=state.text.length;while(last>first&&oldLast>first&&text[last-1]===state.text[oldLast-1]){last--;oldLast--;}
     const caret=Math.min(text.length,selection.end),recognized=recognizeBullets(next,first,last,{start:caret,end:caret});update(recognized.state,recognized.selection);

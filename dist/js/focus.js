@@ -1,3 +1,4 @@
+import {indentLevel} from './indents.js?v=indentation-1';
 import {attachmentList,bindFileDrop} from './attachments.js?v=attachments-1';
 import {tagBadges,categoryOptions} from './note-types.js?v=multi-tags-1';
 import {musicProfile} from './focus-music.js?v=cyber-mission-12';
@@ -5,7 +6,7 @@ import {voice,personality,focusMantras,focusIdeas} from './personality.js?v=appr
 import {dayKey,timeLabel,bucket} from './model.js?v=exact-note-times-1';
 import {focusIntervalNotes,newFocus,advanceFocus,commitFocus,findFocusNote,validFocusDraft,durationLabel,MANTRAS,INSPIRATION} from './focus-model.js?v=approved-mantras-1';
 import {FocusAudio} from './focus-audio.js?v=speaker-playback-1';
-import {createNoteEditor} from './note-editor.js?v=selected-checkboxes-1';
+import {createNoteEditor} from './note-editor.js?v=indentation-1';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const KEY='dayline.focus.v1';
@@ -76,7 +77,7 @@ export function setupFocus(api){
       if(entry.title)body.append(node('h3','',entry.title));
       let start=0;
       for(const line of entry.text.split('\n')){
-        const row=node('div','note-line'),task=noteTasks(entry).find(t=>t.start===start),anchor=start;
+        const row=node('div','note-line');row.style.setProperty('--indent-level',indentLevel(entry.indents,start));const task=noteTasks(entry).find(t=>t.start===start),anchor=start;
         if(task){const check=node('input','line-checkbox');check.type='checkbox';check.checked=task.done;check.setAttribute('aria-label',`Complete focus task: ${line}`);check.addEventListener('change',()=>{api.checkTask(p.date,entry.id,anchor);refreshPageSnapshot();render();});row.append(check);}
         if(!task&&entry.bullets?.some(item=>item.start===start)){const marker=node('span','bullet-marker','•');marker.setAttribute('aria-hidden','true');row.append(marker);}
         const text=node('span','note-text');const marks=(entry.format||[]).filter(m=>m.start<start+line.length&&m.end>start).map(m=>({...m,start:Math.max(0,m.start-start),end:Math.min(line.length,m.end-start)}));renderFormatted(text,line||'\u200b',marks);text.classList.toggle('task-completed',!!task?.done);row.append(text);body.append(row);start+=line.length+1;

@@ -2,7 +2,7 @@ import {availableHours,hourInput} from './available-hours.js?v=available-hours-1
 import {dayKey,parseDay,timeLabel} from './model.js';
 import {scopeRange} from './bulk-model.js?v=multi-tags-1';
 import {emptyIntervals,availabilityText,mergeAvailability,validTimeZone} from './availability-model.js?v=future-availability-1';
-import {emailNoteUrl} from './share-note.js?v=file-sharing-1';
+import {emailNoteUrl} from './share-note.js?v=indentation-1';
 const node=(tag,cls,text)=>{const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;};
 const button=(text,fn,cls='secondary')=>{const el=node('button',cls,text);el.type='button';el.onclick=fn;return el;};
 export function openAvailability(api){

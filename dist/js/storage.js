@@ -1,3 +1,4 @@
+import {validIndents} from './indents.js?v=indentation-1';
 import {validAvailableHours} from './available-hours.js?v=available-hours-1';
 import {validAttachments} from './attachments.js?v=attachments-1';
 import {validNoteType,validTags,validTagSettings} from './note-types.js?v=multi-tags-1';
@@ -27,6 +28,7 @@ export function validState(value) {
       if(e.focusReports!==undefined)result.focusReports=validFocusReports(e.focusReports);
       if(e.title!==undefined){if(typeof e.title!=='string'||e.title.length>200)throw new Error('Invalid note title.');result.title=e.title;}
       if(e.format!==undefined)result.format=validFormat(e.format,e.text);
+      if(e.indents!==undefined)result.indents=validIndents(e.indents,e.text);
       if(e.bullets!==undefined)result.bullets=validBullets(e.bullets,e.text);
       if(e.tasks!==undefined)result.tasks=validTasks(e.tasks,e.text);
       if(e.task!==undefined){if(typeof e.task!=='boolean')throw new Error('Invalid checkbox task.');result.task=e.task;}

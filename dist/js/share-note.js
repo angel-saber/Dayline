@@ -1,3 +1,4 @@
+import {indentLevel} from './indents.js?v=indentation-1';
 import {shareAttachments,prepareShareFiles,supportsFileShare} from './share-files.js?v=file-sharing-1';
 import {attachmentList} from './attachments.js?v=attachments-1';
 import {parseDay,timeLabel} from './model.js';
@@ -24,7 +25,7 @@ export function shareNoteText(entry,date,options={},clock='12'){
   if(settings.dateTime)parts.push(`${parseDay(date).toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'})} · ${timeLabel(entry.minute,clock)}`);
   if(settings.type&&noteTags(entry).length)parts.push(noteTags(entry).map(categoryLabel).join(' · '));
   const tasks=noteTasks(entry);let start=0;
-  const body=entry.text.split('\n').map(line=>{const task=tasks.find(t=>t.start===start),bullet=entry.bullets?.some(b=>b.start===start),text=linkedLine(line,start,entry.format);start+=line.length+1;return `${task?(task.done?'☑ ':'☐ '):bullet?'• ':''}${text}`;}).join('\n');
+  const body=entry.text.split('\n').map(line=>{const task=tasks.find(t=>t.start===start),bullet=entry.bullets?.some(b=>b.start===start),text=linkedLine(line,start,entry.format),indent='  '.repeat(indentLevel(entry.indents,start));start+=line.length+1;return `${indent}${task?(task.done?'☑ ':'☐ '):bullet?'• ':''}${text}`;}).join('\n');
   if(body.trim())parts.push('',body);
   if(settings.focusReports)for(const report of entry.focusReports||[]){
     parts.push('',`Focus session · ${new Date(report.startedAt).toLocaleString()} · ${durationLabel(report.durationMs)}`,`My commitment: ${report.mantra}`);

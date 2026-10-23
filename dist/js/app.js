@@ -1,27 +1,28 @@
+import {indentLevel} from './indents.js?v=indentation-1';
 import {availableHours,validAvailableHours,hourInput,inputMinute,dailySlotVisible} from './available-hours.js?v=available-hours-1';
 import {attachmentList,bindFileDrop,exportFiles,prepareFiles,storeFiles,MAX_BACKUP_SIZE} from './attachments.js?v=attachments-1';
 import {setupTagSettings} from './tag-settings.js?v=multi-tags-1';
-import {setupBulk} from './bulk-ui.js?v=future-availability-1';
+import {setupBulk} from './bulk-ui.js?v=indentation-1';
 import {bulkChange} from './bulk-model.js?v=multi-tags-1';
-import {openShareNote} from './share-note.js?v=file-sharing-1';
+import {openShareNote} from './share-note.js?v=indentation-1';
 import {tagBadges,categoryOptions,collectTagSettings} from './note-types.js?v=multi-tags-1';
 import {setupActivities,renderGuidedReports} from './activities.js?v=activities-2';
 import {attachGuidedPlan} from './activities-model.js?v=note-drop-1';
 import {setupWelcome} from './welcome.js?v=available-hours-1';
 import {voice,personality,applyPersonality} from './personality.js?v=approved-mantras-1';
-import {setupFocus} from './focus.js?v=selected-checkboxes-1';
+import {setupFocus} from './focus.js?v=indentation-1';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
 import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=approved-mantras-1';
 import {setupMonthly} from './monthly.js?v=multi-tags-1';
 import {moveToDay,quickNote} from './month-model.js?v=note-drop-1';
 import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,dropEntry,timeLabel} from './model.js?v=note-drop-1';
-import {load,save,validState} from './storage.js?v=available-hours-1';
+import {load,save,validState} from './storage.js?v=indentation-1';
 import {attachGestures} from './gestures.js?v=bulk-notes-1';
 import {Reminders,resolveReminder} from './reminders.js?v=reminder-sound-1';
-import {setupAccounts} from './accounts.js?v=available-hours-1';
+import {setupAccounts} from './accounts.js?v=indentation-1';
 import {dailyQuote} from './quotes.js?v=intention-labels-3';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
-import {createNoteEditor} from './note-editor.js?v=selected-checkboxes-1';
+import {createNoteEditor} from './note-editor.js?v=indentation-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const $=s=>document.querySelector(s);
 let expandedDay=null;
@@ -93,7 +94,7 @@ function renderTimeline(){
       renderNoteLines(body,e.text,e.format,noteTasks(e),start=>{
         const tasks=noteTasks(e).map(t=>t.start===start?{...t,done:!t.done}:t);
         commit(entries().map(item=>item.id===e.id?{...item,tasks,task:false}:item),'Task updated');
-      },()=>openEditor(notes,slot.minute,e),e.bullets);renderFocusReports(content,e.focusReports);renderGuidedReports(content,e.guidedActivities);content.append(attachmentList(e.attachments));bindFileDrop(card,files=>openEditor(notes,slot.minute,e)?.attachFiles(files));card.append(content);
+      },()=>openEditor(notes,slot.minute,e),e.bullets,e.indents);renderFocusReports(content,e.focusReports);renderGuidedReports(content,e.guidedActivities);content.append(attachmentList(e.attachments));bindFileDrop(card,files=>openEditor(notes,slot.minute,e)?.attachFiles(files));card.append(content);
       const tools=node('div','entry-tools');
       tools.append(button('Share',`Share note: ${e.title||e.text.split('\n')[0]||'Untitled note'}`,()=>openShareNote(e,selected,state.settings.clock),'share-note'),button('↗','Move note to a different time',()=>openMove(e.id),'move-note'),button('×','Delete note',()=>remove(e.id),'delete-note'));
       const handle=node('span','drag-handle','⠿');handle.tabIndex=0;handle.setAttribute('role','button');handle.setAttribute('aria-label','Hold and drag to move, or press Enter to choose a time');
@@ -109,10 +110,10 @@ function renderTimeline(){
   if(invitation){invitation.append(node('span','','+'),document.createTextNode(voice("What would you like to make time for?")));}
 }
 // Render line controls beside text; never nest a checkbox inside an edit button.
-function renderNoteLines(container,text,format=[],tasks=[],onCheck,onEdit,bullets=[]){
+function renderNoteLines(container,text,format=[],tasks=[],onCheck,onEdit,bullets=[],indents=[]){
   container.replaceChildren();let start=0;
   for(const line of text.split('\n')){
-    const row=node('div','note-line'),task=tasks.find(t=>t.start===start),anchor=start;
+    const row=node('div','note-line');row.style.setProperty('--indent-level',indentLevel(indents,start));const task=tasks.find(t=>t.start===start),anchor=start;
     if(task){
       const check=node('input','line-checkbox');check.type='checkbox';check.checked=task.done;
       check.setAttribute('aria-label',`Complete task: ${line||'Empty line'}`);
@@ -133,11 +134,11 @@ function openEditor(container,minute,entry,focusTime=false){
   let id=entry?.id;const date=selected;
   const noteEditor=createNoteEditor({
     entry,categories:categoryOptions(state.days,state.settings.tags),minute:entry?.minute??minute,label:'Note for '+timeLabel(minute,state.settings.clock),
-    onChange({title,text,format,tasks,bullets,noteType,tags,attachments,minute:noteMinute}){
+    onChange({title,text,format,tasks,bullets,indents,noteType,tags,attachments,minute:noteMinute}){
       const list=state.days[date]||[];undo=null;$('#undo').hidden=true;
       if(!attachments.length&&!text.trim()&&!title.trim()&&!list.find(e=>e.id===id)?.focusReports?.length&&!list.find(e=>e.id===id)?.guidedActivities?.length){if(id)state.days[date]=list.filter(e=>e.id!==id);}
-      else if(id&&list.some(e=>e.id===id)){state.days[date]=list.map(e=>e.id===id?{...e,title,text,minute:noteMinute,format,tasks,bullets,noteType,tags,attachments,task:false}:e).sort((a,b)=>a.minute-b.minute);}
-      else{id=crypto.randomUUID();state.days[date]=[...list,{id,title,text,minute:noteMinute,done:false,format,tasks,bullets,noteType,tags,attachments,task:false}].sort((a,b)=>a.minute-b.minute);}
+      else if(id&&list.some(e=>e.id===id)){state.days[date]=list.map(e=>e.id===id?{...e,title,text,minute:noteMinute,format,tasks,bullets,indents,noteType,tags,attachments,task:false}:e).sort((a,b)=>a.minute-b.minute);}
+      else{id=crypto.randomUUID();state.days[date]=[...list,{id,title,text,minute:noteMinute,done:false,format,tasks,bullets,indents,noteType,tags,attachments,task:false}].sort((a,b)=>a.minute-b.minute);}
       if(!persist()){state.days[date]=list;return false;}renderSummary();return true;
     },
     onDone:renderTimeline,

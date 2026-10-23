@@ -266,3 +266,4 @@ main{padding-bottom:180px}
 .daily-hours-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 20px}
 .daily-hours-controls .field-hint{margin:0}
 @media(max-width:600px){.available-hours-fields{grid-template-columns:1fr;gap:0}}
+.note-line,.editable-line{padding-inline-start:calc(var(--indent-level,0) * min(1.25rem,3vw))}

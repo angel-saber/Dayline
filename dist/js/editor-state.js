@@ -1,3 +1,4 @@
+import {editIndents,indentLevel} from './indents.js?v=indentation-1';
 import {editBullets,selectedLines} from './bullets.js?v=bullets-1';
 import {segments,toggleFormat,editFormat} from './format.js?v=hyperlinks-1';
 import {lineRange,editTasks} from './tasks.js?v=line-tasks-1';
@@ -14,7 +15,7 @@ export function replaceText(state,start,end,text,typingStyle){
     if(Object.keys(typingStyle).length)format.push({start,end:start+text.length,...typingStyle});
     format.sort((a,b)=>a.start-b.start);
   }
-  return {...state,text:next,format,tasks:editTasks(state.text,next,state.tasks,{start,end}),...(state.bullets?{bullets:editBullets(state.text,next,state.bullets,{start,end})}:{})};
+  return {...state,text:next,format,tasks:editTasks(state.text,next,state.tasks,{start,end}),...(state.indents?{indents:editIndents(state.text,next,state.indents,{start,end})}:{}),...(state.bullets?{bullets:editBullets(state.text,next,state.bullets,{start,end})}:{})};
 }
 export function applyStyle(state,start,end,key,value=true){
   return {...state,format:toggleFormat(state.text,state.format,start,end,key,value)};
@@ -39,7 +40,7 @@ export function selectionStyle(state,start,end){
 // checkbox always starts unchecked even when the preceding task is complete.
 export function insertLineBreak(state,start,end,typingStyle){
   const style={...(typingStyle??selectionStyle(state,start,end))};
-  const task=state.tasks.some(t=>t.start===lineRange(state.text,start).start);
+  const task=state.tasks.some(t=>t.start===lineRange(state.text,start).start),level=indentLevel(state.indents,lineRange(state.text,start).start);
   const next=replaceText(state,start,end,'\n',style),caret=start+1;
   if(task){
     next.tasks=next.tasks.filter(t=>t.start!==caret);
@@ -48,6 +49,7 @@ export function insertLineBreak(state,start,end,typingStyle){
   if(state.bullets?.some(item=>item.start===lineRange(state.text,start).start)){
     next.bullets=next.bullets.filter(item=>item.start!==caret);next.bullets.push({start:caret});next.bullets.sort((a,b)=>a.start-b.start);
   }
+  if(level)next.indents=[...(next.indents||[]).filter(item=>item.start!==caret),{start:caret,level}].sort((a,b)=>a.start-b.start);
   return {state:next,caret,typingStyle:style};
 }
 
