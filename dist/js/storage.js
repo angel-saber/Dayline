@@ -1,4 +1,4 @@
-import {validNoteType} from './note-types.js?v=type-chips-1';
+import {validNoteType} from './note-types.js?v=bulk-notes-1';
 import {validGuidedReports} from './activities-model.js?v=activities-2';
 import {validBullets} from './bullets.js?v=bullets-1';
 import {validFocusReports} from './focus-model.js?v=focus-1';

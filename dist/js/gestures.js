@@ -25,7 +25,7 @@ export function attachGestures(root, {complete,remove,move,announce}) {
     active=null;
   };
   root.addEventListener('pointerdown',e=>{
-    if(e.button!==0 || e.target.closest('textarea,select,input,a,details') || (e.target.closest('button')&&!e.target.closest('.note-text'))) return;
+    if(root.dataset.selecting==='true'||e.button!==0 || e.target.closest('textarea,select,input,a,details') || (e.target.closest('button')&&!e.target.closest('.note-text'))) return;
     const card=e.target.closest('.entry'); if(!card)return;
     active={id:card.dataset.id,card,x:e.clientX,y:e.clientY,lastX:e.clientX,lastY:e.clientY,pointer:e.pointerId,drag:false,handle:!!e.target.closest('.drag-handle')};
     if(active.handle) {

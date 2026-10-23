@@ -1,4 +1,4 @@
-import {typeChips} from './note-types.js?v=type-chips-1';
+import {typeChips} from './note-types.js?v=bulk-notes-1';
 import {safeLink} from './links.js?v=hyperlinks-1';
 import {toggleBullets,editBullets,selectedLines} from './bullets.js?v=bullets-1';
 import {HIGHLIGHTS,renderFormatted,editFormat,setLink} from './format.js?v=hyperlinks-1';
@@ -14,7 +14,7 @@ const makeButton=(text,label,action)=>{
 
 // The browser edits one surface. Only plain text, validated style ranges and line
 // tasks enter storage; pasted HTML is never installed in the document.
-export function createNoteEditor({entry,minute=0,label,onChange,onDone}){
+export function createNoteEditor({entry,categories={},minute=0,label,onChange,onDone}){
   let state={minute:entry?.minute??minute,noteType:entry?.noteType||'',title:entry?.title||'',text:entry?.text||'',format:structuredClone(entry?.format||[]),tasks:noteTasks(entry),bullets:structuredClone(entry?.bullets||[])};
   let selection={start:state.text.length,end:state.text.length},typingStyle=null,composing=false,destroyed=false;
   const past=[],future=[];
@@ -29,7 +29,7 @@ export function createNoteEditor({entry,minute=0,label,onChange,onDone}){
   const timeLabel=element('label','note-time-label','Note time'),timeInput=element('input');timeInput.type='time';timeInput.step='60';timeInput.required=true;timeInput.setAttribute('aria-label','Note time');
   timeInput.value=`${String(Math.floor(state.minute/60)).padStart(2,'0')}:${String(state.minute%60).padStart(2,'0')}`;timeLabel.append(timeInput);
   timeInput.addEventListener('change',()=>{if(!timeInput.reportValidity())return;const [hour,minute]=timeInput.value.split(':').map(Number);state={...state,minute:hour*60+minute};publish();});
-  const noteType=typeChips(state.noteType,'Type (optional)',value=>{state={...state,noteType:value};publish();});
+  const noteType=typeChips(state.noteType,'Type (optional)',value=>{state={...state,noteType:value};publish();},categories);
   titleInput.addEventListener('input',()=>{state={...state,title:titleInput.value};publish();});
   const controls=element('div','editor-actions');controls.append(element('small','','Saves as you write · Ctrl/⌘ + Enter to close'));
   const buttons=[];

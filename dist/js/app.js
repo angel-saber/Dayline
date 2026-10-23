@@ -1,25 +1,27 @@
-import {openShareNote} from './share-note.js?v=share-notes-1';
-import {typeBadge} from './note-types.js?v=type-chips-1';
+import {setupBulk} from './bulk-ui.js?v=bulk-notes-1';
+import {bulkChange} from './bulk-model.js?v=bulk-notes-1';
+import {openShareNote} from './share-note.js?v=bulk-notes-1';
+import {typeBadge,categoryOptions} from './note-types.js?v=bulk-notes-1';
 import {setupActivities,renderGuidedReports} from './activities.js?v=activities-2';
 import {attachGuidedPlan} from './activities-model.js?v=note-drop-1';
 import {setupWelcome} from './welcome.js?v=zen-name-1';
 import {voice,personality,applyPersonality} from './personality.js?v=intention-labels-3';
-import {setupFocus} from './focus.js?v=focus-live-notes-1';
+import {setupFocus} from './focus.js?v=bulk-notes-1';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
 import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=focus-live-notes-1';
-import {setupMonthly} from './monthly.js?v=type-chips-1';
+import {setupMonthly} from './monthly.js?v=bulk-notes-1';
 import {moveToDay,quickNote} from './month-model.js?v=note-drop-1';
 import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,dropEntry,timeLabel} from './model.js?v=note-drop-1';
-import {load,save,validState} from './storage.js?v=type-chips-1';
-import {attachGestures} from './gestures.js?v=note-drop-1';
+import {load,save,validState} from './storage.js?v=bulk-notes-1';
+import {attachGestures} from './gestures.js?v=bulk-notes-1';
 import {Reminders,resolveReminder} from './reminders.js?v=exact-note-times-1';
-import {setupAccounts} from './accounts.js?v=type-chips-1';
+import {setupAccounts} from './accounts.js?v=bulk-notes-1';
 import {dailyQuote} from './quotes.js?v=intention-labels-3';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
-import {createNoteEditor} from './note-editor.js?v=exact-note-times-1';
+import {createNoteEditor} from './note-editor.js?v=bulk-notes-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const $=s=>document.querySelector(s);
-let state,readFailed=false,selected=dayKey(),view='daily',undo=null,editor=null,moveId=null,pendingImport=null,accounts=null;
+let state,readFailed=false,selected=dayKey(),view='daily',undo=null,editor=null,moveId=null,pendingImport=null,accounts=null,bulk=null;
 try{state=load();}catch{readFailed=true;state={version:1,days:{},settings:{interval:60,clock:'12',notifications:false,sound:false}};}
 const announce=text=>{$('#announcer').textContent=text;};
 function toast(text,withUndo=false){$('#toast-text').textContent=text;$('#undo').hidden=!withUndo;$('#toast').hidden=false;announce(text);}
@@ -61,6 +63,7 @@ function renderSummary(){
   $('#progress').style.width=`${list.length?done/list.length*100:0}%`;
 }
 function renderTimeline(){
+  $('#daily-select-controls').replaceChildren(...(bulk?[bulk.controls()]:[]));$('#timeline').dataset.selecting=String(!!bulk?.active);
   editor?.destroy();editor=null;renderHeader();renderSummary();
   const now=new Date(),minuteNow=now.getHours()*60+now.getMinutes(),isToday=selected===dayKey(),fragment=document.createDocumentFragment();
   for(const slot of grouped(entries(),state.settings.interval)){
@@ -71,6 +74,7 @@ function renderTimeline(){
     const notes=node('div','slot-notes');
     for(const e of slot.entries){
       const card=node('article',`entry${e.done?' done':''}`);card.dataset.id=e.id;
+      const pick=bulk?.checkbox(selected,e);if(pick)card.append(pick);card.classList.toggle('bulk-selected',!!bulk?.isSelected(selected,e.id));
       const content=node('div','note-content'),body=node('div','note-body');
       const badge=typeBadge(e.noteType);if(badge)content.append(badge);
       content.append(button(timeLabel(e.minute,state.settings.clock),'Edit note time: '+timeLabel(e.minute,state.settings.clock),()=>openEditor(notes,slot.minute,e,true),'note-specific-time'));
@@ -118,7 +122,7 @@ function openEditor(container,minute,entry,focusTime=false){
   if(editor){flushEditor();renderTimeline();container=$(`#timeline .slot[data-minute="${slotMinute}"] .slot-notes`);}
   let id=entry?.id;const date=selected;
   const noteEditor=createNoteEditor({
-    entry,minute:entry?.minute??minute,label:'Note for '+timeLabel(minute,state.settings.clock),
+    entry,categories:categoryOptions(state.days),minute:entry?.minute??minute,label:'Note for '+timeLabel(minute,state.settings.clock),
     onChange({title,text,format,tasks,bullets,noteType,minute:noteMinute}){
       const list=state.days[date]||[];undo=null;$('#undo').hidden=true;
       if(!text.trim()&&!title.trim()&&!list.find(e=>e.id===id)?.focusReports?.length&&!list.find(e=>e.id===id)?.guidedActivities?.length){if(id)state.days[date]=list.filter(e=>e.id!==id);}
@@ -165,9 +169,9 @@ function switchView(next){
     $(`#${v}-view`).hidden=v!==next;$(`#${v}-tab`).classList.toggle('active',v===next);$(`#${v}-tab`).setAttribute('aria-selected',String(v===next));
   }
   if(next==='settings')renderSettings();else if(next==='monthly')monthly.show(selected);else if(next==='daily')renderTimeline();
-  accounts?.refreshView();$('#date-footer').hidden=next!=='daily'||accounts?.isLoginVisible();window.scrollTo({top:0});
+  accounts?.refreshView();bulk?.updateBar();$('#date-footer').hidden=next!=='daily'||accounts?.isLoginVisible();window.scrollTo({top:0});
 }
-const monthly=setupMonthly({root:$('#monthly-view'),getState:()=>state,announce,
+const monthly=setupMonthly({root:$('#monthly-view'),getState:()=>state,announce,selection:{get active(){return !!bulk?.active;},controls:()=>bulk?.controls(),checkbox:(date,entry)=>bulk?.checkbox(date,entry),isSelected:(date,id)=>!!bulk?.isSelected(date,id)},
   onOpen(date,id){
     selected=date;switchView('daily');
     if(id){const entry=entries().find(e=>e.id===id);if(entry){const slot=$(`#timeline .slot[data-minute="${Math.floor(entry.minute/state.settings.interval)*state.settings.interval}"] .slot-notes`);openEditor(slot,entry.minute,entry);slot.scrollIntoView({block:'center'});}}
@@ -236,6 +240,17 @@ window.addEventListener('storage',event=>{if(event.key==='dayline.v1'&&!accounts
 setInterval(()=>{renderDailyQuote();if(view==='daily'&&!editor){const current=$('#timeline .current'),now=new Date(),minute=now.getHours()*60+now.getMinutes();if(selected===dayKey()&&Number(current?.dataset.minute)!==Math.floor(minute/state.settings.interval)*state.settings.interval)renderTimeline();}},30000);
 window.addEventListener('focus',renderDailyQuote);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderDailyQuote();});
+bulk=setupBulk({getState:()=>state,getView:()=>view,flush:flushEditor,
+  visible:()=>!$('#planner').hidden&&['daily','monthly'].includes(view),
+  anchor:()=>view==='monthly'?monthly.getMonth()+'-01':selected,
+  refresh(){if(view==='daily')renderTimeline();else if(view==='monthly')monthly.render();},
+  apply(keys,action){
+    flushEditor();try{const before=state.days,result=bulkChange(before,keys,action);state.days=result.days;
+      if(!persist()){state.days=before;return false;}
+      undo={days:result.previous};toast(`${result.count} notes ${action.kind==='delete'?'deleted':action.kind==='move'?'moved':'categorized'}.`,true);return true;
+    }catch(error){toast(error.message);return false;}
+  },
+});
 renderTimeline();
 accounts=setupAccounts({
   getState:()=>state, flushEditor, toast,
