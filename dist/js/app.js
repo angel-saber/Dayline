@@ -1,12 +1,13 @@
+import {availableHours,validAvailableHours,hourInput,inputMinute,dailySlotVisible} from './available-hours.js?v=available-hours-1';
 import {attachmentList,bindFileDrop,exportFiles,prepareFiles,storeFiles,MAX_BACKUP_SIZE} from './attachments.js?v=attachments-1';
 import {setupTagSettings} from './tag-settings.js?v=multi-tags-1';
-import {setupBulk} from './bulk-ui.js?v=availability-1';
+import {setupBulk} from './bulk-ui.js?v=available-hours-1';
 import {bulkChange} from './bulk-model.js?v=multi-tags-1';
 import {openShareNote} from './share-note.js?v=file-sharing-1';
 import {tagBadges,categoryOptions,collectTagSettings} from './note-types.js?v=multi-tags-1';
 import {setupActivities,renderGuidedReports} from './activities.js?v=activities-2';
 import {attachGuidedPlan} from './activities-model.js?v=note-drop-1';
-import {setupWelcome} from './welcome.js?v=availability-1';
+import {setupWelcome} from './welcome.js?v=available-hours-1';
 import {voice,personality,applyPersonality} from './personality.js?v=intention-labels-3';
 import {setupFocus} from './focus.js?v=soundtrack-picker-1';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
@@ -14,15 +15,16 @@ import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?
 import {setupMonthly} from './monthly.js?v=multi-tags-1';
 import {moveToDay,quickNote} from './month-model.js?v=note-drop-1';
 import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,dropEntry,timeLabel} from './model.js?v=note-drop-1';
-import {load,save,validState} from './storage.js?v=attachments-1';
+import {load,save,validState} from './storage.js?v=available-hours-1';
 import {attachGestures} from './gestures.js?v=bulk-notes-1';
 import {Reminders,resolveReminder} from './reminders.js?v=exact-note-times-1';
-import {setupAccounts} from './accounts.js?v=attachments-1';
+import {setupAccounts} from './accounts.js?v=available-hours-1';
 import {dailyQuote} from './quotes.js?v=intention-labels-3';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
 import {createNoteEditor} from './note-editor.js?v=file-sharing-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const $=s=>document.querySelector(s);
+let expandedDay=null;
 let state,readFailed=false,selected=dayKey(),view='daily',undo=null,editor=null,moveId=null,pendingImport=null,accounts=null,bulk=null,tagSettings=null;
 try{state=load();}catch{readFailed=true;state={version:1,days:{},settings:{interval:60,clock:'12',notifications:false,sound:false}};}
 const announce=text=>{$('#announcer').textContent=text;};
@@ -68,7 +70,11 @@ function renderTimeline(){
   $('#daily-select-controls').replaceChildren(...(bulk?[bulk.controls()]:[]));$('#timeline').dataset.selecting=String(!!bulk?.active);
   editor?.destroy();editor=null;renderHeader();renderSummary();
   const now=new Date(),minuteNow=now.getHours()*60+now.getMinutes(),isToday=selected===dayKey(),fragment=document.createDocumentFragment();
-  for(const slot of grouped(entries(),state.settings.interval)){
+  const hours=availableHours(state.settings),allSlots=grouped(entries(),state.settings.interval),hiddenSlots=allSlots.filter(slot=>!dailySlotVisible(slot.minute,state.settings.interval,hours));
+  let hoursControls=$('#daily-hours-controls');if(!hoursControls){hoursControls=node('div','daily-hours-controls');hoursControls.id='daily-hours-controls';$('#daily-select-controls').after(hoursControls);}
+  hoursControls.replaceChildren();hoursControls.hidden=!hiddenSlots.length;
+  if(hiddenSlots.length){const expanded=expandedDay===selected,hiddenNotes=hiddenSlots.reduce((sum,slot)=>sum+slot.entries.length,0);hoursControls.append(node('span','field-hint',expanded?'Full day shown.':`${hiddenSlots.length} intervals${hiddenNotes?` (${hiddenNotes} ${hiddenNotes===1?'note':'notes'})`:''} hidden by your Daily settings.`),button(expanded?'Use hidden-hours settings':'Show full day',expanded?'Restore hidden-hour preferences':'Show all time intervals for this day',()=>{flushEditor();expandedDay=expanded?null:selected;renderTimeline();},'secondary'));}
+  for(const slot of allSlots.filter(slot=>expandedDay===selected||dailySlotVisible(slot.minute,state.settings.interval,hours))){
     const row=node('section','slot');row.dataset.minute=slot.minute;row.setAttribute('aria-label',timeLabel(slot.minute,state.settings.clock));
     const time=node('div','slot-time',timeLabel(slot.minute,state.settings.clock));
     time.append(node('span','end-time',`– ${timeLabel(Math.min(1440,slot.minute+state.settings.interval),state.settings.clock)}`));
@@ -151,7 +157,7 @@ function openReminder(target){
   flushEditor();focus.minimize();
   for(const dialog of document.querySelectorAll('dialog[open]'))dialog.close('cancel');
   const destination=resolveReminder(state.days,target,state.settings.interval);
-  selected=destination.date;switchView('daily');
+  selected=destination.date;if(!dailySlotVisible(destination.minute,state.settings.interval,availableHours(state.settings)))expandedDay=selected;switchView('daily');
   const row=$(`#timeline .slot[data-minute="${destination.minute}"]`);
   const note=destination.found?row?.querySelector(`[data-id="${CSS.escape(destination.id)}"]`):null;
   const destinationNode=note||row;
@@ -159,11 +165,11 @@ function openReminder(target){
   if(destinationNode){destinationNode.tabIndex=-1;destinationNode.focus({preventScroll:true});}
   if(!destination.found)toast('This note is no longer available. Its original interval is shown.');
 }
-function navigate(date){flushEditor();selected=date;renderTimeline();window.scrollTo({top:0});}
+function navigate(date){flushEditor();expandedDay=null;selected=date;renderTimeline();window.scrollTo({top:0});}
 $('#previous-day').onclick=()=>navigate(offsetDay(selected,-1));$('#next-day').onclick=()=>navigate(offsetDay(selected,1));
 $('#today-top').onclick=()=>{navigate(dayKey());jumpNow();};
 $('#date-picker').onchange=e=>{if(/^\d{4}-\d{2}-\d{2}$/.test(e.target.value))navigate(e.target.value);};
-function jumpNow(){const row=$('#timeline .current');row?.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});}
+function jumpNow(){if(!$('#timeline .current')){flushEditor();expandedDay=selected;renderTimeline();}const row=$('#timeline .current');row?.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});}
 $('#jump-now').onclick=jumpNow;
 function switchView(next){
   flushEditor();view=next;
@@ -175,7 +181,7 @@ function switchView(next){
 }
 const monthly=setupMonthly({root:$('#monthly-view'),getState:()=>state,announce,selection:{get active(){return !!bulk?.active;},controls:()=>bulk?.controls(),checkbox:(date,entry)=>bulk?.checkbox(date,entry),isSelected:(date,id)=>!!bulk?.isSelected(date,id)},
   onOpen(date,id){
-    selected=date;switchView('daily');
+    selected=date;const target=id?entries().find(entry=>entry.id===id):null;if(target&&!dailySlotVisible(Math.floor(target.minute/state.settings.interval)*state.settings.interval,state.settings.interval,availableHours(state.settings)))expandedDay=selected;switchView('daily');
     if(id){const entry=entries().find(e=>e.id===id);if(entry){const slot=$(`#timeline .slot[data-minute="${Math.floor(entry.minute/state.settings.interval)*state.settings.interval}"] .slot-notes`);openEditor(slot,entry.minute,entry);slot.scrollIntoView({block:'center'});}}
   },
   onAdd(date,title,time,tags){
@@ -197,15 +203,26 @@ const monthly=setupMonthly({root:$('#monthly-view'),getState:()=>state,announce,
 setupActivities({root:$('#more-view'),savePlan(report){
   flushEditor();const previous=state.days;const result=attachGuidedPlan(previous,state.settings.interval,report);state.days=result.days;
   if(!persist()){state.days=previous;return false;}undo=null;return result;
-},onSaved({date,minute}){selected=date;switchView('daily');$(`#timeline .slot[data-minute="${minute}"]`)?.scrollIntoView({block:'center'});}});
+},onSaved({date,minute}){selected=date;if(!dailySlotVisible(minute,state.settings.interval,availableHours(state.settings)))expandedDay=selected;switchView('daily');$(`#timeline .slot[data-minute="${minute}"]`)?.scrollIntoView({block:'center'});}});
 $('#more-tab').onclick=()=>switchView('more');
 $('#daily-tab').onclick=()=>switchView('daily');$('#monthly-tab').onclick=()=>switchView('monthly');$('#settings-tab').onclick=()=>switchView('settings');$('#interval-shortcut').onclick=()=>switchView('settings');
-function renderSettings(){tagSettings?.render();const s=state.settings,isPreset=[15,30,60,120,240].includes(s.interval);$('#interval').value=isPreset?s.interval:'custom';$('#custom-field').hidden=isPreset;$('#custom-minutes').value=s.interval;$('#clock').value=s.clock;$('#notifications').checked=s.notifications;$('#sound').checked=s.sound;notificationStatus();}
+function renderSettings(){tagSettings?.render();const s=state.settings,isPreset=[15,30,60,120,240].includes(s.interval);$('#interval').value=isPreset?s.interval:'custom';$('#custom-field').hidden=isPreset;$('#custom-minutes').value=s.interval;$('#clock').value=s.clock;$('#notifications').checked=s.notifications;$('#sound').checked=s.sound;const hours=availableHours(s);$('#available-from').value=hourInput(hours.from);$('#available-until').value=hourInput(hours.to);$('#hide-before-hours').checked=hours.hideBefore;$('#hide-after-hours').checked=hours.hideAfter;notificationStatus();}
 function notificationStatus(){let status='Keep Dayline open for reminders. Closed-app alerts aren’t supported in this version. Device settings may silence sound.';if(!globalThis.Notification)status+=' System notifications are unavailable here; in-app reminders still work.';else if(Notification.permission==='denied')status+=' System notifications are blocked in browser settings; in-app reminders still work.';$('#notification-status').textContent=status;}
 function setIntervalLength(value){if(!Number.isInteger(value)||value<1||value>1440){toast('Choose a whole number from 1 to 1440 minutes.');return;}state.settings.interval=value;undo=null;persist();renderSettings();toast('Timeline updated. All your notes are kept.');}
 $('#interval').onchange=e=>{if(e.target.value==='custom'){$('#custom-field').hidden=false;$('#custom-minutes').focus();}else setIntervalLength(Number(e.target.value));};
 $('#apply-custom').onclick=()=>setIntervalLength(Number($('#custom-minutes').value));
 $('#clock').onchange=e=>{state.settings.clock=e.target.value;persist();};
+function saveAvailableHours(){
+  if(!$('#available-from').reportValidity()||!$('#available-until').reportValidity())return false;
+  const previous=state.settings;
+  try{
+    const hours=validAvailableHours({from:inputMinute($('#available-from').value),to:inputMinute($('#available-until').value,true),hideBefore:$('#hide-before-hours').checked,hideAfter:$('#hide-after-hours').checked});
+    state.settings={...previous,availableHours:hours};if(!persist()){state.settings=previous;renderSettings();return false;}
+    expandedDay=null;$('#available-hours-status').textContent='Available hours saved. Daily visibility and sharing defaults updated.';return true;
+  }catch(error){$('#available-hours-status').textContent=error.message;return false;}
+}
+$('#save-available-hours').onclick=saveAvailableHours;
+for(const selector of ['#hide-before-hours','#hide-after-hours'])$(selector).onchange=()=>{if(!saveAvailableHours()){const hours=availableHours(state.settings);$('#hide-before-hours').checked=hours.hideBefore;$('#hide-after-hours').checked=hours.hideAfter;}};
 $('#notifications').onchange=async e=>{
   state.settings.notifications=e.target.checked;persist();
   if(e.target.checked&&globalThis.Notification?.permission==='default'){try{await Notification.requestPermission();}catch{toast('System notification permission is unavailable. In-app reminders are enabled.');}}

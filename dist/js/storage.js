@@ -1,3 +1,4 @@
+import {validAvailableHours} from './available-hours.js?v=available-hours-1';
 import {validAttachments} from './attachments.js?v=attachments-1';
 import {validNoteType,validTags,validTagSettings} from './note-types.js?v=multi-tags-1';
 import {validGuidedReports} from './activities-model.js?v=activities-2';
@@ -34,7 +35,7 @@ export function validState(value) {
   }
   const s={...DEFAULT_SETTINGS,...value.settings};
   if(!Number.isInteger(s.interval) || s.interval<1 || s.interval>1440) throw new Error('Invalid interval.');
-  return {version:1,days,settings:{interval:s.interval,clock:s.clock==='24'?'24':'12',notifications:s.notifications===true,sound:s.sound===true,...(s.tags!==undefined?{tags:validTagSettings(s.tags)}:{})}};
+  return {version:1,days,settings:{interval:s.interval,clock:s.clock==='24'?'24':'12',notifications:s.notifications===true,sound:s.sound===true,...(s.availableHours!==undefined?{availableHours:validAvailableHours(s.availableHours)}:{}),...(s.tags!==undefined?{tags:validTagSettings(s.tags)}:{})}};
 }
 export function load(storage=localStorage) {
   const raw=storage.getItem(KEY);

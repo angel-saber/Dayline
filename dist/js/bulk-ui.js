@@ -1,4 +1,4 @@
-import {openAvailability} from './availability-ui.js?v=availability-1';
+import {openAvailability} from './availability-ui.js?v=available-hours-1';
 import {selectionKey,selectedNotes,matchingNotes,scopeRange} from './bulk-model.js?v=multi-tags-1';
 import {categoryOptions,typeChips} from './note-types.js?v=multi-tags-1';
 import {openShareNotes} from './share-note.js?v=file-sharing-1';
