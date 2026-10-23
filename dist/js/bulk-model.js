@@ -1,4 +1,4 @@
-import {dayKey,parseDay,offsetDay} from './model.js';
+import {dayKey,parseDay,offsetDay} from './model.js?v=weekly-notes-1';
 import {validNoteType,validTags,noteTags,withTags,matchesNoteType} from './note-types.js?v=multi-tags-1';
 export const selectionKey=(date,id)=>JSON.stringify([date,id]);
 export function selectedNotes(days,keys){return Object.entries(days).flatMap(([date,list])=>list.filter(entry=>keys.has(selectionKey(date,entry.id))).map(entry=>({date,entry}))).sort((a,b)=>a.date.localeCompare(b.date)||a.entry.minute-b.entry.minute);}
@@ -9,7 +9,7 @@ export function scopeRange(anchor,scope){
  if(scope==='week'){const start=offsetDay(anchor,-parseDay(anchor).getDay());return {start,end:offsetDay(start,6)};}
  const start=anchor.slice(0,7)+'-01',next=parseDay(start);next.setMonth(next.getMonth()+1);return {start,end:offsetDay(dayKey(next),-1)};
 }
-export function matchingNotes(days,anchor,scope,categories){const {start,end}=scopeRange(anchor,scope);return Object.entries(days).filter(([date])=>date>=start&&date<=end).flatMap(([date,list])=>list.filter(e=>matchesNoteType(e,categories)).map(entry=>({date,entry})));}
+export function matchingNotes(days,anchor,scope,categories){const {start,end}=scopeRange(anchor,scope);return Object.entries(days).filter(([date])=>date>=start&&date<=end).flatMap(([date,list])=>list.filter(e=>!e.weekly&&matchesNoteType(e,categories)).map(entry=>({date,entry})));}
 export function bulkChange(days,keys,action,newId=()=>crypto.randomUUID()){
  const items=selectedNotes(days,keys);if(!items.length)throw new Error('Select at least one note.');
  if(!['delete','category','move'].includes(action.kind))throw new Error('Choose a bulk action.');

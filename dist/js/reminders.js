@@ -1,5 +1,5 @@
 import {reminderChime} from './reminder-chime.js?v=media-reminders-1';
-import { dayKey, dueEntries, bucket } from './model.js?v=exact-note-times-1';
+import { dayKey, dueEntries, bucket } from './model.js?v=weekly-notes-1';
 export class Reminders {
   constructor(getState, onDue, onError, onOpen=()=>{},onAudioState=()=>{}) {
     this.getState=getState; this.onDue=onDue; this.onError=onError; this.onOpen=onOpen;this.onAudioState=onAudioState;
@@ -70,7 +70,7 @@ export class Reminders {
 // Resolve again at click time: a note may have moved or intervals may have changed.
 export function resolveReminder(days,target,interval){
   for(const date of [target.date,...Object.keys(days).filter(date=>date!==target.date)]){
-    const entry=days[date]?.find(entry=>entry.id===target.id);
+    const entry=days[date]?.find(entry=>!entry.weekly&&entry.id===target.id);
     if(entry)return {date,id:entry.id,minute:bucket(entry.minute,interval),found:true};
   }
   return {...target,minute:bucket(target.minute,interval),found:false};

@@ -1,5 +1,5 @@
-import {dayKey,offsetDay,parseDay,slots,bucket} from './model.js';
-import {validDate} from './bulk-model.js?v=multi-tags-1';
+import {dayKey,offsetDay,parseDay,slots,bucket} from './model.js?v=weekly-notes-1';
+import {validDate} from './bulk-model.js?v=weekly-notes-1';
 export const availabilityKey=(date,minute)=>`${date}:${minute}`;
 export function emptyIntervals(days,{start,end,from=540,to=1020,weekdays=[1,2,3,4,5],interval=60},now=Date.now()){
   if(!validDate(start)||!validDate(end)||end<start)throw new Error('Choose a valid start and end date.');
@@ -9,7 +9,7 @@ export function emptyIntervals(days,{start,end,from=540,to=1020,weekdays=[1,2,3,
   for(let date=start;date<=end;date=offsetDay(date,1)){
     if(++count>31)throw new Error('Choose a range of up to 31 days.');
     if(!weekdays.includes(parseDay(date).getDay()))continue;
-    const occupied=new Set((days[date]||[]).map(note=>bucket(note.minute,interval)));
+    const occupied=new Set((days[date]||[]).filter(note=>!note.weekly).map(note=>bucket(note.minute,interval)));
     for(const minute of times){
       const finish=Math.min(1440,minute+interval);
       if(minute<from||finish>to||occupied.has(minute))continue;

@@ -2,10 +2,10 @@ import {validIndents} from './indents.js?v=indentation-1';
 import {validAvailableHours} from './available-hours.js?v=available-hours-1';
 import {validAttachments} from './attachments.js?v=attachments-1';
 import {validNoteType,validTags,validTagSettings} from './note-types.js?v=multi-tags-1';
-import {validGuidedReports} from './activities-model.js?v=activities-2';
+import {validGuidedReports} from './activities-model.js?v=weekly-notes-1';
 import {validBullets} from './bullets.js?v=bullets-1';
-import {validFocusReports} from './focus-model.js?v=focus-1';
-import { DEFAULT_SETTINGS } from './model.js';
+import {validFocusReports} from './focus-model.js?v=weekly-notes-1';
+import { DEFAULT_SETTINGS } from './model.js?v=weekly-notes-1';
 import {validFormat} from './format.js?v=hyperlinks-1';
 import {validTasks} from './tasks.js?v=line-tasks-1';
 const KEY='dayline.v1';
@@ -21,6 +21,7 @@ export function validState(value) {
       if(!e || typeof e.id!=='string' || seen.has(e.id) || typeof e.text!=='string' || !Number.isInteger(e.minute) || e.minute<0 || e.minute>=1440 || typeof e.done!=='boolean') throw new Error('Invalid entry in backup.');
       seen.add(e.id);
       const result={id:e.id,text:e.text,minute:e.minute,done:e.done};
+      if(e.weekly!==undefined){if(e.weekly!==true||new Date(key+'T12:00:00').getDay()!==0)throw new Error('Invalid weekly note.');result.weekly=true;}
       if(e.attachments!==undefined)result.attachments=validAttachments(e.attachments);
       if(e.noteType!==undefined)result.noteType=validNoteType(e.noteType);
       if(e.tags!==undefined)result.tags=validTags(e.tags);

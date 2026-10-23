@@ -44,7 +44,7 @@ export function dropEntry(entries,id,targetMinute,interval,targetId=null){
 }
 export function dueEntries(entries, key, interval, from, now) {
   return entries.filter(e=>{
-    if(e.done || !(e.title?.trim()||e.text).trim()) return false;
+    if(e.weekly || e.done || !(e.title?.trim()||e.text).trim()) return false;
     const date=parseDay(key); date.setHours(0,0,0,0); date.setMinutes(e.minute);
     return date.getTime()>from && date.getTime()<=now;
   });

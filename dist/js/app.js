@@ -1,30 +1,32 @@
+import {changeWeekly} from './weekly-model.js?v=weekly-notes-1';
 import {indentLevel} from './indents.js?v=indentation-1';
 import {availableHours,validAvailableHours,hourInput,inputMinute,dailySlotVisible} from './available-hours.js?v=available-hours-1';
 import {attachmentList,bindFileDrop,exportFiles,prepareFiles,storeFiles,MAX_BACKUP_SIZE} from './attachments.js?v=attachments-1';
 import {setupTagSettings} from './tag-settings.js?v=multi-tags-1';
-import {setupBulk} from './bulk-ui.js?v=indentation-1';
-import {bulkChange} from './bulk-model.js?v=multi-tags-1';
-import {openShareNote} from './share-note.js?v=indentation-1';
+import {setupBulk} from './bulk-ui.js?v=weekly-notes-1';
+import {bulkChange} from './bulk-model.js?v=weekly-notes-1';
+import {openShareNote} from './share-note.js?v=weekly-notes-1';
 import {tagBadges,categoryOptions,collectTagSettings} from './note-types.js?v=multi-tags-1';
-import {setupActivities,renderGuidedReports} from './activities.js?v=activities-2';
-import {attachGuidedPlan} from './activities-model.js?v=note-drop-1';
-import {setupWelcome} from './welcome.js?v=available-hours-1';
+import {setupActivities,renderGuidedReports} from './activities.js?v=weekly-notes-1';
+import {attachGuidedPlan} from './activities-model.js?v=weekly-notes-1';
+import {setupWelcome} from './welcome.js?v=weekly-notes-1';
 import {voice,personality,applyPersonality} from './personality.js?v=approved-mantras-1';
-import {setupFocus} from './focus.js?v=indentation-1';
+import {setupFocus} from './focus.js?v=weekly-notes-1';
 import {renderFocusReports} from './focus-reports.js?v=focus-1';
-import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=approved-mantras-1';
-import {setupMonthly} from './monthly.js?v=compact-month-1';
+import {findFocusNote,extendFocusNote,attachFocusReport} from './focus-model.js?v=weekly-notes-1';
+import {setupMonthly} from './monthly.js?v=weekly-notes-1';
 import {moveToDay,quickNote} from './month-model.js?v=note-drop-1';
-import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,dropEntry,timeLabel} from './model.js?v=note-drop-1';
-import {load,save,validState} from './storage.js?v=indentation-1';
+import {dayKey,parseDay,offsetDay,slots,grouped,moveEntry,dropEntry,timeLabel} from './model.js?v=weekly-notes-1';
+import {load,save,validState} from './storage.js?v=weekly-notes-1';
 import {attachGestures} from './gestures.js?v=bulk-notes-1';
-import {Reminders,resolveReminder} from './reminders.js?v=media-reminders-1';
-import {setupAccounts} from './accounts.js?v=indentation-1';
+import {Reminders,resolveReminder} from './reminders.js?v=weekly-notes-1';
+import {setupAccounts} from './accounts.js?v=weekly-notes-1';
 import {dailyQuote} from './quotes.js?v=intention-labels-3';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
-import {createNoteEditor} from './note-editor.js?v=indentation-1';
+import {createNoteEditor} from './note-editor.js?v=weekly-notes-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 const $=s=>document.querySelector(s);
+let monthly=null;
 let expandedDay=null;
 let state,readFailed=false,selected=dayKey(),view='daily',undo=null,editor=null,moveId=null,pendingImport=null,accounts=null,bulk=null,tagSettings=null;
 try{state=load();}catch{readFailed=true;state={version:1,days:{},settings:{interval:60,clock:'12',notifications:false,sound:false}};}
@@ -35,9 +37,9 @@ function persist(){
   try{const tags=collectTagSettings(state.settings.tags,state.days);if(state.settings.tags||tags.custom.length)state.settings.tags=tags;if(accounts)accounts.persist(state);else save(state);if(!accounts?.isSignedIn())$('#save-status').textContent='● Saved on this device';window.dispatchEvent(new Event('dayline:notes-changed'));return true;}
   catch{$('#save-status').textContent='● Not saved';toast('Your browser could not save this change. Download a backup in Settings to keep your notes.');return false;}
 }
-function entries(){return state.days[selected]||[];}
+function entries(){return (state.days[selected]||[]).filter(note=>!note.weekly);}
 function commit(next,message){
-  undo={date:selected,entries:structuredClone(entries())};state.days[selected]=next;persist();renderTimeline();toast(message,true);
+  undo={date:selected,entries:structuredClone(state.days[selected]||[])};state.days[selected]=[...(state.days[selected]||[]).filter(note=>note.weekly),...next];persist();renderTimeline();toast(message,true);
 }
 function complete(id){const e=entries().find(e=>e.id===id);if(e)commit(entries().map(e=>e.id===id?{...e,done:!e.done}:e),e.done?'Note reopened':'A little progress. Note completed.');}
 function remove(id){commit(entries().filter(e=>e.id!==id),'Note deleted');}
@@ -147,7 +149,7 @@ function openEditor(container,minute,entry,focusTime=false){
   if(entry)container.querySelector(`[data-id="${CSS.escape(entry.id)}"]`)?.replaceWith(noteEditor.element);else container.insertBefore(noteEditor.element,container.querySelector('.slot-add'));
   editor={sync:noteEditor.flush,destroy:noteEditor.destroy};noteEditor.focus();if(focusTime)noteEditor.element.querySelector('input[type=time]')?.focus();return noteEditor;
 }
-function flushEditor(){if(editor){editor.sync();editor.destroy();editor=null;}}
+function flushEditor(){if(editor){editor.sync();editor.destroy();editor=null;}monthly?.flushWeekly();}
 function openMove(id){
   flushEditor();renderTimeline();moveId=id;const e=entries().find(e=>e.id===id);if(!e)return;
   $('#move-time').replaceChildren(...slots(state.settings.interval).map(m=>{const o=node('option','',timeLabel(m,state.settings.clock));o.value=m;return o;}));
@@ -182,7 +184,9 @@ function switchView(next){
   if(next==='settings')renderSettings();else if(next==='monthly')monthly.show(selected);else if(next==='daily')renderTimeline();
   accounts?.refreshView();bulk?.updateBar();$('#date-footer').hidden=next!=='daily'||accounts?.isLoginVisible();window.scrollTo({top:0});
 }
-const monthly=setupMonthly({root:$('#monthly-view'),getState:()=>state,announce,selection:{get active(){return !!bulk?.active;},controls:()=>bulk?.controls(),checkbox:(date,entry)=>bulk?.checkbox(date,entry),isSelected:(date,id)=>!!bulk?.isSelected(date,id)},
+monthly=setupMonthly({applyWeekly(week,id,action){
+    try{const before=state.days,result=changeWeekly(before,week,id,action);state.days=result.days;if(!persist()){state.days=before;return false;}if(action.kind!=='update'){undo={days:result.previous};toast(action.kind==='schedule'?'Weekly note scheduled.':action.kind==='delete'?'Weekly note deleted.':'Weekly notes updated.',true);}else{undo=null;$('#undo').hidden=true;}return result;}catch(error){toast(error.message);return false;}
+  },root:$('#monthly-view'),getState:()=>state,announce,selection:{get active(){return !!bulk?.active;},controls:()=>bulk?.controls(),checkbox:(date,entry)=>bulk?.checkbox(date,entry),isSelected:(date,id)=>!!bulk?.isSelected(date,id)},
   onOpen(date,id){
     selected=date;const target=id?entries().find(entry=>entry.id===id):null;if(target&&!dailySlotVisible(Math.floor(target.minute/state.settings.interval)*state.settings.interval,state.settings.interval,availableHours(state.settings)))expandedDay=selected;switchView('daily');
     if(id){const entry=entries().find(e=>e.id===id);if(entry){const slot=$(`#timeline .slot[data-minute="${Math.floor(entry.minute/state.settings.interval)*state.settings.interval}"] .slot-notes`);openEditor(slot,entry.minute,entry);slot.scrollIntoView({block:'center'});}}

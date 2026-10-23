@@ -1,6 +1,7 @@
-import {dimensions,breathingFrame,compassTitle,compassDates} from './activities-model.js?v=activities-2';
+import {weekStart} from './weekly-model.js?v=weekly-notes-1';
+import {dimensions,breathingFrame,compassTitle,compassDates} from './activities-model.js?v=weekly-notes-1';
 import {activityCatalog,activityFields} from './activity-catalog.js?v=activities-2';
-import {dayKey} from './model.js';
+import {dayKey} from './model.js?v=weekly-notes-1';
 const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
 const button=(text,fn,cls='secondary')=>{const b=el('button',cls,text);b.type='button';b.onclick=fn;return b;};
 export function renderGuidedReports(container,reports=[]){
@@ -10,7 +11,7 @@ export function renderGuidedReports(container,reports=[]){
     const fields=report.activity?activityFields(report.activity):dimensions.map(d=>({key:d.key,label:d.label}));
     for(const f of fields)if(report.answers[f.key])details.append(el('h4','',f.label),el('p','',report.answers[f.key]));
     if(report.timer)details.append(el('p','field-hint',report.timer.completed?'Two-minute action timer completed.':`Action timer: ${Math.floor(report.timer.elapsedMs/1000)} seconds; continued without completing the timer.`));
-    if(report.schedule){const date=report.schedule.date;details.append(el('h4','','Weekly notes'),el('p','',`${compassTitle(date)}\n${compassDates(date).join(' · ')} at ${report.schedule.time}`));}
+    if(report.schedule){const date=report.schedule.date;details.append(el('h4','','Weekly notes'),el('p','',`${compassTitle(date)}\n${report.schedule.mode==='weekly'?'Weekly Notes: '+compassDates(date).map(weekStart).join(' · '):compassDates(date).join(' · ')+' at '+report.schedule.time}`));}
     container.append(details);
   }
 }
@@ -53,7 +54,7 @@ export function setupActivities({root,savePlan,onSaved}){
     },'primary');controls.append(button('Back',()=>{step=4;plan();}),save);dialog.append(status,controls);
   }
   function launchActivity(type){
-    if(!drafts.has(type))drafts.set(type,{answers:{},step:0,id:crypto.randomUUID(),schedule:false,time:'09:00',timer:null});
+    if(!drafts.has(type))drafts.set(type,{answers:{},step:0,id:crypto.randomUUID(),schedule:false,timer:null});
     const draft=drafts.get(type),activity=activityCatalog[type];
     function fieldControls(field,container){
       const label=el('label','planning-question',field.label),input=el('textarea','planning-answer');input.id='guided-'+field.key.replaceAll('.','-');input.rows=field.key.endsWith('.project')?2:3;input.maxLength=2000;input.value=draft.answers[field.key]||'';label.htmlFor=input.id;input.oninput=()=>{draft.answers[field.key]=input.value;};container.append(label);if(field.hint)container.append(el('p','field-hint',field.hint));container.append(input);return input;
@@ -84,18 +85,16 @@ export function setupActivities({root,savePlan,onSaved}){
       shell(activity.title+' · Review');for(const f of activityFields(type))if(draft.answers[f.key])dialog.append(el('h3','',f.label),el('p','activity-answer-preview',draft.answers[f.key]));
       const status=el('p','field-hint','Save an expandable guided activity report to today’s current interval.');status.setAttribute('role','status');
       if(type==='compass'){
-        const option=el('label','compass-populate'),check=el('input');check.type='checkbox';check.checked=draft.schedule;check.onchange=()=>{draft.schedule=check.checked;time.required=check.checked;};option.append(check,document.createTextNode(' Add my four weekly notes to the planner'));
-        const label=el('label','','Time for each weekly note'),time=el('input');time.type='time';time.id='compass-time';time.value=draft.time;time.required=draft.schedule;label.htmlFor=time.id;time.oninput=()=>{draft.time=time.value;};
-        const preview=el('p','field-hint');const today=dayKey();preview.textContent=`${compassTitle(today)}. Four notes: ${compassDates(today).join(', ')}. Each note includes that week’s five tasks. Existing notes are kept.`;
-        dialog.append(option,label,time,preview);
+        const option=el('label','compass-populate'),check=el('input');check.type='checkbox';check.checked=draft.schedule;check.onchange=()=>{draft.schedule=check.checked;};option.append(check,document.createTextNode(' Add four undated Weekly Notes to Monthly'));
+        const preview=el('p','field-hint');const today=dayKey();preview.textContent=`${compassTitle(today)}. Weeks beginning ${compassDates(today).map(weekStart).join(', ')}. Each Weekly Note includes that week’s five checkbox tasks, with no assigned day, time, or reminder. Schedule individual notes later when you’re ready. Existing notes are kept.`;
+        dialog.append(option,preview);
       }
       dialog.append(status);const nav=el('div','inline');nav.append(button('Back',()=>{draft.step=activity.steps.length-1;screen();}),button('Finish and save report',()=>{
-        if(type==='compass'&&draft.schedule&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(draft.time)){status.textContent='Choose a time for the weekly notes.';return;}
         const report={id:draft.id,activity:type,completedAt:Date.now(),answers:{...draft.answers}};
-        if(type==='compass'&&draft.schedule)report.schedule={time:draft.time};
+        if(type==='compass'&&draft.schedule)report.schedule={mode:'weekly'};
         if(type==='two-minute'){const elapsed=draft.timer?.elapsed||0;report.timer={elapsedMs:Math.min(120000,elapsed),completed:elapsed>=120000};}
         const result=savePlan(report);if(!result){status.textContent='Could not save. Your draft is still here. Please try again.';return;}
-        drafts.delete(type);shell('Activity recorded');dialog.append(el('p','',report.schedule?'Your report and all four weekly notes are saved.':'Your guided activity report is saved in the current interval.'),button('View my report',()=>{dialog.close();onSaved(result);},'primary'),button('Done',()=>dialog.close()));
+        drafts.delete(type);shell('Activity recorded');dialog.append(el('p','',report.schedule?'Your report and all four Weekly Notes are saved.':'Your guided activity report is saved in the current interval.'),button('View my report',()=>{dialog.close();onSaved(result);},'primary'),button('Done',()=>dialog.close()));
       },'primary'));dialog.append(nav);open();
     }
     screen();

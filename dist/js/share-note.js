@@ -1,12 +1,14 @@
+import {weekStart} from './weekly-model.js?v=weekly-notes-1';
+import {offsetDay} from './model.js?v=weekly-notes-1';
 import {indentLevel} from './indents.js?v=indentation-1';
 import {shareAttachments,prepareShareFiles,supportsFileShare} from './share-files.js?v=file-sharing-1';
 import {attachmentList} from './attachments.js?v=attachments-1';
-import {parseDay,timeLabel} from './model.js';
+import {parseDay,timeLabel} from './model.js?v=weekly-notes-1';
 import {noteTasks} from './tasks.js?v=line-tasks-1';
 import {NOTE_TYPES,categoryLabel,noteTags} from './note-types.js?v=multi-tags-1';
 import {safeLink} from './links.js?v=hyperlinks-1';
-import {durationLabel} from './focus-model.js?v=focus-1';
-import {dimensions,compassTitle,compassDates} from './activities-model.js?v=activities-2';
+import {durationLabel} from './focus-model.js?v=weekly-notes-1';
+import {dimensions,compassTitle,compassDates} from './activities-model.js?v=weekly-notes-1';
 import {activityCatalog,activityFields} from './activity-catalog.js?v=activities-2';
 export const SHARE_DEFAULTS={dateTime:true,type:true,focusReports:false,guidedReports:false,attachments:false};
 function linkedLine(text,start,format=[]){
@@ -22,7 +24,7 @@ function linkedLine(text,start,format=[]){
 }
 export function shareNoteText(entry,date,options={},clock='12'){
   const settings={...SHARE_DEFAULTS,...options},parts=[entry.title?.trim()||'Dayline note'];
-  if(settings.dateTime)parts.push(`${parseDay(date).toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'})} · ${timeLabel(entry.minute,clock)}`);
+  if(settings.dateTime)parts.push(entry.weekly?`Weekly note · ${parseDay(date).toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'})} – ${parseDay(offsetDay(date,6)).toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'})}`:`${parseDay(date).toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'})} · ${timeLabel(entry.minute,clock)}`);
   if(settings.type&&noteTags(entry).length)parts.push(noteTags(entry).map(categoryLabel).join(' · '));
   const tasks=noteTasks(entry);let start=0;
   const body=entry.text.split('\n').map(line=>{const task=tasks.find(t=>t.start===start),bullet=entry.bullets?.some(b=>b.start===start),text=linkedLine(line,start,entry.format),indent='  '.repeat(indentLevel(entry.indents,start));start+=line.length+1;return `${indent}${task?(task.done?'☑ ':'☐ '):bullet?'• ':''}${text}`;}).join('\n');
@@ -36,7 +38,7 @@ export function shareNoteText(entry,date,options={},clock='12'){
     const title=report.activity?activityCatalog[report.activity].title:'Guided Planning';parts.push('',`Guided activity · ${title} · ${new Date(report.completedAt).toLocaleString()}`);
     for(const field of report.activity?activityFields(report.activity):dimensions.map(d=>({key:d.key,label:d.label})))if(report.answers[field.key])parts.push(`${field.label}: ${report.answers[field.key]}`);
     if(report.timer)parts.push(report.timer.completed?'Two-minute timer completed.':`Action timer: ${Math.floor(report.timer.elapsedMs/1000)} seconds.`);
-    if(report.schedule)parts.push(`${compassTitle(report.schedule.date)}\nWeekly notes: ${compassDates(report.schedule.date).join(', ')} at ${report.schedule.time}`);
+    if(report.schedule)parts.push(`${compassTitle(report.schedule.date)}\nWeekly notes: ${(report.schedule.mode==='weekly'?compassDates(report.schedule.date).map(weekStart):compassDates(report.schedule.date)).join(', ')}${report.schedule.mode==='weekly'?' · undated Weekly Notes':' at '+report.schedule.time}`);
   }
   parts.push('','Planned with Dayline');return parts.join('\n');
 }
@@ -76,7 +78,7 @@ function openShareItems(items,clock,multiple){
   const email=node('a','secondary','Email'),titleInput=node('input');titleInput.type='text';titleInput.maxLength=200;titleInput.value='Dayline plan';titleInput.setAttribute('aria-label','Shared plan heading');
   const shareTitle=()=>multiple?(titleInput.value.trim()||'Dayline plan'):(entry.title?.trim()||'Dayline note');
   function refresh(){preview.value=multiple?shareNotesText(items,options,clock,shareTitle()):shareNoteText(entry,date,options,clock);email.href=emailNoteUrl(shareTitle(),preview.value);email.textContent=options.attachments?'Email text only':'Email';status.textContent='';refreshFiles();}
-  for(const [key,label,available] of [['dateTime','Date and time',true],['type','Tags',items.some(item=>noteTags(item.entry).length>0)],['focusReports','Focus reports, including reflections and interruption logs',items.some(item=>!!item.entry.focusReports?.length)],['guidedReports','Guided activity reports',items.some(item=>!!item.entry.guidedActivities?.length)],['attachments','Include attachments',fileItems.length>0]]){
+  for(const [key,label,available] of [['dateTime',entry.weekly?'Week':'Date and time',true],['type','Tags',items.some(item=>noteTags(item.entry).length>0)],['focusReports','Focus reports, including reflections and interruption logs',items.some(item=>!!item.entry.focusReports?.length)],['guidedReports','Guided activity reports',items.some(item=>!!item.entry.guidedActivities?.length)],['attachments','Include attachments',fileItems.length>0]]){
     const wrapper=node('label',''),check=node('input');check.type='checkbox';check.checked=available&&options[key];check.disabled=!available;check.addEventListener('change',()=>{options[key]=check.checked;if(key==='attachments')loadFiles();refresh();});wrapper.append(check,document.createTextNode(label));choices.append(wrapper);
   }
   const actions=node('div','inline');const action=(text,fn,cls='secondary')=>{const button=node('button',cls,text);button.type='button';button.onclick=fn;return button;};

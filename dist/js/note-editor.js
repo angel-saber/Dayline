@@ -17,7 +17,7 @@ const makeButton=(text,label,action)=>{
 
 // The browser edits one surface. Only plain text, validated style ranges and line
 // tasks enter storage; pasted HTML is never installed in the document.
-export function createNoteEditor({entry,categories={},minute=0,label,onChange,onDone}){
+export function createNoteEditor({entry,categories={},minute=0,label,onChange,onDone,undated=false}){
   let state={indents:structuredClone(entry?.indents||[]),attachments:structuredClone(entry?.attachments||[]),tags:noteTags(entry||{}),minute:entry?.minute??minute,noteType:entry?.noteType||'',title:entry?.title||'',text:entry?.text||'',format:structuredClone(entry?.format||[]),tasks:noteTasks(entry),bullets:structuredClone(entry?.bullets||[])};
   let selection={start:state.text.length,end:state.text.length},typingStyle=null,composing=false,destroyed=false,pendingClose=false,pointerStartedInside=false;
   const past=[],future=[];
@@ -29,7 +29,7 @@ export function createNoteEditor({entry,categories={},minute=0,label,onChange,on
   const titleLabel=element('label','note-title-label','Note title');
   const titleInput=element('input','note-title-input');titleInput.type='text';titleInput.maxLength=200;titleInput.placeholder='Title (optional)';titleInput.value=state.title;
   titleInput.setAttribute('aria-label','Note title');titleLabel.append(titleInput);
-  const timeLabel=element('label','note-time-label','Note time'),timeInput=element('input');timeInput.type='time';timeInput.step='60';timeInput.required=true;timeInput.setAttribute('aria-label','Note time');
+  const timeLabel=element('label','note-time-label','Note time'),timeInput=element('input');timeInput.type='time';timeInput.step='60';timeInput.required=!undated;timeLabel.hidden=undated;timeInput.setAttribute('aria-label','Note time');
   timeInput.value=`${String(Math.floor(state.minute/60)).padStart(2,'0')}:${String(state.minute%60).padStart(2,'0')}`;timeLabel.append(timeInput);
   timeInput.addEventListener('change',()=>{if(!timeInput.reportValidity())return;const [hour,minute]=timeInput.value.split(':').map(Number);state={...state,minute:hour*60+minute};publish();});
   const noteType=typeChips(state.tags,'Tags (optional)',value=>{state={...state,tags:value,noteType:value[0]||''};publish();},categories);
