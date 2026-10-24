@@ -1544,3 +1544,85 @@ main {
   gap: 8px;
   flex-wrap: wrap;
 }
+
+.attachment-preview-window {
+  width: calc(100% - 32px);
+  max-width: 1000px;
+  max-height: 92dvh;
+  padding: 20px;
+  overflow: auto;
+}
+.attachment-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.attachment-preview-header h2 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  font-size: 20px;
+}
+.attachment-preview-header button {
+  flex-shrink: 0;
+}
+.attachment-preview-content {
+  min-height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: auto;
+}
+.attachment-preview-content img {
+  display: block;
+  max-width: 100%;
+  max-height: 65dvh;
+  object-fit: contain;
+}
+.attachment-preview-content iframe {
+  display: block;
+  width: 100%;
+  height: 65dvh;
+  border: 0;
+  background: white;
+}
+.attachment-preview-content video {
+  display: block;
+  max-width: 100%;
+  max-height: 65dvh;
+}
+.attachment-preview-content audio {
+  width: min(100%, 600px);
+  margin: 24px;
+}
+.attachment-preview-content pre {
+  align-self: stretch;
+  flex: 1;
+  margin: 0;
+  padding: 18px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 65dvh;
+  overflow: auto;
+  text-align: left;
+  font: 13px/1.6 monospace;
+}
+.attachment-list .attachment-preview-link {
+  font-weight: 500;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .attachment-preview-window {
+    padding: 14px;
+  }
+  .attachment-preview-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+}

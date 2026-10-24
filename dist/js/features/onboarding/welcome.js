@@ -1,4 +1,4 @@
-import { PERSONALITIES, getPersonality } from '../../personalities/index.js?v=5684b4e7c19b';
+import { PERSONALITIES, getPersonality } from '../../personalities/index.js?v=280f4d8eaa90';
 // First-visit setup stays separate from planner data and personality presentation.
 const KEY = 'dayline.welcome.v1';
 export function needsWelcome(storage, entryComplete = false, loginVisible = true) {
@@ -25,7 +25,7 @@ export function setupWelcome(api) {
       <li><h3>Protect a little focus</h3><p>Commit to a mantra, work with all notes in your current interval, edit them directly, and capture interruptions. Minimize your session, follow the next interval, or extend unfinished work. Finish with an optional reflection and a saved session report.</p></li>
       <li><h3>Set the atmosphere</h3><p>Choose Zen, Builder, Founder, Astronaut, or Gamer for a different look, voice, and default soundtrack, with a fresh quote each day. Choose Full, Subtle, or Off visual effects in Settings; reduced-motion preferences are respected. Launch Focus Audio independently, with or without a Focus session. Minimize the player while listening and pause it separately when ready. Switch between Still Temple, Cyberpunk Mission, Symphonic Horizon, Orbital Drift, and Ascension Protocol; mix warm ambience, headphone binaural tones, and an independent metronome.</p></li>
       <li><h3>Find a starting point</h3><p>Open More for Guided Breathing, Guided Planning, Untangle My Thoughts, The Two-Minute Start, and Monthly Compass. Calm or energize, clarify your next action, or plan projects across work, health, learning, relationships, and spirituality.</p></li>
-      <li><h3>Keep and share what matters</h3><p>Upload or drop files onto notes. Oversized PDFs and JPEG/PNG/WebP images can try optional compression, with a smaller copy to review. Share one note or a collection, preview included content, and organize by date or category. Reports and attachments are off by default; recipients need no Dayline account.</p></li>
+      <li><h3>Keep and share what matters</h3><p>Upload or drop files onto notes. Click a filename to preview images, PDFs, text, or browser-supported audio/video without downloading; Download stays separate, with a fallback for unsupported formats. Oversized PDFs and JPEG/PNG/WebP images can try optional compression, with a smaller copy to review. Share one note or a collection, preview included content, and organize by date or category. Reports and attachments are off by default; recipients need no Dayline account.</p></li>
     </ul>
     <details class="welcome-more"><summary>A little more about guided activities and sharing</summary>
       <p>Guided Planning records one activity per life dimension for today. Untangle My Thoughts sorts what you can act on, ask about, or leave for later. The Two-Minute Start helps you try one tiny action.</p>

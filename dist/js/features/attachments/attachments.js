@@ -1,3 +1,4 @@
+import { openAttachmentPreview, downloadAttachmentBlob } from './preview.js?v=280f4d8eaa90';
 // Files stay in this browser; notes contain only small, portable references.
 export const MAX_FILE_SIZE = 10 * 1024 * 1024,
   MAX_ATTACHMENTS = 10,
@@ -85,8 +86,16 @@ export function attachmentList(items = [], remove) {
     const row = document.createElement('li'),
       download = document.createElement('button');
     download.type = 'button';
-    download.textContent = `↓ ${item.name} · ${item.size < 1024 ? item.size + ' B' : item.size < 1048576 ? Math.ceil(item.size / 1024) + ' KB' : (item.size / 1048576).toFixed(1) + ' MB'}`;
+    const preview = document.createElement('button');
+    preview.type = 'button';
+    preview.className = 'attachment-preview-link';
+    preview.textContent = `${item.name} · ${item.size < 1024 ? item.size + ' B' : item.size < 1048576 ? Math.ceil(item.size / 1024) + ' KB' : (item.size / 1048576).toFixed(1) + ' MB'}`;
+    preview.title = 'View attachment';
+    preview.setAttribute('aria-label', `View attachment ${item.name}`);
+    preview.addEventListener('click', () => openAttachmentPreview(item, () => readFile(item.id)));
+    download.textContent = '↓ Download';
     download.title = 'Download attachment';
+    download.setAttribute('aria-label', `Download attachment ${item.name}`);
     download.addEventListener('click', async () => {
       try {
         const blob = await readFile(item.id);
@@ -94,18 +103,12 @@ export function attachmentList(items = [], remove) {
           throw new Error(
             'This file is not stored on this device. Restore a backup containing the file.',
           );
-        // Always download; never insert uploaded HTML or SVG into Dayline.
-        const url = URL.createObjectURL(new Blob([blob], { type: 'application/octet-stream' })),
-          a = document.createElement('a');
-        a.href = url;
-        a.download = item.name;
-        a.click();
-        setTimeout(() => URL.revokeObjectURL(url), 60000);
+        downloadAttachmentBlob(item, blob);
       } catch (error) {
         message.textContent = error.message;
       }
     });
-    row.append(download);
+    row.append(preview, download);
     if (remove) {
       const button = document.createElement('button');
       button.type = 'button';

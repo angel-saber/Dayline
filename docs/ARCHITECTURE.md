@@ -194,3 +194,20 @@ The Focus controller owns no audio engine, mixer settings, playback stops or
 volume controls. Its only audio integration is an `openAudio` callback. Existing
 `focus/audio.js` and `focus/music.js` paths re-export the new feature's engine and
 dispatch for compatibility; they do not create extra players or duplicate scores.
+
+## Local attachment previews
+
+`features/attachments/preview.js` owns the shared dialog used by attachment lists
+in editors, Daily, Monthly/Weekly Notes and Focus. Filename buttons open previews;
+Download remains a separate explicit action. Raster images and PDFs are identified
+by their byte signatures and retyped before making local blob URLs. PDFs use the
+browser's native viewer, with a download fallback when unavailable. Audio/video
+use native controls, do not autoplay, and stop on close. Text is bounded to the
+first 256 KB and inserted with `textContent`; HTML/SVG source is never executed or
+embedded. Office and other unsupported formats keep their download option.
+
+The viewer never calls an external document service. Closing or replacing a
+preview revokes its URL, releases media and restores focus. Reads that finish
+after dismissal are ignored. Missing device-local bytes show a recovery message
+without changing the note, its reference, stored files, or account data. Existing
+backup and sharing formats are unchanged.
