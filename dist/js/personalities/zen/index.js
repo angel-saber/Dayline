@@ -1,5 +1,8 @@
+import { renderScore } from './music.js?v=5010270c32fe';
 // Authored personality data only; never rewrite user notes or saved commitments.
 export default {
+  renderScore,
+  effects: null,
   id: 'zen',
   name: 'Zen',
   description: 'Gentle and encouraging.',

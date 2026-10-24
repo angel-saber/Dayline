@@ -1,13 +1,8 @@
-import { node } from '../../shared/dom.js';
-import { openAvailability } from '../sharing/availability-ui.js?v=new-personalities-1';
-import {
-  selectionKey,
-  selectedNotes,
-  matchingNotes,
-  scopeRange,
-} from './model.js?v=new-personalities-1';
-import { categoryOptions, typeChips } from '../notes/note-types.js?v=new-personalities-1';
-import { openShareNotes } from '../sharing/share-note.js?v=new-personalities-1';
+import { node } from '../../shared/dom.js?v=5010270c32fe';
+import { openAvailability } from '../sharing/availability-ui.js?v=5010270c32fe';
+import { selectionKey, selectedNotes, matchingNotes, scopeRange } from './model.js?v=5010270c32fe';
+import { categoryOptions, typeChips } from '../notes/note-types.js?v=5010270c32fe';
+import { openShareNotes } from '../sharing/share-note.js?v=5010270c32fe';
 
 const button = (text, fn, cls = 'secondary') => {
   const e = node('button', cls, text);

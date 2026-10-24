@@ -1,24 +1,20 @@
-import { node } from '../../shared/dom.js';
-import { weekStart } from '../monthly/weekly-model.js?v=new-personalities-1';
-import { offsetDay } from '../../shared/schedule.js?v=new-personalities-1';
-import { indentLevel } from '../notes/formatting/indents.js?v=new-personalities-1';
+import { node } from '../../shared/dom.js?v=5010270c32fe';
+import { weekStart } from '../monthly/weekly-model.js?v=5010270c32fe';
+import { offsetDay } from '../../shared/schedule.js?v=5010270c32fe';
+import { indentLevel } from '../notes/formatting/indents.js?v=5010270c32fe';
 import {
   shareAttachments,
   prepareShareFiles,
   supportsFileShare,
-} from './share-files.js?v=new-personalities-1';
-import { attachmentList } from '../attachments/attachments.js?v=new-personalities-1';
-import { parseDay, timeLabel } from '../../shared/schedule.js?v=new-personalities-1';
-import { noteTasks } from '../notes/formatting/tasks.js?v=new-personalities-1';
-import { NOTE_TYPES, categoryLabel, noteTags } from '../notes/note-types.js?v=new-personalities-1';
-import { safeLink } from '../notes/formatting/links.js?v=new-personalities-1';
-import { durationLabel } from '../focus/model.js?v=new-personalities-1';
-import {
-  dimensions,
-  compassTitle,
-  compassDates,
-} from '../activities/model.js?v=new-personalities-1';
-import { activityCatalog, activityFields } from '../activities/catalog.js?v=new-personalities-1';
+} from './share-files.js?v=5010270c32fe';
+import { attachmentList } from '../attachments/attachments.js?v=5010270c32fe';
+import { parseDay, timeLabel } from '../../shared/schedule.js?v=5010270c32fe';
+import { noteTasks } from '../notes/formatting/tasks.js?v=5010270c32fe';
+import { NOTE_TYPES, categoryLabel, noteTags } from '../notes/note-types.js?v=5010270c32fe';
+import { safeLink } from '../notes/formatting/links.js?v=5010270c32fe';
+import { durationLabel } from '../focus/model.js?v=5010270c32fe';
+import { dimensions, compassTitle, compassDates } from '../activities/model.js?v=5010270c32fe';
+import { activityCatalog, activityFields } from '../activities/catalog.js?v=5010270c32fe';
 export const SHARE_DEFAULTS = {
   dateTime: true,
   type: true,
