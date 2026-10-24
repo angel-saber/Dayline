@@ -20,6 +20,8 @@ The code-based adapter remains available for future separately configured enviro
 
 The write function intentionally uses `SECURITY DEFINER` so direct table writes remain unavailable. It has an empty search path, derives identity on the server, accepts no owner argument, and revokes execution from PUBLIC/anon. The Security Advisor reports its authenticated execution as a warning; this is the intended authenticated API, not permission for anonymous callers.
 
+`supabase/tests/preferences.sql` also checks settings ownership, stale revisions, and anonymous denial. Both scripts roll back their test users and settings.
+
 `supabase/tests/access.sql` exercises owner isolation, anonymous denial, direct-write denial, and stale-revision rejection. Run the complete transaction in a disposable development database; fixtures roll back. Never leave fixture users or notes in the live project.
 
 ## Public configuration and deployment
@@ -32,7 +34,7 @@ Run `npm run check` and `npm test`; then deploy `dist` through the GitHub Pages 
 
 ## Notes, backups, and acceptance checks
 
-Account notes include Daily notes, Weekly Notes, formatting, categories, and reports. Settings stay device-specific. Attachment metadata accompanies notes, but file binaries remain local to the browser; use a full backup to carry those files between devices.
+Account notes include Daily notes, Weekly Notes, formatting, categories, and reports. Account preferences now sync separately in `public.dayline_preferences` through a revision-checked, security-invoker RPC with owner-only RLS. On the desktop with the desired setup, choose Settings → **Use this device’s settings on all devices** once to initialize preferences. Thereafter intervals, clock format, available hours, hidden hours, tag settings, personality, and reminder switches sync automatically. Unrelated simultaneous changes merge by setting; intentional changes to the same setting use the later successful change. Unsynced preferences are cached locally. Notification permission, audio activation, file binaries, and an active Focus session remain device-specific. Attachment metadata accompanies notes, but file binaries remain local to the browser; use a full backup to carry those files between devices.
 
 Guest notes are never imported automatically. After signing in, use Settings → **Add this device's notes to my account** deliberately; the original guest notes are retained. Back up existing notes before first use. The sync engine keeps concurrent versions instead of silently overwriting conflicts.
 

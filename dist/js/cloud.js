@@ -182,6 +182,15 @@ export class CloudClient {
     });
   }
 
+  async loadPreferences(){
+    const rows=await this.signedRequest('/rest/v1/dayline_preferences?select=preferences,revision');
+    if(!Array.isArray(rows)||rows.length>1)throw new Error('The settings service returned an invalid response.');
+    return rows[0]||null;
+  }
+  savePreferences(preferences,revision){
+    return this.signedRequest('/rest/v1/rpc/save_dayline_preferences',{method:'POST',body:{p_preferences:preferences,p_expected_revision:revision}});
+  }
+
   async signOut() {
     const session = this.readSession();
     // Revoke this device's refresh token; other signed-in devices stay signed in.

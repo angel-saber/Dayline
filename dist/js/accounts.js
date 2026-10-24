@@ -1,16 +1,19 @@
 import { cloudConfig } from './config.js?v=private-accounts-2';
-import { CloudClient, takeSignInReturn } from './cloud.js?v=private-accounts-2';
+import { CloudClient, takeSignInReturn } from './cloud.js?v=settings-sync-1';
 import { SyncEngine, mergeGuestDays, clearSyncedDrafts } from './sync.js?v=weekly-notes-1';
 import { load, save, validState } from './storage.js?v=embodied-voices-1';
 import {deviceNotes,countDeviceNotes,preserveDeviceNotes} from './device-notes.js?v=device-recovery-1';
+import {PreferencesSync,sharedPreferences} from './preferences-sync.js?v=settings-sync-1';
 
 const $ = selector => document.querySelector(selector);
 
 export function setupAccounts({ getState, setState, flushEditor, toast, onStatus, downloadDeviceBackup }) {
   const linkLogin = cloudConfig.authMethod === 'link';
   const signInReturn = takeSignInReturn(window.location, window.history);
-  let cloud, engine, user = null, busy = false, resendAt = 0, viewIsLogin = false;
+  let cloud, engine, preferencesSync, user = null, busy = false, resendAt = 0, viewIsLogin = false;
+  const savedLayout=()=>localStorage.getItem('dayline.appearance.v1')||'zen';
   let generation = 0;
+  let applyingPreferences=false;
   let tabId;
   try {
     tabId = sessionStorage.getItem('dayline.tab');
@@ -31,11 +34,12 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
 
   function accountView() {
     $('#account-email').textContent = user?.email || 'Using this device';
-    $('#account-explanation').textContent = user ? 'Your notes sync with this account. Time intervals and reminder preferences stay on each device.' : cloud?.config ? 'Sign in to keep your notes with you across devices.' : 'Use Dayline without an account. Account access is not available yet.';
+    $('#account-explanation').textContent = user ? 'Your notes and settings sync with this account. Notification permission and audio activation must be enabled separately on each device.' : cloud?.config ? 'Sign in to keep your notes and settings with you across devices.' : 'Use Dayline without an account. Account access is not available yet.';
     $('#sign-in-button').hidden = !!user;
     $('#reopen-welcome').hidden = viewIsLogin;
     $('#sign-out-button').hidden = !user;
     $('#sync-now').hidden = !user;
+    $('#sync-settings-from-device').hidden=!user;
     let hasGuest = false,count=0,deviceError=false;
     try {
       const saved=deviceNotes();hasGuest=countDeviceNotes(saved)>0;
@@ -52,7 +56,7 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
     flushEditor();
     if(!user){try{preserveDeviceNotes();}catch{toast('A separate device checkpoint could not be created. Existing browser data was left untouched.');}}
     const current = ++generation;
-    engine?.stop(); engine = null; user = session.user;
+    engine?.stop();preferencesSync?.stop();preferencesSync=null; engine = null; user = session.user;
     const preferences = { ...getState().settings };
     try {
       engine = new SyncEngine({ cloud, userId: user.id, cacheId: tabId,
@@ -69,9 +73,24 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
       });
       // Read only this account's draft cache; never auto-import guest notes.
       setState({ version: 1, days: engine.days, settings: preferences }, { readFailed: false });
+      try{preferencesSync=new PreferencesSync({cloud,userId:user.id,cacheId:tabId,initial:sharedPreferences(preferences,savedLayout()),
+        onValues(values){
+          if(current!==generation)return;
+          const {layout,...settings}=values;
+          localStorage.setItem('dayline.preferences',JSON.stringify(settings));
+          if(JSON.stringify(getState().settings)!==JSON.stringify(settings)){
+            applyingPreferences=true;try{flushEditor();setState({...getState(),settings});}finally{applyingPreferences=false;}
+          }
+          if(savedLayout()!==layout)window.dispatchEvent(new CustomEvent('dayline:apply-account-layout',{detail:layout}));
+        },
+        onStatus(status,error){
+          if(current!==generation)return;
+          $('#preferences-sync-status').textContent=error?`Settings not synced: ${error.message}`:({synced:'Settings synced across devices.',pending:'Settings saved here · waiting to sync.',unconfigured:'To start, use this device’s settings below on the device with your preferred setup.'})[status]||'Syncing settings…';
+        },
+      });preferencesSync.start();}catch(error){preferencesSync=null;$('#preferences-sync-status').textContent=`Settings not synced: ${error.message}`;}
       engine.start(); accountView(); showLogin(false);
       window.dispatchEvent(new Event('dayline:account'));
-      await engine.sync();
+      await Promise.all([engine.sync(),preferencesSync?.sync()]);
       if (current !== generation) return;
     } catch (error) {
       if (current === generation) { toast(error.message); onStatus('error', error); }
@@ -85,6 +104,7 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
     // Keep preferences apart from guest data, including a corrupt guest backup.
     localStorage.setItem('dayline.preferences', JSON.stringify(state.settings));
     engine.stage(state.days);
+    if(!applyingPreferences)preferencesSync?.stage(sharedPreferences(state.settings,savedLayout()));
   }
 
   async function withBusy(action) {
@@ -135,7 +155,15 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
   };
   $('#continue-local').onclick = () => { try{localStorage.setItem('dayline.guest.v1','yes');}catch{} showLogin(false); accountView(); };
   $('#sign-in-button').onclick = () => showLogin(true);
-  $('#sync-now').onclick = () => { flushEditor(); engine?.sync().catch(error => toast(error.message)); };
+  $('#sync-now').onclick = () => { flushEditor();Promise.all([engine?.sync(),preferencesSync?.sync()]).catch(error=>toast(error.message)); };
+  $('#sync-settings-from-device').onclick=async()=>{
+    if(!preferencesSync)return;
+    try{flushEditor();preferencesSync.stage(sharedPreferences(getState().settings,savedLayout()),true);await preferencesSync.sync();toast('These settings are now shared with your other signed-in devices.');}catch(error){toast(error.message);}
+  };
+  window.addEventListener('dayline:layout-saved',()=>{
+    if(!preferencesSync)return;
+    try{preferencesSync.stage(sharedPreferences(getState().settings,savedLayout()));}catch(error){toast(error.message);}
+  });
   $('#import-device-notes').onclick = () => $('#migration-dialog').showModal();
   $('#review-device-notes').onclick = () => $('#migration-dialog').showModal();
   $('#export-device-notes').onclick = async () => {
@@ -156,8 +184,8 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
     if (busy) return;
     busy = true; $('#sign-out-button').disabled = true;
     try {
-      flushEditor(); await engine?.sync();
-      if (engine?.pending) throw new Error('Wait for your notes to finish syncing before signing out.');
+      flushEditor(); await Promise.all([engine?.sync(),preferencesSync?.sync()]);
+      if (engine?.pending||preferencesSync?.pending) throw new Error('Wait for your notes and settings to finish syncing before signing out.');
       await cloud.signOut();
       leaveAccount(); toast('Signed out. Your account notes are kept in the cloud.');
     } catch (error) { toast(error.message); }
@@ -165,7 +193,7 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
   };
 
   function leaveAccount() {
-    ++generation; engine?.stop();
+    ++generation; engine?.stop();preferencesSync?.stop();preferencesSync=null;
     if (engine) clearSyncedDrafts(localStorage, engine.userPrefix);
     engine = null; user = null;
     try { setState(load(), { readFailed: false }); } catch { setState({ version: 1, days: {}, settings: getState().settings }, { readFailed: true }); }
@@ -175,6 +203,8 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
 
   window.addEventListener('online', () => engine?.sync().catch(() => {}));
   window.addEventListener('focus', () => engine?.sync().catch(() => {}));
+  window.addEventListener('online',()=>preferencesSync?.sync().catch(()=>{}));
+  window.addEventListener('focus',()=>preferencesSync?.sync().catch(()=>{}));
   window.addEventListener('storage', event => {
     if (event.key === cloud?.sessionKey) {
       try {
@@ -185,10 +215,10 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
     }
   });
   window.addEventListener('beforeunload', event => {
-    if (engine?.pending) { event.preventDefault(); event.returnValue = ''; }
+    if (engine?.pending||preferencesSync?.pending) { event.preventDefault(); event.returnValue = ''; }
   });
-  window.addEventListener('pagehide', () => engine?.stop());
-  window.addEventListener('pageshow', event => { if (event.persisted && engine) { engine.stopped = false; engine.start(); engine.sync().catch(() => {}); } });
+  window.addEventListener('pagehide', () => {engine?.stop();preferencesSync?.stop();});
+  window.addEventListener('pageshow', event => { if (event.persisted && engine) { engine.stopped = false; engine.start(); engine.sync().catch(() => {});if(preferencesSync){preferencesSync.stopped=false;preferencesSync.start();preferencesSync.sync().catch(()=>{});} } });
 
   try {
     const saved = localStorage.getItem('dayline.preferences');

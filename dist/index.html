@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f5f4ef"><meta name="description" content="A quiet space to plan your day, one interval at a time."><title>Dayline — A little room for your day</title><link rel="icon" href="./icon.svg" type="image/svg+xml"><script src="./js/appearance.js?v=welcome-1"></script><link rel="stylesheet" href="./styles.css?v=reschedule-background-1"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f5f4ef"><meta name="description" content="A quiet space to plan your day, one interval at a time."><title>Dayline — A little room for your day</title><link rel="icon" href="./icon.svg" type="image/svg+xml"><script src="./js/appearance.js?v=settings-sync-1"></script><link rel="stylesheet" href="./styles.css?v=reschedule-background-1"></head>
 <body>
 <header class="topbar"><a class="brand" href="./" aria-label="Dayline home"><span class="brand-icon">◒</span> dayline<span class="brand-dot">.</span></a><nav id="planner-nav" aria-label="Main navigation" hidden><button id="daily-tab" class="tab active" aria-selected="true">Daily</button><button id="monthly-tab" class="tab" aria-selected="false">Monthly</button><button id="more-tab" class="tab" aria-selected="false">More</button><button id="settings-tab" class="tab" aria-selected="false">Settings</button></nav><span class="save-status" id="save-status" role="status">● Saved on this device</span></header>
 <main>
@@ -45,7 +45,7 @@
 <div class="settings-card"><h2>Your account</h2>
   <p id="account-email" class="account-email">Using this device</p>
   <p id="account-explanation" class="field-hint"></p>
-  <p id="account-sync-status" class="field-hint" role="status"></p>
+  <p id="account-sync-status" class="field-hint" role="status"></p><p id="preferences-sync-status" class="field-hint" role="status"></p><button id="sync-settings-from-device" class="secondary" type="button" hidden>Use this device’s settings on all devices</button><p class="field-hint">Account settings include intervals, clock format, available hours, hidden hours, tags, personality, and reminder switches. Allow notifications and activate reminder audio separately on each device.</p>
   <div class="inline"><button id="sign-in-button" class="primary">Sign in</button><button id="sync-now" class="secondary" hidden>↻ Sync now</button><button id="sign-out-button" class="secondary" hidden>Sign out</button></div>
   <button id="import-device-notes" class="text-button migration-button" hidden>＋ Add this device’s notes to my account</button>
 </div>
@@ -74,5 +74,5 @@
 <dialog id="restore-dialog"><form method="dialog"><h2>Restore this backup?</h2><p id="restore-explanation">This replaces all notes and settings on this device. Download your current backup first if you want to keep it.</p><div class="inline"><button value="cancel" class="secondary">Cancel</button><button value="restore" class="primary">Restore backup</button></div></form></dialog>
 <dialog id="migration-dialog"><form method="dialog"><h2>Bring your notes along?</h2><p>This adds this device’s notes to the account you’re signed into. Existing account notes and the original device notes are kept.</p><div class="inline"><button value="cancel" class="secondary">Cancel</button><button value="import" class="primary">Add notes to my account</button></div></form></dialog>
 <div class="sr-only" id="announcer" aria-live="polite"></div>
-<script type="module" src="./js/app.js?v=device-recovery-1"></script>
+<script type="module" src="./js/app.js?v=settings-sync-1"></script>
 </body></html>
