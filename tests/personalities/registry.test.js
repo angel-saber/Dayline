@@ -60,3 +60,19 @@ test('appearance script cache key changes whenever its content changes', () => {
     'Update the appearance script URL to the first 12 SHA-256 characters of its content.',
   );
 });
+
+test('Focus and onboarding use the same versioned personality registry as planner copy', () => {
+  const files = [
+    'app/controller.js',
+    'features/focus/controller.js',
+    'features/focus/music.js',
+    'features/onboarding/welcome.js',
+  ];
+  const versions = files.map((file) => {
+    const source = readFileSync(new URL('../../dist/js/' + file, import.meta.url), 'utf8');
+    const match = source.match(/personalities\/index\.js(\?v=[^']+)?'/);
+    assert.ok(match?.[1], file + ' must not reuse an unversioned cached registry');
+    return match[1];
+  });
+  assert.equal(new Set(versions).size, 1);
+});

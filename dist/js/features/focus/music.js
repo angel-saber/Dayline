@@ -1,5 +1,5 @@
 // Original procedural scores. Personality folders own their profiles and scores.
-import { getPersonality } from '../../personalities/index.js';
+import { getPersonality } from '../../personalities/index.js?v=new-personalities-1';
 import { renderScore as zen } from '../../personalities/zen/music.js';
 import { renderScore as builder } from '../../personalities/builder/music.js';
 import { renderScore as founder } from '../../personalities/founder/music.js';
