@@ -28,7 +28,7 @@ export function setupWelcome(api){
     <section class="welcome-step"><h2>Choose your rhythm</h2><label for="welcome-interval">Time intervals</label><select id="welcome-interval"><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60" selected>1 hour</option><option value="120">2 hours</option><option value="240">4 hours</option><option value="custom">Custom</option></select><div id="welcome-custom-wrap" hidden><label for="welcome-custom">Custom interval in minutes</label><input id="welcome-custom" type="number" min="1" max="1440" step="1" value="60" required></div></section>
     <section class="welcome-step"><h2>Choose your atmosphere</h2><p class="field-hint">Preview a personality. The look and voice change together.</p><fieldset class="welcome-personalities"><legend class="sr-only">Dayline personality</legend>
     <label><input type="radio" name="welcome-personality" value="zen" checked><strong>Zen</strong><span>Gentle and encouraging.</span></label>
-    <label><input type="radio" name="welcome-personality" value="builder"><strong>Builder</strong><span>Visionary and powerful.</span></label>
+    <label><input type="radio" name="welcome-personality" value="builder"><strong>Builder</strong><span>Studious and deliberate.</span></label>
     <label><input type="radio" name="welcome-personality" value="founder"><strong>Founder</strong><span>Elegant and strategic.</span></label></fieldset>
     <p class="welcome-preview" aria-live="polite"></p></section>
     <p class="field-hint welcome-footnote">You can change these choices anytime in Settings. Notes and attachment files are saved in this browser on this device. Download a backup in Settings to keep a copy or transfer them; attachment files do not automatically sync across devices.</p>
@@ -37,9 +37,9 @@ export function setupWelcome(api){
   const $=selector=>dialog.querySelector(selector),interval=$('#welcome-interval'),custom=$('#welcome-custom');
   let original='zen',manual=false,closing=false;
   const variants={
-    zen:['A little room for your day.','A simple place to plan, think, and make steady progress—one time interval at a time.','One thoughtful step is enough to begin.'],
-    builder:['Make room. Lock in.','Turn your day into focused execution: plan your targets, protect your attention, and move the work forward.','Choose a target. Take the next concrete action.'],
-    founder:['Give your next move an edge.','Plan your priorities, find the highest-value move, and invest your attention where it can make a difference.','Find the move that makes the next one easier.'],
+    zen:['A little room to breathe.','Plan gently, ease the pressure, and make room for one manageable step at a time.','Take one slow breath. Make one small move.'],
+    builder:['Study carefully. Build deliberately.','Make room to understand the problem, connect the details, and build work you have checked.','Lay one solid brick at a time.'],
+    founder:['Give your next move an edge.','Read the board, choose your endgame, and direct your effort toward a stronger position.','Find the leverage. Make the move that strengthens your position.'],
   };
   function selected(){return $('input[name="welcome-personality"]:checked').value;}
   function preview(){const mode=selected(),copy=variants[mode];window.dispatchEvent(new CustomEvent('dayline:preview-layout',{detail:mode}));$('#welcome-title').textContent=copy[0];$('.welcome-intro').textContent=copy[1];$('.welcome-preview').textContent=copy[2];}

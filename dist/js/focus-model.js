@@ -1,29 +1,7 @@
 import {dayKey,parseDay,offsetDay,bucket,slots} from './model.js?v=weekly-notes-1';
-export const MANTRAS=[
-  "Let it be imperfect. Let it be done.",
-  "Make it easy enough to begin.",
-  "Do it badly. Give it a chance.",
-  "A little done is better than none.",
-  "Start messy. Improve gently.",
-  "Make the attempt, release the judgment.",
-  "When in doubt, make it smaller.",
-  "Return gently. Keep going.",
-  "Good enough. Next step."
-];
-export const INSPIRATION=[
-  'Make the next action small enough that you can start it now.',
-  'A rough version gives you something real to improve.',
-  'Pause, breathe, and ask: what would move this forward a little?',
-  'You can be uncertain and still take a useful step.',
-  'Returning to the task counts. Begin again from here.',
-  'If a task is foggy, name the decision or question inside it.',
-  'Protect a little attention for the work that matters to you.',
-  'Try a gentler pace before deciding you cannot do it.',
-  'Your notes can hold the distraction while you stay with the work.',
-  'Progress can look like a question answered, a draft made, or a problem understood.',
-  'Ask for the missing information. Clarity is part of the work.',
-  'Leave a useful breadcrumb for the next time you return.',
-];
+import {PERSONALITY_MANTRAS,VOICE_QUOTES} from './personality.js?v=embodied-voices-1';
+export const MANTRAS=PERSONALITY_MANTRAS.zen;
+export const INSPIRATION=VOICE_QUOTES.zen;
 export function intervalAt(at,interval){const d=new Date(at),minute=bucket(d.getHours()*60+d.getMinutes(),interval);return {date:dayKey(d),minute,key:`${dayKey(d)}:${minute}:${interval}`};}
 export function findFocusNote(days,id,date){
   if(!id)return null;

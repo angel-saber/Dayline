@@ -4,7 +4,7 @@ import {dayKey,parseDay,timeLabel} from './model.js?v=weekly-notes-1';
 import {availableHours,hourInput,inputMinute} from './available-hours.js?v=available-hours-1';
 import {createNoteEditor} from './note-editor.js?v=weekly-notes-1';
 import {categoryOptions,tagBadges} from './note-types.js?v=multi-tags-1';
-import {openShareNote} from './share-note.js?v=weekly-notes-1';
+import {openShareNote} from './share-note.js?v=embodied-voices-1';
 import {noteTitle} from './month-model.js?v=monthly-1';
 const node=(tag,cls,text)=>{const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;};
 const button=(text,fn,cls='secondary')=>{const el=node('button',cls,text);el.type='button';el.onclick=fn;return el;};

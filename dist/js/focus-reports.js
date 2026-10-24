@@ -1,4 +1,4 @@
-import {durationLabel} from './focus-model.js?v=weekly-notes-1';
+import {durationLabel} from './focus-model.js?v=embodied-voices-1';
 const node=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;};
 export function renderFocusReports(container,reports=[]){
   for(const report of reports){
