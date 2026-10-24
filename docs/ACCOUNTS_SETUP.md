@@ -34,7 +34,7 @@ The write function intentionally uses `SECURITY DEFINER` so direct table writes 
 
 ## Public configuration and deployment
 
-`dist/js/config.js` contains only the HTTPS project origin, its `sb_publishable_…` API key, and non-secret feature flags. Never commit a secret/service-role key, database password, management token, or user session.
+`dist/js/features/accounts/config.js` contains only the HTTPS project origin, its `sb_publishable_…` API key, and non-secret feature flags. Never commit a secret/service-role key, database password, management token, or user session.
 
 Set the Supabase Site URL to the deployed Dayline root, currently `https://angel-saber.github.io/Dayline/`. Keep email confirmation enabled and other authentication providers disabled unless deliberately added. Use the dashboard's administrator invitation to provision the owner's address while keeping public signup disabled.
 

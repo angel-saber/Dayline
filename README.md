@@ -29,20 +29,20 @@ Node.js 24+ runs the checks; Python 3 serves the website at http://localhost:808
 ## Code structure
 
 - `dist/index.html`, `dist/styles.css`: page structure, responsive styling, and layouts.
-- `dist/js/app.js`: planner coordination and view integration.
-- `dist/js/model.js`, `month-model.js`, `date-actions.js`: scheduling and calendar behavior.
-- `dist/js/note-editor.js`, `editor-state.js`, `format.js`, `tasks.js`: note editing and formatting.
-- `dist/js/appearance.js`, `personality.js`, `quotes.js`, `welcome.js`: presentation, voice, and introduction.
-- `dist/js/focus.js`, `focus-model.js`, `focus-audio.js`, `focus-music.js`, `focus-reports.js`: session UI, session rules, generated audio, and reports.
-- `dist/js/storage.js`, `reminders.js`: browser persistence and reminders.
-- `dist/js/accounts.js`, `cloud.js`, `sync.js`, `config.js`: optional website account integration.
+- `dist/js/app/controller.js`: planner coordination and view integration.
+- `dist/js/shared/schedule.js`, `month-model.js`, `date-actions.js`: scheduling and calendar behavior.
+- `dist/js/features/notes/note-editor.js`, `editor-state.js`, `format.js`, `tasks.js`: note editing and formatting.
+- `dist/js/personalities/appearance.js`, `personality.js`, `quotes.js`, `welcome.js`: presentation, voice, and introduction.
+- `dist/js/features/focus/controller.js`, `focus-model.js`, `focus-audio.js`, `focus-music.js`, `focus-reports.js`: session UI, session rules, generated audio, and reports.
+- `dist/js/shared/storage.js`, `reminders.js`: browser persistence and reminders.
+- `dist/js/features/accounts/accounts.js`, `cloud.js`, `sync.js`, `config.js`: optional website account integration.
 - Root `*.test.js` and `tests/`: automated web tests; `scripts/check.mjs`: JavaScript syntax checks.
 
 ## Current hosting and account status
 
 The complete website is in `dist/`. GitHub Pages is the current development host. In repository settings choose **Pages → Source → GitHub Actions**. The **Deploy GitHub Pages** workflow publishes changes to `dist/` on `main` and also supports **Run workflow** for a manual deployment. **Checks** validates the code; it does not publish a separate version of the site.
 
-Account services are not configured: `dist/js/config.js` contains empty public configuration values. Guests can continue without an account and keep notes in their browser. Email sign-in and cross-device sync need a configured account service before they are available. The optional integration and setup reference remain in [docs/ACCOUNTS_SETUP.md](docs/ACCOUNTS_SETUP.md); they are not required for guest use or static hosting.
+Account services are not configured: `dist/js/features/accounts/config.js` contains empty public configuration values. Guests can continue without an account and keep notes in their browser. Email sign-in and cross-device sync need a configured account service before they are available. The optional integration and setup reference remain in [docs/ACCOUNTS_SETUP.md](docs/ACCOUNTS_SETUP.md); they are not required for guest use or static hosting.
 
 Browser storage belongs to each site's origin. Before moving to a new domain or host, export notes from the old site and restore them on the new site. Do not assume local notes transfer automatically. Browser reminders and focus audio require the page to remain open; this website does not currently cache its shell for offline loading.
 

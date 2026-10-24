@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "check": "node scripts/check.mjs",
+    "check": "node --experimental-vm-modules scripts/check.mjs",
     "start": "python3 -m http.server 8080 --directory dist"
   }
 }
