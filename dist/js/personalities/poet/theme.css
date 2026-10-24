@@ -1,56 +1,75 @@
 :root[data-layout='poet'] body {
   background-image:
-    radial-gradient(ellipse at 0% 0%, #bda0c522, transparent 48%),
-    radial-gradient(ellipse at 100% 70%, #d4a5ad1c, transparent 55%);
+    radial-gradient(ellipse at 0% 0%, #82445016, transparent 48%),
+    linear-gradient(
+      90deg,
+      transparent 0 4.5%,
+      #e8b1a207 4.5% calc(4.5% + 1px),
+      transparent calc(4.5% + 1px)
+    );
 }
 :root[data-layout='poet'] :is(h1, h2, .daily-note-title, .note-title-input) {
   font-family: Georgia, 'Times New Roman', serif;
 }
 :root[data-layout='poet'] h1 {
   font-weight: 400;
-  letter-spacing: -1.2px;
+  letter-spacing: -1.4px;
 }
-:root[data-layout='poet'] :is(.eyebrow, .timeline-top) {
-  letter-spacing: 2px;
+:root[data-layout='poet'] :is(.eyebrow, .timeline-top, .focus-stats) {
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  letter-spacing: 1.5px;
 }
-:root[data-layout='poet'] .brand-icon {
-  color: #98739b;
+:root[data-layout='poet'] .eyebrow {
+  color: #d69b95;
 }
 :root[data-layout='poet'] :is(.settings-card, .entry, .focus-section, dialog) {
   border-color: var(--line);
-  border-radius: 10px;
-  box-shadow: 0 8px 28px #674e6c08;
+  border-radius: 3px;
+  box-shadow: none;
 }
 :root[data-layout='poet'] .entry {
-  border-left: 2px solid #af8eaf;
+  border-left: 2px solid #a8686d;
 }
 :root[data-layout='poet'] .focus-mantra {
   font-family: Georgia, 'Times New Roman', serif;
-  font-style: italic;
-  font-size: 21px;
-  line-height: 1.6;
-  color: #654467;
-  background: #eaddeb;
-  border-left-color: #aa7ea2;
+  font-style: normal;
+  font-size: 22px;
+  line-height: 1.55;
+  color: #f0e8df;
+  background: #30262e;
+  border-left-color: #d69b95;
+  border-radius: 0;
 }
 :root[data-layout='poet'] #daily-quote {
   font-family: Georgia, 'Times New Roman', serif;
   font-style: italic;
+  color: #c8bac5;
+  max-width: 52ch;
 }
 :root[data-layout='poet'] :is(.primary, .focus-mini) {
-  background: #775278;
-  color: #fffafd;
+  background: #d69b95;
+  color: #231a20;
 }
 :root[data-layout='poet'] .topbar {
-  border-bottom-color: #c8b5cb;
+  border-bottom-color: #6d4d58;
+}
+:root[data-layout='poet'] :is(.note-title-input, .daily-note-title) {
+  letter-spacing: -0.3px;
+}
+:root[data-layout='poet'] .welcome-preview {
+  border-left: 2px solid #d69b95;
+  padding-left: 16px;
 }
 .swatch-poet {
-  background: linear-gradient(135deg, #fffafd, #eadbea);
+  background: linear-gradient(120deg, #242127, #17171c);
+  border-color: #6d4d58;
 }
 .swatch-poet i {
-  background: #a785a8;
+  background: #d69b95;
   height: 3px;
+  border-radius: 0;
 }
 .swatch-poet i:nth-child(2) {
-  background: #cba0aa;
+  background: #c8bac5;
+  width: 35%;
 }

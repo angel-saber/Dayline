@@ -5,7 +5,7 @@
     zen: '#f5f4ef',
     builder: '#0b111b',
     founder: '#eee5d6',
-    poet: '#f5edf3',
+    poet: '#17171c',
     astronaut: '#080f22',
     gamer: '#100d1d',
   };

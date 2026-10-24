@@ -188,6 +188,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
     for (const [id, heading] of [
       ['builder', 'Prepare for thoughtful work.'],
       ['founder', 'Set the board in your favor.'],
+      ['poet', 'Make room for a different argument.'],
       ['zen', 'Find a pace you can sustain.'],
     ]) {
       const choice = document.querySelector(`input[name="layout"][value="${id}"]`);
@@ -235,7 +236,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
       ['zen', 'Still temple'],
       ['builder', 'Cyberpunk mission'],
       ['founder', 'Symphonic horizon'],
-      ['poet', 'Afterglow letters'],
+      ['poet', 'Undertow'],
       ['astronaut', 'Orbital drift'],
       ['gamer', 'Ascension protocol'],
     ]) {
