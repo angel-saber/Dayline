@@ -10,6 +10,9 @@ test('every authored copy ID is available in every personality and all HTML refe
   for (const [id, value] of Object.entries(PERSONALITIES)) {
     assert.equal(value.id, id);
     assert.equal(typeof value.renderScore, 'function');
+    if (value.effects)
+      for (const kind of ['complete', 'focus-commit', 'focus-finish'])
+        assert.ok(value.effectLabels[kind]);
     assert.ok([null, 'orbital', 'mastery'].includes(value.effects));
     assert.deepEqual(Object.keys(value.copy).sort(), keys);
     assert.ok(

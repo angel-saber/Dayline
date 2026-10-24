@@ -231,3 +231,21 @@ the same shared player; the optional binaural/metronome layers are unchanged.
 The same registry drives Settings, onboarding, quotes, Focus copy and audio. The
 additive `poet_personality_preferences` migration permits its stable ID in the
 existing account preferences RPC without changing owner policies or note data.
+
+## Gamer
+
+Gamer's shared profile centers play, practice, checkpoints and leveling up as
+language for real progress. It supplies the twelve approved short mantras and
+exact Daily/Focus preparation headings. The visual style retains obsidian, violet
+and gold with brighter cyan accents and a short connected-checkpoint response.
+Effect labels belong to each animated personality's registry profile, rather than
+the shared effects renderer. Astronaut's labels and effects remain unchanged.
+
+The Next Level score is original, locally synthesized adventure electronica at
+112 BPM, with rounded bass, crisp percussion, warm chord layers and bright motifs.
+Its stable soundtrack ID remains `gamer`. The independent metronome/binaural
+defaults and user selections are preserved. No XP, numeric levels, streaks or
+additional progress records are created; completion feedback responds to existing
+successful note/session saves. Full/Subtle/Off, reduced motion and visibility
+controls retain their existing behavior. Old/custom session commitments are not
+rewritten to the new suggestions. All modes remain free.
