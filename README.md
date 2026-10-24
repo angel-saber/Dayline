@@ -8,6 +8,7 @@ Dayline is a browser-based daily planner and focus workspace. Plan in time inter
 - Note titles, bold, italic, underline, colored highlights, and individual checkbox tasks.
 - Swipe to complete or delete, drag to reschedule, and accessible move controls.
 - Monthly overview with quick note creation, date navigation, and cross-day moves.
+- Standalone Focus Audio with its own launcher, soundtrack/layer controls, tempo presets and background playback independent of Focus sessions.
 - Zen, Builder, Founder, Astronaut, and Gamer layouts with matching personality copy and daily quotes.
 - Focus Mode with a commitment, editable interval notes, generated music, separate ambient/binaural/metronome layers, audio presets, inspiration, interruption logs, optional reflection, and saved session reports.
 - Minimize Focus Mode using its button or by clicking outside the window; audio continues while the page remains open.

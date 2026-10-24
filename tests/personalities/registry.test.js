@@ -67,7 +67,7 @@ test('Focus and onboarding use the same versioned personality registry as planne
   const files = [
     'app/controller.js',
     'features/focus/controller.js',
-    'features/focus/music.js',
+    'features/focus-audio/music.js',
     'features/onboarding/welcome.js',
   ];
   const versions = files.map((file) => {

@@ -15,7 +15,7 @@ existing GitHub Actions checks.
 | `dist/js/features/attachments/` | Browser-local file storage, upload review, and supported compression.              |
 | `dist/js/features/bulk/`        | Selection, categories, multi-note changes, and batch actions.                      |
 | `dist/js/features/daily/`       | Timeline gestures, held drop targets, and rescheduling.                            |
-| `dist/js/features/focus/`       | Session rules, UI, audio mixing, and report rendering.                             |
+| `dist/js/features/focus/`       | Session rules, UI, and report rendering.                                           |
 | `dist/js/features/monthly/`     | Month navigation, compact day views, and undated Weekly Notes.                     |
 | `dist/js/features/notes/`       | Shared editor, tags, note rendering, and formatting rules.                         |
 | `dist/js/features/onboarding/`  | First-visit setup and personality previews.                                        |
@@ -172,3 +172,25 @@ a pointer-transparent manual popover above modal dialogs where supported, with
 an in-dialog fallback. They carry no note text, never move focus, and clear on
 hide, personality/effect changes, or their short lifetime. Settings offers a
 Preview effects button that changes no notes or Focus session data.
+
+## Independent Focus Audio
+
+`features/focus-audio/` owns the standalone dialog, audio preferences, soundtrack
+dispatch and Web Audio engine. `setupFocusAudio()` creates exactly one player per
+app tab, launched from the planner's floating Launch Focus Audio button or a
+shortcut inside a session. Opening the dialog does not autoplay or create a Focus
+session. Minimizing, navigating planner views and ending a session leave playback
+alone. Pause belongs to the player; unloading the page stops it. Browser lifecycle
+restrictions still apply to background audio.
+
+Audio preferences use `dayline.focus-audio.v1` on this device, separately from
+notes, accounts and `dayline.focus.v1`. A legacy session's audio preferences can
+seed the player when no standalone preference record exists, without editing or
+deleting that draft. Restored preferences validate IDs, booleans and numeric
+bounds. Personality changes choose that mode's default track while retaining
+layer/tempo settings; users can still select another soundtrack.
+
+The Focus controller owns no audio engine, mixer settings, playback stops or
+volume controls. Its only audio integration is an `openAudio` callback. Existing
+`focus/audio.js` and `focus/music.js` paths re-export the new feature's engine and
+dispatch for compatibility; they do not create extra players or duplicate scores.
