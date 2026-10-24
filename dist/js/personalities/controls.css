@@ -1,0 +1,83 @@
+.layout-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  border: 0;
+  padding: 0;
+  margin: 18px 0;
+}
+.settings-card .layout-choice {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  margin: 0;
+  padding: 12px;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+  background: var(--white);
+  min-width: 0;
+}
+.layout-choice:has(input:checked) {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+.layout-choice input {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  accent-color: var(--green);
+  margin: 0;
+  width: 16px;
+  height: 16px;
+}
+.layout-choice strong {
+  font-size: 13px;
+}
+.layout-choice > span:last-child {
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.layout-swatch {
+  height: 66px;
+  border-radius: 5px;
+  padding: 15px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+  border: 1px solid #8883;
+}
+.layout-swatch i {
+  display: block;
+  height: 5px;
+  width: 70%;
+  border-radius: 2px;
+}
+.layout-swatch i:nth-child(2) {
+  width: 47%;
+}
+.layout-swatch i:nth-child(3) {
+  width: 60%;
+}
+.swatch-zen {
+  background: #f5f4ef;
+}
+.swatch-zen i {
+  background: #a4b39a;
+}
+.swatch-builder {
+  background: #0b111b;
+}
+.swatch-builder i {
+  background: #65dded;
+  border-radius: 0;
+}
+.swatch-founder {
+  background: #eee5d6;
+}
+.swatch-founder i {
+  background: #9c7850;
+}

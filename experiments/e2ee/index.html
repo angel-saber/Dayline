@@ -1,46 +1,126 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
-  <title>Dayline · Encrypted vault laboratory</title><link rel="stylesheet" href="./lab.css">
-</head>
-<body><main>
-  <p class="eyebrow">DAYLINE / DEVELOPMENT LAB</p>
-  <h1>A private place<br>to begin.</h1>
-  <p class="intro">An encrypted-sync prototype, separate from the live planner.</p>
-  <aside><strong>Use made-up notes only.</strong> This lab simulates a server and two devices in your browser. It does not connect to Supabase or modify your Dayline account. It has not received an independent security review.</aside>
-  <p id="status" role="status" aria-live="polite">Create a test vault, or unlock an existing lab vault.</p>
-  <section class="card"><h2>1. Unlock your test vault</h2>
-    <p>Use a separate passphrase, different from any real account password. Sign-in and encryption unlocking are separate.</p>
-    <form id="unlock-form">
-      <label for="secret">Vault passphrase or recovery key</label>
-      <input id="secret" type="password" autocomplete="off" required maxlength="1024">
-      <div class="fields"><label>Unlock with<select id="method"><option value="passphrase">Passphrase</option><option value="recovery">Recovery key</option></select></label>
-      <label>Simulated device<select id="device"><option value="desktop">Desktop</option><option value="phone">Phone</option></select></label></div>
-      <div class="buttons"><button type="submit">Unlock device</button><button id="create" type="button" class="secondary">Create test vault</button></div>
-    </form>
-    <div id="recovery-panel" hidden><h3>Your private recovery key</h3><p>This key unlocks your test notes. Keep it somewhere private, separate from the encrypted backup. It is not stored by this lab.</p><output id="recovery"></output><button id="hide-recovery" type="button" class="secondary">I saved it · hide key</button></div>
-  </section>
-  <section id="editor-panel" class="card" hidden><h2>2. Write, sync, and lock</h2>
-    <p id="device-status"></p>
-    <form id="note-form"><label for="title">Note title</label><input id="title" maxlength="200">
-      <label for="note">Note text</label><textarea id="note" rows="5"></textarea>
-      <div class="buttons"><button type="submit">Save encrypted draft</button><button id="sync" type="button" class="secondary">Sync device</button><button id="lock" type="button" class="secondary">Lock both devices</button></div>
-    </form>
-    <p class="hint">Save and sync on Desktop. Switch to Phone, enter the vault passphrase, and unlock. Each device keeps its own encrypted draft.</p>
-    <details><summary>Change the vault passphrase</summary>
-      <form id="rewrap-form"><p>Enter the current passphrase or recovery key above. This changes vault unlocking, not an account password. Old downloaded backups still accept their original credentials.</p>
-        <label for="new-secret">New vault passphrase</label><input id="new-secret" type="password" autocomplete="off" minlength="16" maxlength="1024" required>
-        <button type="submit">Verify and change passphrase</button>
-      </form>
-    </details>
-  </section>
-  <section class="card"><h2>3. Check what is stored</h2>
-    <p>Only wrapped keys and ciphertext should appear in the simulated server. Note titles, dates, categories, and settings are inside the encrypted snapshot.</p>
-    <div class="buttons"><button id="export" type="button" class="secondary">Download encrypted backup</button><label class="file">Restore a test backup<input id="import" type="file" accept="application/json,.json"></label></div>
-    <details><summary>Inspect simulated server ciphertext</summary><pre id="ciphertext">No lab vault yet.</pre></details>
-    <p class="hint">The live planner still uses its existing sync. This laboratory does not enable encryption for any real account.</p>
-  </section>
-</main><script type="module" src="./lab.js"></script></body></html>
+  <head>
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>Dayline · Encrypted vault laboratory</title
+    ><link rel="stylesheet" href="./lab.css" />
+  </head>
+  <body
+    ><main>
+      <p class="eyebrow">DAYLINE / DEVELOPMENT LAB</p>
+      <h1>A private place<br />to begin.</h1>
+      <p class="intro">An encrypted-sync prototype, separate from the live planner.</p>
+      <aside
+        ><strong>Use made-up notes only.</strong> This lab simulates a server and two devices in
+        your browser. It does not connect to Supabase or modify your Dayline account. It has not
+        received an independent security review.</aside
+      >
+      <p id="status" role="status" aria-live="polite"
+        >Create a test vault, or unlock an existing lab vault.</p
+      >
+      <section class="card"
+        ><h2>1. Unlock your test vault</h2>
+        <p
+          >Use a separate passphrase, different from any real account password. Sign-in and
+          encryption unlocking are separate.</p
+        >
+        <form id="unlock-form">
+          <label for="secret">Vault passphrase or recovery key</label>
+          <input id="secret" type="password" autocomplete="off" required maxlength="1024" />
+          <div class="fields"
+            ><label
+              >Unlock with<select id="method"
+                ><option value="passphrase">Passphrase</option
+                ><option value="recovery">Recovery key</option></select
+              ></label
+            >
+            <label
+              >Simulated device<select id="device"
+                ><option value="desktop">Desktop</option
+                ><option value="phone">Phone</option></select
+              ></label
+            ></div
+          >
+          <div class="buttons"
+            ><button type="submit">Unlock device</button
+            ><button id="create" type="button" class="secondary">Create test vault</button></div
+          >
+        </form>
+        <div id="recovery-panel" hidden
+          ><h3>Your private recovery key</h3
+          ><p
+            >This key unlocks your test notes. Keep it somewhere private, separate from the
+            encrypted backup. It is not stored by this lab.</p
+          ><output id="recovery"></output
+          ><button id="hide-recovery" type="button" class="secondary"
+            >I saved it · hide key</button
+          ></div
+        >
+      </section>
+      <section id="editor-panel" class="card" hidden
+        ><h2>2. Write, sync, and lock</h2>
+        <p id="device-status"></p>
+        <form id="note-form"
+          ><label for="title">Note title</label><input id="title" maxlength="200" />
+          <label for="note">Note text</label><textarea id="note" rows="5"></textarea>
+          <div class="buttons"
+            ><button type="submit">Save encrypted draft</button
+            ><button id="sync" type="button" class="secondary">Sync device</button
+            ><button id="lock" type="button" class="secondary">Lock both devices</button></div
+          >
+        </form>
+        <p class="hint"
+          >Save and sync on Desktop. Switch to Phone, enter the vault passphrase, and unlock. Each
+          device keeps its own encrypted draft.</p
+        >
+        <details
+          ><summary>Change the vault passphrase</summary>
+          <form id="rewrap-form"
+            ><p
+              >Enter the current passphrase or recovery key above. This changes vault unlocking, not
+              an account password. Old downloaded backups still accept their original
+              credentials.</p
+            >
+            <label for="new-secret">New vault passphrase</label
+            ><input
+              id="new-secret"
+              type="password"
+              autocomplete="off"
+              minlength="16"
+              maxlength="1024"
+              required
+            />
+            <button type="submit">Verify and change passphrase</button>
+          </form>
+        </details>
+      </section>
+      <section class="card"
+        ><h2>3. Check what is stored</h2>
+        <p
+          >Only wrapped keys and ciphertext should appear in the simulated server. Note titles,
+          dates, categories, and settings are inside the encrypted snapshot.</p
+        >
+        <div class="buttons"
+          ><button id="export" type="button" class="secondary">Download encrypted backup</button
+          ><label class="file"
+            >Restore a test backup<input
+              id="import"
+              type="file"
+              accept="application/json,.json" /></label
+        ></div>
+        <details
+          ><summary>Inspect simulated server ciphertext</summary
+          ><pre id="ciphertext">No lab vault yet.</pre>
+        </details>
+        <p class="hint"
+          >The live planner still uses its existing sync. This laboratory does not enable encryption
+          for any real account.</p
+        >
+      </section> </main
+    ><script type="module" src="./lab.js"></script></body
+></html>

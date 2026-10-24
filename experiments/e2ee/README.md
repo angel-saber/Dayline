@@ -6,10 +6,16 @@ This directory is outside `dist/` so it is not published with GitHub Pages. The
 SQL candidate is intentionally outside the normal Supabase migrations directory.
 Do not apply it to the production project.
 
+This prototype is compatible with the merged feature-folder cleanup. It uses
+`dist/js/shared/storage.js` and the models under `dist/js/features/accounts/`;
+the main application still uses its existing, unencrypted sync implementation.
+
 ## Run
 
 ```sh
 npm ci --ignore-scripts
+npm run format:check
+npm run check
 npm run test:e2ee
 npm run start:e2ee
 ```

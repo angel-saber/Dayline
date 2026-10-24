@@ -2,6 +2,12 @@
 
 Status: **experimental development branch; not enabled in the live app**.
 
+Compatibility: this branch includes the merged feature-folder cleanup from PR
+#2. The prototype imports the current shared storage validator and account sync /
+preferences model modules. It does not restore the old flat module paths or wire
+encrypted sync into the published planner. The published `dist/` files remain
+identical to the main branch used for this update.
+
 The first deliverable is a working, isolated vault/sync/migration prototype. It
 does not alter `dist/`, provision accounts, apply a production schema change, or
 claim that existing Dayline notes are encrypted. The browser laboratory and SQL
@@ -165,20 +171,20 @@ The existing planner uses synchronous persistence. Do not adapt encryption by
 writing a plaintext localStorage cache first and encrypting it later. Replace
 that boundary deliberately, including correct save/error status and editor flush:
 
-| Path | Required before enabling E2EE |
-| --- | --- |
-| Account entry | Detect vault before either legacy sync engine starts; show unlock UI over an empty planner, not guest/account notes. |
-| Daily / Monthly / Weekly / More | Await durable encrypted staging for every mutation, bulk action, guided activity, drag/drop, undo, and background save. |
-| Settings | Keep custom tags and personal availability inside encrypted storage; avoid the current plaintext preferences mirror. |
-| Focus | Scope active drafts to the account; encrypt notes, mantra, interruption logs, and reflections; handle audio and minimized session during lock. |
-| Device migration | Reconcile guest checkpoints and all unsynced/abandoned tab drafts before server cutover, with user-controlled backup and cleanup. |
-| Files | Encrypt local binaries/metadata, account-scope file IDs, and implement encrypted cloud file transport before promising attachment sync. |
-| Backups | Default encrypted backup; explicitly label deliberate plaintext exports; support account migration/rekey without falsely treating account ID as a recovery secret. |
-| Sharing | Show that text/email/availability exports are deliberately decrypted and recipients can read/save them. |
-| Notifications | While locked, no note content; generic reminders only if a privacy-preserving schedule exists. Explain optional lock-screen detail disclosure. |
-| Lock / sign-out | Flush and await saves, clear all views/undo/search/share previews and secrets, stop reminder content/audio as appropriate, retain encrypted pending work. |
-| Idle / reload | Explicit idle-lock behavior and stable device/tab draft recovery without storing raw keys. No automatic unlock from an auth session. |
-| CSP / dependencies | No third-party JavaScript or analytics on the unlocked app origin. Ads must use a separate origin/sandbox without access to notes, DOM, or keys; payments should leave the sensitive origin. |
+| Path                            | Required before enabling E2EE                                                                                                                                                                |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Account entry                   | Detect vault before either legacy sync engine starts; show unlock UI over an empty planner, not guest/account notes.                                                                         |
+| Daily / Monthly / Weekly / More | Await durable encrypted staging for every mutation, bulk action, guided activity, drag/drop, undo, and background save.                                                                      |
+| Settings                        | Keep custom tags and personal availability inside encrypted storage; avoid the current plaintext preferences mirror.                                                                         |
+| Focus                           | Scope active drafts to the account; encrypt notes, mantra, interruption logs, and reflections; handle audio and minimized session during lock.                                               |
+| Device migration                | Reconcile guest checkpoints and all unsynced/abandoned tab drafts before server cutover, with user-controlled backup and cleanup.                                                            |
+| Files                           | Encrypt local binaries/metadata, account-scope file IDs, and implement encrypted cloud file transport before promising attachment sync.                                                      |
+| Backups                         | Default encrypted backup; explicitly label deliberate plaintext exports; support account migration/rekey without falsely treating account ID as a recovery secret.                           |
+| Sharing                         | Show that text/email/availability exports are deliberately decrypted and recipients can read/save them.                                                                                      |
+| Notifications                   | While locked, no note content; generic reminders only if a privacy-preserving schedule exists. Explain optional lock-screen detail disclosure.                                               |
+| Lock / sign-out                 | Flush and await saves, clear all views/undo/search/share previews and secrets, stop reminder content/audio as appropriate, retain encrypted pending work.                                    |
+| Idle / reload                   | Explicit idle-lock behavior and stable device/tab draft recovery without storing raw keys. No automatic unlock from an auth session.                                                         |
+| CSP / dependencies              | No third-party JavaScript or analytics on the unlocked app origin. Ads must use a separate origin/sandbox without access to notes, DOM, or keys; payments should leave the sensitive origin. |
 
 Do not rename the existing account login password to "encryption password". Auth
 sees that password, so it cannot be the only secret protecting notes from the
@@ -220,10 +226,16 @@ server. The two concepts must stay distinct in the final product UI.
   immutable vault identity on rewrap, encrypted cross-device persistence, and
   ciphertext-only request bodies.
 
-Use `npm ci --ignore-scripts`, `npm run check`, and `npm test`. The one test-only
-dependency, PGlite 0.5.11, is exactly pinned with its lockfile/integrity. No new
-service or paid infrastructure is required for these tests. The Pages workflow
-also refuses deployments from a non-main ref, including manual runs.
+Use `npm ci --ignore-scripts`, `npm run format:check`, `npm run check`, and
+`npm test`. The exactly pinned test-only PGlite 0.5.11 dependency is added alongside
+the main branch's formatting and DOM test tools, with one combined lockfile.
+`npm run test:e2ee` runs only the encryption tests. The full `check` command links
+both the published app and the isolated browser lab without executing them; the
+published app's graph cannot import anything outside `dist/`. Formatting checks
+cover the experimental JavaScript, HTML, CSS, and documentation as well.
+
+No new service or paid infrastructure is required for these tests. The existing
+Pages workflow refuses deployments from a non-main ref, including manual runs.
 
 ## Primary references
 

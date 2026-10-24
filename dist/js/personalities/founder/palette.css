@@ -1,0 +1,13 @@
+:root[data-layout='founder'] {
+  color-scheme: light;
+  --paper: #eee5d6;
+  --white: #fcf7ee;
+  --ink: #3d3026;
+  --muted: #786752;
+  --line: #cdbda6;
+  --green: #86623d;
+  --soft: #e5d7c1;
+  --surface: #f5eddf;
+  --accent-ink: #fffaf2;
+  font-family: Arial, Helvetica, sans-serif;
+}
