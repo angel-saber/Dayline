@@ -1,9 +1,12 @@
-import { scoreTools } from '../score-tools.js?v=c17c8abbdfaa';
-// Afterglow Letters: original melodic electronica. No borrowed melodies or samples.
+import { oceanLayer, vowelPhrase, darkPulse } from './soundscape.js?v=c5c32a011f1c';
+import { scoreTools } from '../score-tools.js?v=c5c32a011f1c';
+// Undertow: original oceanic electronica with wordless synthesized vocal refrains.
 export function renderScore(data, rate) {
   if (!data.length || rate <= 0) return;
-  const { add, tau, noise, normalize } = scoreTools(data, rate),
+  const tools = scoreTools(data, rate);
+  const { add, tau, noise, normalize } = tools,
     beat = 60 / 122;
+  oceanLayer(data, rate, tools);
   const hz = (midi) => 440 * 2 ** ((midi - 69) / 12);
   const roots = [40, 36, 43, 38, 40, 36, 43, 38];
   const chords = [
@@ -97,6 +100,34 @@ export function renderScore(data, rate) {
         for (let step = 0; step < 4; step++) {
           const note = chord[(bar + step) % 4] + 12;
           pluck(note, at + (step + 0.5) * beat, 0.018 * level, 0.9);
+        }
+      }
+    }
+    if (section > 0 && section < 7) {
+      for (let pulse = 0; pulse < 16; pulse++) {
+        darkPulse(
+          tools,
+          roots[section] - 12,
+          start + (pulse * 2 + 0.75) * beat,
+          0.8 * beat,
+          0.045 * level,
+        );
+      }
+      for (let refrain = 0; refrain < 2; refrain++) {
+        for (const [index, offset] of [2, 7, 12].entries()) {
+          const note = [64, 62, 59][index] + (section % 4 === 2 ? 3 : section % 4 === 3 ? -2 : 0);
+          const at = start + (refrain * 16 + offset) * beat;
+          vowelPhrase(
+            tools,
+            rate,
+            note,
+            at,
+            (index === 1 ? 4 : 3) * beat,
+            0.07 * level,
+            ['ah', 'oh', 'mm'][index],
+          );
+          if (index === 1)
+            vowelPhrase(tools, rate, note, at + 2 * beat, 3 * beat, 0.018 * level, 'oh');
         }
       }
     }

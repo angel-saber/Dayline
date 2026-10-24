@@ -215,11 +215,19 @@ backup and sharing formats are unchanged.
 ## Poet
 
 Poet is a free basic profile with no special effects, registered beside the other
-profiles. Its rose-paper/plum palette and editorial typography support creative
-practice; copy, original inspiration and instructional mantras encourage turning
-feeling into specific creative work. Afterglow Letters is an original locally
-synthesized melodic electronic score with spacious synth layers, warm bass, flowing breakbeats
-and a gradual emotional arc.
+profiles. Its ink-dark editorial layout, sharp serif headings and muted red accents
+support a provocative, intellectual voice built around inquiry, precise imagery,
+contradiction and deliberate subversion. All copy, inspiration and instructional
+mantras are original; no writer's work is quoted or attributed to these lines.
+
+Undertow is locally synthesized oceanic melodic electronica. `poet/soundscape.js`
+adds rolling surf, saturated low pulses and harmonic/formant vowel refrains to the
+shared procedural score. The vocal-like phrases are wordless ah/oh/mm synthesis,
+not recorded singing, intelligible lyrics or a cloned performer. The ocean layer
+uses filtered seeded noise and slow swells. No recordings or external audio
+services are used. Closing or pausing Focus Audio still controls playback through
+the same shared player; the optional binaural/metronome layers are unchanged.
+
 The same registry drives Settings, onboarding, quotes, Focus copy and audio. The
 additive `poet_personality_preferences` migration permits its stable ID in the
 existing account preferences RPC without changing owner policies or note data.

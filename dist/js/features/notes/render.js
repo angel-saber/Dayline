@@ -1,6 +1,6 @@
-import { node } from '../../shared/dom.js?v=c17c8abbdfaa';
-import { indentLevel } from './formatting/indents.js?v=c17c8abbdfaa';
-import { renderFormatted } from './formatting/format.js?v=c17c8abbdfaa';
+import { node } from '../../shared/dom.js?v=c5c32a011f1c';
+import { indentLevel } from './formatting/indents.js?v=c5c32a011f1c';
+import { renderFormatted } from './formatting/format.js?v=c5c32a011f1c';
 // Render line controls beside text; never nest a checkbox inside an edit button.
 export function renderNoteLines(
   container,
