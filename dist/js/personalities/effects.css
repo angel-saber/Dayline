@@ -184,9 +184,6 @@ html:is([data-personality-effect='orbital'], [data-personality-effect='mastery']
 .layout-choice {
   grid-column: span 2;
 }
-.layout-choice:nth-last-child(-n + 2) {
-  grid-column: span 3;
-}
 @media (max-width: 600px) {
   .layout-options {
     grid-template-columns: 1fr;

@@ -6,6 +6,7 @@
 @import url('../js/personalities/founder/palette.css?v=code-organization-1');
 @import url('../js/personalities/astronaut/palette.css');
 @import url('../js/personalities/gamer/palette.css');
+@import url('../js/personalities/poet/palette.css');
 @import url('../js/personalities/shared.css?v=code-organization-1');
 @import url('../js/personalities/builder/theme.css?v=code-organization-1');
 @import url('../js/personalities/founder/theme.css?v=code-organization-1');
@@ -14,4 +15,5 @@
 
 @import url('../js/personalities/astronaut/theme.css');
 @import url('../js/personalities/gamer/theme.css');
+@import url('../js/personalities/poet/theme.css');
 @import url('../js/personalities/effects.css');

@@ -1,4 +1,4 @@
-import { scoreTools } from '../score-tools.js?v=280f4d8eaa90';
+import { scoreTools } from '../score-tools.js?v=fe286a6e269a';
 // Ascension Protocol: deliberate momentum, layered harmony and restrained motifs.
 export function renderScore(data, rate) {
   if (!data.length || rate <= 0) return;

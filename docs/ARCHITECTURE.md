@@ -38,7 +38,7 @@ an elaborate global state system merely to shorten this file.
 
 ## Personalities are bundles, not separate applications
 
-`personalities/zen/`, `builder/`, `founder/`, `astronaut/`, and `gamer/` each own:
+`personalities/zen/`, `builder/`, `founder/`, `poet/`, `astronaut/`, and `gamer/` each own:
 
 - `index.js`: approved descriptions, authored copy, mantras, daily inspiration,
   onboarding preview, and default soundtrack profile.
@@ -59,7 +59,7 @@ the default-copy fallback. HTML uses `data-voice="settings.heading"`. Do not use
 an English display sentence as a lookup key. Never pass notes, journal answers,
 custom mantras, or saved report text through the personality system.
 
-Personality styles and music continue to support all five modes in the same
+Personality styles and music continue to support all six modes in the same
 release. A feature branch is a temporary development workspace, not a permanent
 personality variant. Do not create permanent Zen/Builder/Founder branches.
 
@@ -127,7 +127,7 @@ to this directory map and preserve its isolated production rollout gates.
 `personalities/index.js` owns the stable IDs, profile data, optional effects and
 music renderer for every mode. `ids.js` re-exports these IDs for account validation
 and future access models. The pre-paint script derives its data from this registry
-without delaying the initial theme. All five modes remain free.
+without delaying the initial theme. All six modes remain free.
 
 `personalities/effects.js` owns decorative scenes and short completion/Focus
 responses. Its events contain only an action kind, never note content. Full
@@ -140,7 +140,7 @@ XP totals, or levels are introduced.
 
 The additive `additional_personality_preferences` SQL migration expands the
 existing invoker RPC validator without changing notes, owner policies, or revision
-checks. `supabase/tests/personality-preferences.sql` verifies the five IDs, stale
+checks. `supabase/tests/personality-preferences.sql` verifies the six IDs, stale
 revision rejection, and invalid ID rejection in a rolled-back disposable fixture.
 
 ## Build and cache consistency
@@ -211,3 +211,14 @@ preview revokes its URL, releases media and restores focus. Reads that finish
 after dismissal are ignored. Missing device-local bytes show a recovery message
 without changing the note, its reference, stored files, or account data. Existing
 backup and sharing formats are unchanged.
+
+## Poet
+
+Poet is a free basic profile with no special effects, registered beside the other
+profiles. Its rose-paper/plum palette and editorial typography support creative
+practice; copy, original inspiration and instructional mantras encourage turning
+feeling into specific creative work. Velvet Reverie is an original locally
+synthesized piano-and-strings-like chamber score with a gradual emotional arc.
+The same registry drives Settings, onboarding, quotes, Focus copy and audio. The
+additive `poet_personality_preferences` migration permits its stable ID in the
+existing account preferences RPC without changing owner policies or note data.

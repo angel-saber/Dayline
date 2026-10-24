@@ -10,7 +10,7 @@ declare
   result jsonb;
   prefs jsonb := '{"interval":60,"clock":"12","notifications":false,"sound":true,"availableHours":{},"tags":{}}';
 begin
-  foreach mode in array array['zen','builder','founder','astronaut','gamer'] loop
+  foreach mode in array array['zen','builder','founder','poet','astronaut','gamer'] loop
     result := public.save_dayline_preferences(prefs || jsonb_build_object('layout',mode),rev);
     assert result->>'conflict'='false', 'Unexpected settings conflict';
     rev := rev+1;
