@@ -67,7 +67,7 @@ cannot transfer sessions or recover an encryption secret.
 ## Future purchase access
 
 `features/access/policy.js` is a preparation model, **not an active paywall**.
-All five personalities remain `free`; `PAYMENTS_ENABLED` is false. No checkout,
+All six personalities remain `free`; `PAYMENTS_ENABLED` is false. No checkout,
 prices, payment provider, admin page, protected delivery, or purchase requirement
 is enabled in the current UI.
 

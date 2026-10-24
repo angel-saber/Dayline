@@ -1,0 +1,12 @@
+:root[data-layout='poet'] {
+  color-scheme: light;
+  --paper: #f5edf3;
+  --white: #fffafd;
+  --ink: #3d2c40;
+  --muted: #76677a;
+  --line: #dacbd9;
+  --green: #775278;
+  --soft: #ece0ed;
+  --surface: #fffafd;
+  --accent-ink: #fffafd;
+}

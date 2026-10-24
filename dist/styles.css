@@ -1620,9 +1620,23 @@ body:has(#monthly-view:not([hidden])) main {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+:root[data-layout='poet'] {
+  color-scheme: light;
+  --paper: #f5edf3;
+  --white: #fffafd;
+  --ink: #3d2c40;
+  --muted: #76677a;
+  --line: #dacbd9;
+  --green: #775278;
+  --soft: #ece0ed;
+  --surface: #fffafd;
+  --accent-ink: #fffafd;
+}
+
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1632,6 +1646,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1642,6 +1657,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1651,6 +1667,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1672,6 +1689,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1681,6 +1699,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1691,6 +1710,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1700,6 +1720,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1709,6 +1730,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1718,6 +1740,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1728,6 +1751,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1737,6 +1761,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1746,6 +1771,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1757,6 +1783,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1767,6 +1794,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1778,6 +1806,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1788,6 +1817,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1798,6 +1828,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1807,6 +1838,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -1816,6 +1848,7 @@ body:has(#monthly-view:not([hidden])) main {
 :root:is(
     [data-layout='builder'],
     [data-layout='founder'],
+    [data-layout='poet'],
     [data-layout='astronaut'],
     [data-layout='gamer']
   )
@@ -3674,6 +3707,63 @@ main {
   border-radius: 0;
 }
 
+:root[data-layout='poet'] body {
+  background-image:
+    radial-gradient(ellipse at 0% 0%, #bda0c522, transparent 48%),
+    radial-gradient(ellipse at 100% 70%, #d4a5ad1c, transparent 55%);
+}
+:root[data-layout='poet'] :is(h1, h2, .daily-note-title, .note-title-input) {
+  font-family: Georgia, 'Times New Roman', serif;
+}
+:root[data-layout='poet'] h1 {
+  font-weight: 400;
+  letter-spacing: -1.2px;
+}
+:root[data-layout='poet'] :is(.eyebrow, .timeline-top) {
+  letter-spacing: 2px;
+}
+:root[data-layout='poet'] .brand-icon {
+  color: #98739b;
+}
+:root[data-layout='poet'] :is(.settings-card, .entry, .focus-section, dialog) {
+  border-color: var(--line);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px #674e6c08;
+}
+:root[data-layout='poet'] .entry {
+  border-left: 2px solid #af8eaf;
+}
+:root[data-layout='poet'] .focus-mantra {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 21px;
+  line-height: 1.6;
+  color: #654467;
+  background: #eaddeb;
+  border-left-color: #aa7ea2;
+}
+:root[data-layout='poet'] #daily-quote {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+}
+:root[data-layout='poet'] :is(.primary, .focus-mini) {
+  background: #775278;
+  color: #fffafd;
+}
+:root[data-layout='poet'] .topbar {
+  border-bottom-color: #c8b5cb;
+}
+.swatch-poet {
+  background: linear-gradient(135deg, #fffafd, #eadbea);
+}
+.swatch-poet i {
+  background: #a785a8;
+  height: 3px;
+}
+.swatch-poet i:nth-child(2) {
+  background: #cba0aa;
+}
+
 .personality-scene {
   position: fixed;
   inset: 0;
@@ -3859,9 +3949,6 @@ html:is([data-personality-effect='orbital'], [data-personality-effect='mastery']
 }
 .layout-choice {
   grid-column: span 2;
-}
-.layout-choice:nth-last-child(-n + 2) {
-  grid-column: span 3;
 }
 @media (max-width: 600px) {
   .layout-options {

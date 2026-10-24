@@ -173,7 +173,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
     document.querySelector('#reopen-welcome').click();
     const welcome = document.querySelector('.welcome-window');
     assert.equal(welcome.open, true);
-    assert.equal(welcome.querySelectorAll('input[name="welcome-personality"]').length, 5);
+    assert.equal(welcome.querySelectorAll('input[name="welcome-personality"]').length, 6);
     for (const input of welcome.querySelectorAll('input[name="welcome-personality"]')) {
       input.checked = input.value === 'builder';
     }
@@ -235,6 +235,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
       ['zen', 'Still temple'],
       ['builder', 'Cyberpunk mission'],
       ['founder', 'Symphonic horizon'],
+      ['poet', 'Velvet reverie'],
       ['astronaut', 'Orbital drift'],
       ['gamer', 'Ascension protocol'],
     ]) {
