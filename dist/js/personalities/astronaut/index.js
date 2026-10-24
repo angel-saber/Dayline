@@ -1,5 +1,8 @@
+import { renderScore } from './music.js?v=5010270c32fe';
 // Original authored personality. User notes and saved commitments are never rewritten.
 export default {
+  renderScore,
+  effects: 'orbital',
   id: 'astronaut',
   name: 'Astronaut',
   description: 'Curious and courageous.',

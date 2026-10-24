@@ -1,3 +1,4 @@
+import { getPersonality } from './index.js?v=5010270c32fe';
 const KEY = 'dayline.effects.v1';
 const LEVELS = ['full', 'subtle', 'off'];
 export function effectiveEffects(level, reduced, hidden) {
@@ -27,6 +28,7 @@ export function setupPersonalityEffects() {
   }
   function refresh() {
     clear();
+    root.dataset.personalityEffect = getPersonality(root.dataset.layout).effects || 'none';
     root.dataset.effects = effectiveEffects(level, media?.matches, document.hidden);
     if (select) select.value = level;
     if (status)
@@ -43,7 +45,7 @@ export function setupPersonalityEffects() {
   }
   function burst(event) {
     if (
-      !['astronaut', 'gamer'].includes(root.dataset.layout) ||
+      !getPersonality(root.dataset.layout).effects ||
       root.dataset.effects !== 'full' ||
       Date.now() - last < 300
     )

@@ -43,13 +43,15 @@ an elaborate global state system merely to shorten this file.
 - `index.js`: approved descriptions, authored copy, mantras, daily inspiration,
   onboarding preview, and default soundtrack profile.
 - `music.js`: that personality's original procedural score.
-- `theme.css`: theme rules; Builder and Founder also have `palette.css` tokens.
+- `theme.css`: theme rules, with optional `palette.css` tokens.
+- `renderScore` and `effects` in the profile: the music renderer and optional visual effect style.
 
 The central registry is the only interface used by features. Onboarding and
 soundtrack choices read it rather than maintaining their own mode-name lists.
-The early `appearance.js` script remains a small synchronous bootstrap so a saved
-theme is applied before the main module loads. Its three theme-color values must
-match the registry; it must never load or transform note content.
+The early `appearance.js` script is generated from the same registry using
+`scripts/appearance.template.txt`, so a saved theme applies before the main module
+loads. It never loads or transforms note content. Settings cards are generated
+from the registry too; onboarding and Focus choices consume it at runtime.
 
 Use stable authored-copy keys such as `daily.headingToday` and
 `focus.noteHeading`, through `voice(key)`. Put a new key in every personality and
@@ -57,7 +59,7 @@ the default-copy fallback. HTML uses `data-voice="settings.heading"`. Do not use
 an English display sentence as a lookup key. Never pass notes, journal answers,
 custom mantras, or saved report text through the personality system.
 
-Personality styles and music continue to support all three modes in the same
+Personality styles and music continue to support all five modes in the same
 release. A feature branch is a temporary development workspace, not a permanent
 personality variant. Do not create permanent Zen/Builder/Founder branches.
 
@@ -122,8 +124,9 @@ to this directory map and preserve its isolated production rollout gates.
 
 ## Personality effects
 
-`personalities/ids.js` owns the shared stable IDs used by account preferences and
-future access policy models. The pre-paint appearance script mirrors these IDs
+`personalities/index.js` owns the stable IDs, profile data, optional effects and
+music renderer for every mode. `ids.js` re-exports these IDs for account validation
+and future access models. The pre-paint script derives its data from this registry
 without delaying the initial theme. All five modes remain free.
 
 `personalities/effects.js` owns decorative scenes and short completion/Focus
@@ -139,3 +142,24 @@ The additive `additional_personality_preferences` SQL migration expands the
 existing invoker RPC validator without changing notes, owner policies, or revision
 checks. `supabase/tests/personality-preferences.sql` verifies the five IDs, stale
 revision rejection, and invalid ID rejection in a rolled-back disposable fixture.
+
+## Build and cache consistency
+
+After `npm ci`, run `npm run format`. This formats sources, builds the single
+stylesheet, generates the theme bootstrap and Settings cards from the registry,
+and versions the complete local module graph. `build:personalities` and
+`build:assets` can also be run explicitly in that order after `build:styles`.
+
+The asset build computes a release key from normalized JavaScript, HTML and the
+compiled stylesheet, then stamps every local JS import and the app/style entry
+URLs. A changed leaf profile therefore refreshes cached parents as well. The
+early classic appearance script keeps its own content fingerprint. There is no
+manual per-personality cache version to maintain. `npm run check` rejects stale
+generated output or versions. The output stays self-contained in `dist/`, with no
+new runtime dependencies or hosting requirements.
+
+To add a personality, create its bundle with the same profile contract and
+register it once in `personalities/index.js`. Include its theme CSS in the ordered
+stylesheet sources, then run the build and tests. The server preference validator
+remains an explicit backend allowlist; new IDs need an additive migration before
+account sync can accept them. Browser metadata cannot authorize server access.

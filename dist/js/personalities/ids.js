@@ -1,2 +1,2 @@
-// Stable IDs shared by presentation, preference validation and access policy.
-export const PERSONALITY_IDS = Object.freeze(['zen', 'builder', 'founder', 'astronaut', 'gamer']);
+// Compatibility entry point; the registry owns the supported IDs.
+export { PERSONALITY_IDS } from './index.js?v=5010270c32fe';

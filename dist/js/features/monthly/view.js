@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js';
-import { createWeeklySection } from './weekly-notes.js?v=new-personalities-1';
+import { node } from '../../shared/dom.js?v=5010270c32fe';
+import { createWeeklySection } from './weekly-notes.js?v=5010270c32fe';
 import {
   NOTE_TYPES,
   categoryOptions,
@@ -9,15 +9,11 @@ import {
   typeBadge,
   noteTags,
   categoryLabel,
-} from '../notes/note-types.js?v=new-personalities-1';
-import {
-  voice,
-  focusMantras,
-  focusIdeas,
-} from '../../personalities/index.js?v=new-personalities-1';
-import { dateActions } from './date-actions.js?v=new-personalities-1';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=new-personalities-1';
-import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=new-personalities-1';
+} from '../notes/note-types.js?v=5010270c32fe';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=5010270c32fe';
+import { dateActions } from './date-actions.js?v=5010270c32fe';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=5010270c32fe';
+import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=5010270c32fe';
 
 const button = (text, label, action) => {
   const el = node('button', '', text);

@@ -1,17 +1,17 @@
-import { PERSONALITY_IDS } from '../../personalities/ids.js';
-import { node } from '../../shared/dom.js';
-import { indentLevel } from '../notes/formatting/indents.js?v=new-personalities-1';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=new-personalities-1';
-import { tagBadges, categoryOptions } from '../notes/note-types.js?v=new-personalities-1';
-import { musicProfile } from './music.js?v=focus-defaults-2';
+import { PERSONALITY_IDS } from '../../personalities/ids.js?v=5010270c32fe';
+import { node } from '../../shared/dom.js?v=5010270c32fe';
+import { indentLevel } from '../notes/formatting/indents.js?v=5010270c32fe';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=5010270c32fe';
+import { tagBadges, categoryOptions } from '../notes/note-types.js?v=5010270c32fe';
+import { musicProfile } from './music.js?v=5010270c32fe';
 import {
   voice,
   personality,
   focusMantras,
   focusIdeas,
   PERSONALITIES,
-} from '../../personalities/index.js?v=new-personalities-1';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=new-personalities-1';
+} from '../../personalities/index.js?v=5010270c32fe';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=5010270c32fe';
 import {
   focusIntervalNotes,
   newFocus,
@@ -22,11 +22,11 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=new-personalities-1';
-import { FocusAudio } from './audio.js?v=focus-defaults-2';
-import { createNoteEditor } from '../notes/note-editor.js?v=new-personalities-1';
-import { renderFormatted } from '../notes/formatting/format.js?v=new-personalities-1';
-import { noteTasks } from '../notes/formatting/tasks.js?v=new-personalities-1';
+} from './model.js?v=5010270c32fe';
+import { FocusAudio } from './audio.js?v=5010270c32fe';
+import { createNoteEditor } from '../notes/note-editor.js?v=5010270c32fe';
+import { renderFormatted } from '../notes/formatting/format.js?v=5010270c32fe';
+import { noteTasks } from '../notes/formatting/tasks.js?v=5010270c32fe';
 const KEY = 'dayline.focus.v1';
 const defaults = {
   binaural: false,

@@ -1,11 +1,12 @@
-import zen from './zen/index.js';
-import builder from './builder/index.js';
-import founder from './founder/index.js';
-import astronaut from './astronaut/index.js';
-import gamer from './gamer/index.js';
-import { DEFAULT_COPY } from './default-copy.js';
+import zen from './zen/index.js?v=5010270c32fe';
+import builder from './builder/index.js?v=5010270c32fe';
+import founder from './founder/index.js?v=5010270c32fe';
+import astronaut from './astronaut/index.js?v=5010270c32fe';
+import gamer from './gamer/index.js?v=5010270c32fe';
+import { DEFAULT_COPY } from './default-copy.js?v=5010270c32fe';
 
 export const PERSONALITIES = Object.freeze({ zen, builder, founder, astronaut, gamer });
+export const PERSONALITY_IDS = Object.freeze(Object.keys(PERSONALITIES));
 export const VOICE_QUOTES = Object.fromEntries(
   Object.entries(PERSONALITIES).map(([id, value]) => [id, value.quotes]),
 );

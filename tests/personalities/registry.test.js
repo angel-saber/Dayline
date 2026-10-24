@@ -9,6 +9,8 @@ test('every authored copy ID is available in every personality and all HTML refe
   const keys = Object.keys(PERSONALITIES.zen.copy).sort();
   for (const [id, value] of Object.entries(PERSONALITIES)) {
     assert.equal(value.id, id);
+    assert.equal(typeof value.renderScore, 'function');
+    assert.ok([null, 'orbital', 'mastery'].includes(value.effects));
     assert.deepEqual(Object.keys(value.copy).sort(), keys);
     assert.ok(
       value.name &&

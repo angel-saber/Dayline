@@ -6,10 +6,12 @@
   z-index: -1;
   display: none;
 }
-html:is([data-layout='astronaut'], [data-layout='gamer']) body {
+html:is([data-personality-effect='orbital'], [data-personality-effect='mastery']) body {
   isolation: isolate;
 }
-html:is([data-layout='astronaut'], [data-layout='gamer']):not([data-effects='off'])
+html:is([data-personality-effect='orbital'], [data-personality-effect='mastery']):not(
+    [data-effects='off']
+  )
   .personality-scene {
   display: block;
 }
@@ -41,14 +43,14 @@ html:is([data-layout='astronaut'], [data-layout='gamer']):not([data-effects='off
   background-size: 290px 310px;
   opacity: 0.5;
 }
-[data-layout='gamer'] .scene-orbit,
-[data-layout='gamer'] .scene-stars {
+[data-personality-effect='mastery'] .scene-orbit,
+[data-personality-effect='mastery'] .scene-stars {
   display: none;
 }
 .scene-grid {
   display: none !important;
 }
-[data-layout='gamer'] .scene-grid {
+[data-personality-effect='mastery'] .scene-grid {
   display: block !important;
   inset: -10%;
   background:
@@ -78,7 +80,7 @@ html:is([data-layout='astronaut'], [data-layout='gamer']):not([data-effects='off
   opacity: 0;
   animation: progress-arrival 1.8s ease-out forwards;
 }
-[data-layout='gamer'] .personality-burst {
+[data-personality-effect='mastery'] .personality-burst {
   border-radius: 14px;
   border-color: #e9c97f;
   box-shadow: inset 0 0 35px #a98bdf25;
@@ -146,7 +148,7 @@ html:is([data-layout='astronaut'], [data-layout='gamer']):not([data-effects='off
   fill: none;
   opacity: 0.14;
 }
-[data-layout='gamer'] .scene-skills {
+[data-personality-effect='mastery'] .scene-skills {
   display: block;
 }
 .scene-skills circle {

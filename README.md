@@ -8,7 +8,7 @@ Dayline is a browser-based daily planner and focus workspace. Plan in time inter
 - Note titles, bold, italic, underline, colored highlights, and individual checkbox tasks.
 - Swipe to complete or delete, drag to reschedule, and accessible move controls.
 - Monthly overview with quick note creation, date navigation, and cross-day moves.
-- Zen, Builder, and Founder layouts with matching personality copy and daily quotes.
+- Zen, Builder, Founder, Astronaut, and Gamer layouts with matching personality copy and daily quotes.
 - Focus Mode with a commitment, editable interval notes, generated music, separate ambient/binaural/metronome layers, audio presets, inspiration, interruption logs, optional reflection, and saved session reports.
 - Minimize Focus Mode using its button or by clicking outside the window; audio continues while the page remains open.
 - Automatic device-local saving, JSON backup export/restore, and optional browser reminders with sound.
@@ -25,14 +25,14 @@ npm test
 npm start
 ```
 
-Node.js 24 runs the development checks; Python 3 serves the website at http://localhost:8080. The exactly pinned development tools are only for formatting and tests. The deployed website has no npm runtime dependency. After changing stylesheet sources, run `npm run build:styles` and commit the generated stylesheet.
+Node.js 24 runs the development checks; Python 3 serves the website at http://localhost:8080. The exactly pinned development tools generate and verify static assets, formatting, and tests. The deployed website has no npm runtime dependency. After source edits, run `npm run format` to regenerate styles, personality bootstrap/Settings, and cache versions. Commit the generated output with the sources.
 
 ## Code structure
 
 - `dist/index.html`: page structure; `dist/js/app.js`: small application entry point.
 - `dist/js/app/`: planner coordination and connections between features.
 - `dist/js/features/`: accounts, activities, attachments, bulk actions, Daily, Focus, Monthly/Weekly Notes, note editing, onboarding, reminders, settings/backups, and sharing.
-- `dist/js/personalities/zen/`, `builder/`, `founder/`: each personality's authored copy, descriptions, quotes, mantras, onboarding preview, theme, and original soundtrack.
+- `dist/js/personalities/zen/`, `builder/`, `founder/`, `astronaut/`, `gamer/`: each personality's authored copy, descriptions, quotes, mantras, onboarding preview, theme, and original soundtrack.
 - `dist/js/shared/`: date/time, scheduling, validated storage, DOM, and download helpers.
 - `dist/styles/index.css`: ordered stylesheet sources; `dist/styles.css`: generated single-file browser bundle.
 - `tests/<feature>/`: organized behavior and regression tests.

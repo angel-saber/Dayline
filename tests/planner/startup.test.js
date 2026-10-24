@@ -208,6 +208,9 @@ test('the assembled planner starts, switches views/personalities, edits settings
     commit.click();
     await new Promise((resolve) => setTimeout(resolve, 1150));
     for (const [mode, label] of [
+      ['zen', 'Still temple'],
+      ['builder', 'Cyberpunk mission'],
+      ['founder', 'Symphonic horizon'],
       ['astronaut', 'Orbital drift'],
       ['gamer', 'Ascension protocol'],
     ]) {
