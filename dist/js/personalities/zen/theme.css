@@ -1,0 +1,12 @@
+:root {
+  color-scheme: light;
+  --paper: #f5f4ef;
+  --ink: #303b32;
+  --muted: #858a7d;
+  --line: #dfdfd5;
+  --green: #647d63;
+  --soft: #e9ede2;
+  --white: #fdfdf9;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+}

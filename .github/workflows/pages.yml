@@ -13,6 +13,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   deploy:
+    if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -22,6 +23,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - run: npm ci --ignore-scripts
+      - run: npm run format:check
       - run: npm run check && npm test
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

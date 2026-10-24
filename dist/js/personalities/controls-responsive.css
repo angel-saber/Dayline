@@ -1,0 +1,24 @@
+@media (max-width: 600px) {
+  .layout-options {
+    grid-template-columns: 1fr;
+  }
+  .settings-card .layout-choice {
+    display: grid;
+    grid-template-columns: 74px 1fr;
+    padding-right: 38px;
+    gap: 6px 14px;
+  }
+  .layout-swatch {
+    grid-row: span 2;
+    height: 58px;
+  }
+  .layout-choice strong {
+    align-self: end;
+  }
+  .layout-choice > span:last-child {
+    align-self: start;
+  }
+  .layout-choice input {
+    top: 22px;
+  }
+}
