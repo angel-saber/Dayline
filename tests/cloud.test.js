@@ -8,6 +8,30 @@ function storage() {
 }
 const session = { user: { id: 'one', email: 'test@example.com' }, access_token: 'test-access', refresh_token: 'test-refresh', expires_in: 3600 };
 
+test('password sign-in stores only the session and uses it to load private notes', async () => {
+  const calls=[], local=storage();
+  const client=new CloudClient(config,{storage:local,fetcher:async(url,options)=>{
+    calls.push({url,...options});return new Response(JSON.stringify(url.includes('grant_type=password')?session:[]));
+  }});
+  await client.signInPassword('test@example.com','fixture-password');
+  await client.loadDays();
+  assert.equal(calls[0].url,'https://example.supabase.co/auth/v1/token?grant_type=password');
+  assert.deepEqual(JSON.parse(calls[0].body),{email:'test@example.com',password:'fixture-password'});
+  assert.equal(calls[1].headers.Authorization,'Bearer test-access');
+  assert.ok(!local.getItem(client.sessionKey).includes('fixture-password'));
+});
+
+test('rejected passwords leave the prior session intact and do not trigger signup or email', async () => {
+  const urls=[],local=storage();
+  const client=new CloudClient(config,{storage:local,fetcher:async url=>{
+    urls.push(url);return new Response(JSON.stringify({msg:'Invalid login credentials'}),{status:400});
+  }});
+  client.storeSession(session);
+  await assert.rejects(client.signInPassword('other@example.com','incorrect'),/Check your email and password/);
+  assert.equal(client.readSession().user.id,'one');assert.equal(urls.length,1);
+  assert.ok(urls[0].endsWith('grant_type=password'));
+});
+
 test('configuration rejects privileged credentials and insecure or path URLs', () => {
   assert.equal(validateConfig({ url: '', publishableKey: '' }), null);
   for (const url of ['http://example.com', 'https://example.com/other', 'https://user:password@example.com']) assert.throws(() => validateConfig({ ...config, url }));

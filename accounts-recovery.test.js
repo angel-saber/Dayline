@@ -38,3 +38,35 @@ test('signing in with an empty account preserves guest notes and exposes deliber
     await api.retry();
   }finally{for(const [name,descriptor] of saved){if(descriptor)Object.defineProperty(globalThis,name,descriptor);else delete globalThis[name];}}
 });
+
+test('password form clears credentials on failure and signs in without replacing device notes',async()=>{
+  const names=['localStorage','sessionStorage','window','document','fetch','setInterval','clearInterval'];
+  const saved=new Map(names.map(name=>[name,Object.getOwnPropertyDescriptor(globalThis,name)]));
+  const local=storage(),raw=JSON.stringify(guest),elements=new Map(),calls=[];local.setItem('dayline.v1',raw);
+  class Element extends EventTarget{constructor(){super();this.hidden=false;this.value='';}focus(){}closest(){return this;}setAttribute(name,value){this[name]=value;}}
+  const element=selector=>{if(!elements.has(selector))elements.set(selector,new Element());return elements.get(selector);};
+  let state=structuredClone(guest),reject=true;
+  const settled=async()=>{for(let i=0;i<30;i++){await new Promise(resolve=>setImmediate(resolve));if(!element('#auth-submit').disabled)return;}throw new Error('Sign-in did not finish');};
+  try{
+    for(const [name,value] of Object.entries({localStorage:local,sessionStorage:storage(),window:Object.assign(new EventTarget(),{location:{href:'https://example.com/Dayline/'},history:{replaceState(){}}}),document:{querySelector:element},fetch:async(url,options)=>{
+      calls.push(url);
+      if(url.includes('grant_type=password'))return reject?new Response('{"msg":"Invalid login credentials"}',{status:400}):new Response(JSON.stringify({user:{id:'private-tester',email:'tester@example.invalid'},access_token:'test-access',refresh_token:'test-refresh',expires_in:3600}));
+      return new Response('[]');
+    },setInterval:()=>0,clearInterval:()=>{}}))Object.defineProperty(globalThis,name,{configurable:true,writable:true,value});
+    setupAccounts({getState:()=>state,setState:next=>{state=next;},flushEditor(){},toast(){},onStatus(){}});
+    element('#auth-method').onclick();
+    assert.equal(element('#auth-password').required,true);assert.equal(element('#password-field').hidden,false);
+    element('#auth-email').value='tester@example.invalid';element('#auth-password').value='fixture-password';
+    element('#auth-form').dispatchEvent(new Event('submit',{cancelable:true}));await settled();
+    assert.match(element('#auth-message').textContent,/Check your email and password/);
+    assert.equal(element('#auth-password').value,'');assert.deepEqual(state.days,guest.days);
+    assert.equal(local.getItem(`dayline.session:${cloudConfig.url}`),null);
+    reject=false;element('#auth-password').value='fixture-password';
+    element('#auth-form').dispatchEvent(new Event('submit',{cancelable:true}));await settled();
+    assert.equal(element('#auth-view').hidden,true);assert.equal(element('#auth-password').value,'');
+    assert.equal(local.getItem('dayline.v1'),raw);assert.equal(element('#device-notes-notice').hidden,false);
+    assert.equal(calls.filter(url=>url.includes('grant_type=password')).length,2);
+    assert.ok(!calls.some(url=>/\/otp|\/signup/.test(url)));
+    element('#auth-method').onclick();assert.equal(element('#auth-password').required,false);assert.equal(element('#auth-password').disabled,true);
+  }finally{for(const [name,descriptor] of saved){if(descriptor)Object.defineProperty(globalThis,name,descriptor);else delete globalThis[name];}}
+});

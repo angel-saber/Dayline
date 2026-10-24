@@ -1,5 +1,5 @@
 import { cloudConfig } from './config.js?v=private-accounts-2';
-import { CloudClient, takeSignInReturn } from './cloud.js?v=settings-sync-1';
+import { CloudClient, takeSignInReturn } from './cloud.js?v=password-signin-1';
 import { SyncEngine, mergeGuestDays, clearSyncedDrafts } from './sync.js?v=weekly-notes-1';
 import { load, save, validState } from './storage.js?v=embodied-voices-1';
 import {deviceNotes,countDeviceNotes,preserveDeviceNotes} from './device-notes.js?v=device-recovery-1';
@@ -14,6 +14,7 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
   const savedLayout=()=>localStorage.getItem('dayline.appearance.v1')||'zen';
   let generation = 0;
   let applyingPreferences=false;
+  let passwordLogin=false;
   let tabId;
   try {
     tabId = sessionStorage.getItem('dayline.tab');
@@ -29,6 +30,7 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
     $('#date-footer').hidden = show || $('#daily-view').hidden;
     $('#reopen-welcome').hidden=show;
     if (show) $('#auth-email').focus();
+    else $('#auth-password').value='';
     window.dispatchEvent(new Event('dayline:entry-view'));
   }
 
@@ -109,10 +111,10 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
 
   async function withBusy(action) {
     if (busy) return;
-    busy = true; $('#auth-submit').disabled = true; $('#send-code').disabled = true;
+    busy = true; $('#auth-submit').disabled = true; $('#send-code').disabled = true; $('#auth-method').disabled=true;
     try { await action(); }
     catch (error) { $('#auth-message').textContent = error.message; }
-    finally { busy = false; $('#auth-submit').disabled = !cloud?.config; $('#send-code').disabled = !cloud?.config; }
+    finally { busy = false; $('#auth-submit').disabled = !cloud?.config; $('#send-code').disabled = !cloud?.config; $('#auth-method').disabled=!cloud?.config; }
   }
 
   async function requestLink(email) {
@@ -128,6 +130,13 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
       const email = $('#auth-email').value.trim();
       const token = $('#auth-code').value.trim();
       if (!cloud?.config) throw new Error('Account setup is not active yet. You can still continue on this device.');
+      if (passwordLogin) {
+        let session;
+        try { session=await cloud.signInPassword(email,$('#auth-password').value); }
+        finally { $('#auth-password').value=''; }
+        $('#auth-message').textContent='';
+        await enterAccount(session); return;
+      }
       if (linkLogin) { await requestLink(email); return; }
       if (!token) {
         if (Date.now() < resendAt) throw new Error('Please wait a minute before requesting another code.');
@@ -151,7 +160,23 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
   });
   $('#auth-email').oninput = () => {
     $('#code-field').hidden = true; $('#auth-code').required = false;
-    $('#auth-code').value = ''; $('#auth-submit').textContent = linkLogin ? 'Email me a sign-in link' : 'Email me a sign-in code'; $('#send-code').hidden = true;
+    $('#auth-code').value = ''; $('#auth-submit').textContent = passwordLogin ? 'Sign in' : linkLogin ? 'Email me a sign-in link' : 'Email me a sign-in code'; $('#send-code').hidden = true;
+  };
+  $('#auth-method').onclick=()=>{
+    if(busy)return;
+    passwordLogin=!passwordLogin;
+    $('#password-field').hidden=!passwordLogin;
+    $('#auth-password').required=passwordLogin;
+    $('#auth-password').disabled=!passwordLogin;
+    $('#auth-password').value='';
+    $('#auth-code').value='';$('#auth-code').required=false;$('#code-field').hidden=true;$('#send-code').hidden=true;
+    $('#auth-submit').textContent=passwordLogin?'Sign in':linkLogin?'Email me a sign-in link':'Email me a sign-in code';
+    $('#auth-method').textContent=passwordLogin?'Use email sign-in instead':'Use a password instead';
+    $('#auth-method').setAttribute('aria-expanded',String(passwordLogin));
+    $('#password-help').hidden=!passwordLogin;
+    $('#create-account').closest('label').hidden=passwordLogin||cloudConfig.allowSignup!==true;
+    $('#auth-message').textContent='';
+    if(passwordLogin)$('#auth-password').focus();
   };
   $('#continue-local').onclick = () => { try{localStorage.setItem('dayline.guest.v1','yes');}catch{} showLogin(false); accountView(); };
   $('#sign-in-button').onclick = () => showLogin(true);
@@ -232,6 +257,7 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
   $('#create-account').closest('label').hidden = cloudConfig.allowSignup !== true;
   if (linkLogin) $('#auth-submit').textContent = 'Email me a sign-in link';
   $('#auth-submit').disabled=!cloud?.config;$('#create-account').disabled=!cloud?.config;
+  $('#auth-method').disabled=!cloud?.config;
   try {
     const session = cloud?.config && cloud.readSession();
     if (signInReturn) {

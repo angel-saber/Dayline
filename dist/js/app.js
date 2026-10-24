@@ -22,7 +22,7 @@ import {dayKey,parseDay,offsetDay,slots,grouped,dropEntry,timeLabel} from './mod
 import {load,save,validState} from './storage.js?v=embodied-voices-1';
 import {attachGestures} from './gestures.js?v=bulk-notes-1';
 import {Reminders,resolveReminder} from './reminders.js?v=reschedule-background-1';
-import {setupAccounts} from './accounts.js?v=settings-sync-1';
+import {setupAccounts} from './accounts.js?v=password-signin-1';
 import {dailyQuote} from './quotes.js?v=embodied-voices-1';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
 import {createNoteEditor} from './note-editor.js?v=weekly-notes-1';

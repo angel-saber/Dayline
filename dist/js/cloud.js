@@ -97,6 +97,20 @@ export class CloudClient {
     return this.request('/auth/v1/otp', { method: 'POST', body: { email, create_user: createUser === true } });
   }
 
+  async signInPassword(email, password) {
+    let data;
+    try {
+      data = await this.request('/auth/v1/token?grant_type=password', {
+        method: 'POST', body: { email, password },
+      });
+    } catch (error) {
+      if (error.status === 401) throw new CloudError('Could not sign in. Check your email and password, or contact the account administrator for help.', 401);
+      throw error;
+    }
+    // Keep only the returned session, never the submitted password.
+    return this.storeSession(data);
+  }
+
   async sendLink(email, redirectTo) {
     const redirect = new URL(redirectTo);
     if (redirect.protocol !== 'https:' || redirect.search || redirect.hash || redirect.username || redirect.password) {

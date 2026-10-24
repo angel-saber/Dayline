@@ -14,6 +14,14 @@ Links use PKCE: a random verifier stays in this browser's local storage and only
 
 The code-based adapter remains available for future separately configured environments, but private testing does not need edited email templates. Never change the browser flag alone to launch public accounts.
 
+## Private password accounts
+
+The sign-in page also offers **Use a password instead**. It exchanges an existing email/password through Supabase Auth's password token endpoint, then uses the same notes/settings sync and owner-only policies as email-link sign-in. Passwords are not saved in Dayline storage or included in URLs. The field is cleared after each attempt. Email links remain the default for the owner's existing account.
+
+To provision an additional private tester without email delivery, open Authentication → Users → Add user → **Create new user** in the dedicated Dayline project's dashboard. Enter the approved address, have the administrator/user enter a unique password directly into the dashboard, and select **Auto Confirm User**. Do not use Send invitation for this path. Keep public sign-ups disabled and email confirmation enabled. Never add testers as Supabase organization members. Do not commit passwords or send them through development logs/chat. Account creation must be completed privately by the user; deploying the password form alone does not create any account.
+
+The tester can use the same credentials on desktop and mobile. Password recovery for these testers currently requires the administrator; the default email sender cannot deliver resets to non-team addresses. A private tester's successful sign-in and cross-device sync need live verification after provisioning.
+
 ## Backend
 
 `supabase/migrations/202610190001_accounts.sql` creates `public.dayline_days` and `public.save_dayline_day`. Anonymous callers have no table or function access. Authenticated reads are restricted to the session owner's rows. Direct writes are revoked. The compare-and-swap function derives the owner from `auth.uid()`, validates notes, locks the row, and checks revisions. Empty days remain revisioned tombstones.
