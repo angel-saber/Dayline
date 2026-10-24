@@ -13,7 +13,7 @@
       rel="icon"
       href="./icon.svg"
       type="image/svg+xml" /><script src="./js/personalities/appearance.js?v=settings-sync-1"></script
-    ><link rel="stylesheet" href="./styles.css?v=code-organization-1"
+    ><link rel="stylesheet" href="./styles.css?v=new-personalities-1"
   /></head>
   <body>
     <header class="topbar"
@@ -208,7 +208,28 @@
                 ><span data-personality-description="founder"
                   >Elegant and strategic · leverage &amp; foresight</span
                 ></label
-              > </fieldset
+              >
+              <label class="layout-choice"
+                ><input type="radio" name="layout" value="astronaut" /><span
+                  class="layout-swatch swatch-astronaut"
+                  aria-hidden="true"
+                  ><i></i><i></i><i></i></span
+                ><strong data-personality-name="astronaut">Astronaut</strong
+                ><span data-personality-description="astronaut">Curious and courageous</span></label
+              ><label class="layout-choice"
+                ><input type="radio" name="layout" value="gamer" /><span
+                  class="layout-swatch swatch-gamer"
+                  aria-hidden="true"
+                  ><i></i><i></i><i></i></span
+                ><strong data-personality-name="gamer">Gamer</strong
+                ><span data-personality-description="gamer">Calculated and relentless</span></label
+              ></fieldset
+            ><label for="visual-effects">Visual effects</label
+            ><select id="visual-effects"
+              ><option value="full">Full</option
+              ><option value="subtle">Subtle</option
+              ><option value="off">Off</option></select
+            ><p id="effects-status" class="field-hint" role="status"></p
             ><p class="field-hint" id="layout-status" role="status"
               >Your choice is saved on this device.</p
             ><button id="reopen-welcome" class="secondary" type="button"
@@ -377,5 +398,5 @@
       ></dialog
     >
     <div class="sr-only" id="announcer" aria-live="polite"></div>
-    <script type="module" src="./js/app.js?v=provider-ports-1"></script> </body
+    <script type="module" src="./js/app.js?v=new-personalities-1"></script> </body
 ></html>

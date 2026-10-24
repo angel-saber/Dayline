@@ -1,12 +1,12 @@
-import { deviceNotes } from '../accounts/device-notes.js?v=device-recovery-1';
-import { validState, save } from '../../shared/storage.js?v=embodied-voices-1';
-import { dayKey } from '../../shared/schedule.js?v=weekly-notes-1';
+import { deviceNotes } from '../accounts/device-notes.js?v=new-personalities-1';
+import { validState, save } from '../../shared/storage.js?v=new-personalities-1';
+import { dayKey } from '../../shared/schedule.js?v=new-personalities-1';
 import {
   exportFiles,
   prepareFiles,
   storeFiles,
   MAX_BACKUP_SIZE,
-} from '../attachments/attachments.js?v=attachments-1';
+} from '../attachments/attachments.js?v=new-personalities-1';
 import { downloadText } from '../../shared/download.js';
 const $ = (selector) => document.querySelector(selector);
 export function setupBackups({

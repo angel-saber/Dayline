@@ -1,13 +1,13 @@
 import { node } from '../../shared/dom.js';
-import { openAvailability } from '../sharing/availability-ui.js?v=weekly-notes-1';
+import { openAvailability } from '../sharing/availability-ui.js?v=new-personalities-1';
 import {
   selectionKey,
   selectedNotes,
   matchingNotes,
   scopeRange,
-} from './model.js?v=weekly-notes-1';
-import { categoryOptions, typeChips } from '../notes/note-types.js?v=multi-tags-1';
-import { openShareNotes } from '../sharing/share-note.js?v=embodied-voices-1';
+} from './model.js?v=new-personalities-1';
+import { categoryOptions, typeChips } from '../notes/note-types.js?v=new-personalities-1';
+import { openShareNotes } from '../sharing/share-note.js?v=new-personalities-1';
 
 const button = (text, fn, cls = 'secondary') => {
   const e = node('button', cls, text);

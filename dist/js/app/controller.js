@@ -1,46 +1,47 @@
+import { setupPersonalityEffects } from '../personalities/effects.js';
 import { node } from '../shared/dom.js';
 import { setupBackups } from '../features/settings/backups.js';
 import { setupSettings } from '../features/settings/controller.js';
 import { renderNoteLines } from '../features/notes/render.js';
-import { rescheduleNote } from '../features/daily/reschedule.js?v=reschedule-background-1';
-import { changeWeekly } from '../features/monthly/weekly-model.js?v=weekly-notes-1';
+import { rescheduleNote } from '../features/daily/reschedule.js?v=new-personalities-1';
+import { changeWeekly } from '../features/monthly/weekly-model.js?v=new-personalities-1';
 import {
   availableHours,
   dailySlotVisible,
-} from '../features/settings/available-hours.js?v=available-hours-1';
+} from '../features/settings/available-hours.js?v=new-personalities-1';
 import {
   attachmentList,
   bindFileDrop,
-} from '../features/attachments/attachments.js?v=attachments-1';
-import { setupTagSettings } from '../features/notes/tag-settings.js?v=multi-tags-1';
-import { setupBulk } from '../features/bulk/view.js?v=weekly-notes-1';
-import { bulkChange } from '../features/bulk/model.js?v=weekly-notes-1';
-import { openShareNote } from '../features/sharing/share-note.js?v=embodied-voices-1';
+} from '../features/attachments/attachments.js?v=new-personalities-1';
+import { setupTagSettings } from '../features/notes/tag-settings.js?v=new-personalities-1';
+import { setupBulk } from '../features/bulk/view.js?v=new-personalities-1';
+import { bulkChange } from '../features/bulk/model.js?v=new-personalities-1';
+import { openShareNote } from '../features/sharing/share-note.js?v=new-personalities-1';
 import {
   tagBadges,
   categoryOptions,
   collectTagSettings,
-} from '../features/notes/note-types.js?v=multi-tags-1';
+} from '../features/notes/note-types.js?v=new-personalities-1';
 import {
   setupActivities,
   renderGuidedReports,
-} from '../features/activities/view.js?v=weekly-notes-1';
-import { attachGuidedPlan } from '../features/activities/model.js?v=weekly-notes-1';
-import { setupWelcome } from '../features/onboarding/welcome.js?v=builder-description-2';
+} from '../features/activities/view.js?v=new-personalities-1';
+import { attachGuidedPlan } from '../features/activities/model.js?v=new-personalities-1';
+import { setupWelcome } from '../features/onboarding/welcome.js?v=new-personalities-1';
 import {
   voice,
   personality,
   applyPersonality,
-} from '../personalities/index.js?v=embodied-voices-1';
-import { setupFocus } from '../features/focus/controller.js?v=embodied-voices-1';
-import { renderFocusReports } from '../features/focus/reports.js?v=embodied-voices-1';
+} from '../personalities/index.js?v=new-personalities-1';
+import { setupFocus } from '../features/focus/controller.js?v=new-personalities-1';
+import { renderFocusReports } from '../features/focus/reports.js?v=new-personalities-1';
 import {
   findFocusNote,
   extendFocusNote,
   attachFocusReport,
-} from '../features/focus/model.js?v=embodied-voices-1';
-import { setupMonthly } from '../features/monthly/view.js?v=embodied-voices-1';
-import { moveToDay, quickNote } from '../features/monthly/model.js?v=note-drop-1';
+} from '../features/focus/model.js?v=new-personalities-1';
+import { setupMonthly } from '../features/monthly/view.js?v=new-personalities-1';
+import { moveToDay, quickNote } from '../features/monthly/model.js?v=new-personalities-1';
 import {
   dayKey,
   parseDay,
@@ -48,17 +49,17 @@ import {
   grouped,
   dropEntry,
   timeLabel,
-} from '../shared/schedule.js?v=weekly-notes-1';
-import { load, save } from '../shared/storage.js?v=embodied-voices-1';
-import { attachGestures } from '../features/daily/gestures.js?v=bulk-notes-1';
+} from '../shared/schedule.js?v=new-personalities-1';
+import { load, save } from '../shared/storage.js?v=new-personalities-1';
+import { attachGestures } from '../features/daily/gestures.js?v=new-personalities-1';
 import {
   Reminders,
   resolveReminder,
-} from '../features/reminders/reminders.js?v=reschedule-background-1';
-import { setupAccounts } from '../features/accounts/accounts.js?v=provider-ports-1';
-import { dailyQuote } from '../personalities/quotes.js?v=embodied-voices-1';
-import { createNoteEditor } from '../features/notes/note-editor.js?v=weekly-notes-1';
-import { noteTasks } from '../features/notes/formatting/tasks.js?v=line-tasks-1';
+} from '../features/reminders/reminders.js?v=new-personalities-1';
+import { setupAccounts } from '../features/accounts/accounts.js?v=new-personalities-1';
+import { dailyQuote } from '../personalities/quotes.js?v=new-personalities-1';
+import { createNoteEditor } from '../features/notes/note-editor.js?v=new-personalities-1';
+import { noteTasks } from '../features/notes/formatting/tasks.js?v=new-personalities-1';
 const $ = (s) => document.querySelector(s);
 let monthly = null;
 let expandedDay = null;
@@ -116,23 +117,28 @@ function persist() {
     return false;
   }
 }
+setupPersonalityEffects();
 function entries() {
   return (state.days[selected] || []).filter((note) => !note.weekly);
 }
 function commit(next, message) {
   undo = { date: selected, entries: structuredClone(state.days[selected] || []) };
   state.days[selected] = [...(state.days[selected] || []).filter((note) => note.weekly), ...next];
-  persist();
+  const saved = persist();
   renderTimeline();
   toast(message, true);
+  return saved;
 }
 function complete(id) {
   const e = entries().find((e) => e.id === id);
-  if (e)
-    commit(
+  if (e) {
+    const saved = commit(
       entries().map((e) => (e.id === id ? { ...e, done: !e.done } : e)),
       e.done ? 'Note reopened' : 'A little progress. Note completed.',
     );
+    if (saved && !e.done)
+      window.dispatchEvent(new CustomEvent('dayline:effect', { detail: { kind: 'complete' } }));
+  }
 }
 function remove(id) {
   commit(

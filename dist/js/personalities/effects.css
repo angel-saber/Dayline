@@ -1,0 +1,172 @@
+.personality-scene {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: -1;
+  display: none;
+}
+html:is([data-layout='astronaut'], [data-layout='gamer']) body {
+  isolation: isolate;
+}
+html:is([data-layout='astronaut'], [data-layout='gamer']):not([data-effects='off'])
+  .personality-scene {
+  display: block;
+}
+.personality-scene i {
+  position: absolute;
+  display: block;
+}
+.scene-orbit {
+  width: 70vw;
+  height: 70vw;
+  border: 1px solid #8bcfff26;
+  border-radius: 50%;
+  right: -35vw;
+  top: 5vh;
+  transform: rotate(-25deg) scaleY(0.55);
+}
+.scene-orbit.second {
+  width: 90vw;
+  height: 90vw;
+  right: -40vw;
+  top: -10vh;
+}
+.scene-stars {
+  inset: -5%;
+  background:
+    radial-gradient(circle at 13% 24%, #c4eaff88 0 1px, transparent 2px),
+    radial-gradient(circle at 72% 13%, #c4eaff88 0 1px, transparent 2px),
+    radial-gradient(circle at 30% 80%, #b99aff77 0 1px, transparent 2px);
+  background-size: 290px 310px;
+  opacity: 0.5;
+}
+[data-layout='gamer'] .scene-orbit,
+[data-layout='gamer'] .scene-stars {
+  display: none;
+}
+.scene-grid {
+  display: none !important;
+}
+[data-layout='gamer'] .scene-grid {
+  display: block !important;
+  inset: -10%;
+  background:
+    linear-gradient(90deg, #a58ae014 1px, transparent 1px),
+    linear-gradient(#a58ae014 1px, transparent 1px),
+    radial-gradient(circle, #e9c97f55 1px, transparent 3px);
+  background-size: 80px 80px;
+  transform: perspective(700px) rotateX(18deg);
+  opacity: 0.65;
+}
+[data-effects='full'] .scene-stars {
+  animation: orbital-drift 70s ease-in-out infinite alternate;
+}
+[data-effects='full'] .scene-grid {
+  animation: mastery-breathe 12s ease-in-out infinite alternate;
+}
+[data-focus-active='true'] .scene-orbit {
+  border-color: #a1def45c;
+}
+.personality-burst {
+  pointer-events: none;
+  position: fixed;
+  inset: 12%;
+  z-index: 30;
+  border: 1px solid #a1def4;
+  border-radius: 50%;
+  opacity: 0;
+  animation: progress-arrival 1.8s ease-out forwards;
+}
+[data-layout='gamer'] .personality-burst {
+  border-radius: 14px;
+  border-color: #e9c97f;
+  box-shadow: inset 0 0 35px #a98bdf25;
+}
+[data-effects='off'] .personality-burst {
+  display: none;
+}
+@keyframes orbital-drift {
+  to {
+    transform: translate3d(15px, -25px, 0);
+  }
+}
+@keyframes mastery-breathe {
+  to {
+    opacity: 0.3;
+  }
+}
+@keyframes progress-arrival {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  25% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+}
+.layout-options {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.layout-choice {
+  grid-column: span 2;
+}
+.layout-choice:nth-last-child(-n + 2) {
+  grid-column: span 3;
+}
+@media (max-width: 600px) {
+  .layout-options {
+    grid-template-columns: 1fr;
+  }
+  .layout-choice,
+  .layout-choice:nth-last-child(-n + 2) {
+    grid-column: span 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .personality-scene,
+  .personality-burst {
+    display: none !important;
+  }
+}
+
+.scene-skills {
+  display: none;
+  position: absolute;
+  right: 2vw;
+  top: 20vh;
+  width: 220px;
+  height: 340px;
+  stroke: #ac8adf;
+  stroke-width: 1;
+  fill: none;
+  opacity: 0.14;
+}
+[data-layout='gamer'] .scene-skills {
+  display: block;
+}
+.scene-skills circle {
+  fill: #e9c97f;
+  stroke: #e9c97f;
+}
+[data-effects='full'] .scene-orbit {
+  animation: orbit-align 90s ease-in-out infinite alternate;
+}
+[data-effects='full'][data-focus-active='true'] .scene-skills {
+  animation: mastery-breathe 8s ease-in-out infinite alternate;
+}
+@keyframes orbit-align {
+  to {
+    transform: rotate(20deg) scaleY(0.55);
+  }
+}
+@media (max-width: 600px) {
+  .scene-skills {
+    right: -100px;
+    opacity: 0.1;
+  }
+}

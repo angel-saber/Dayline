@@ -1,12 +1,12 @@
-import { validState } from '../../shared/storage.js?v=embodied-voices-1';
-import { availableHours } from '../settings/available-hours.js?v=available-hours-1';
-import { validTagSettings } from '../notes/note-types.js?v=multi-tags-1';
+import { PERSONALITY_IDS } from '../../personalities/ids.js';
+import { validState } from '../../shared/storage.js?v=new-personalities-1';
+import { availableHours } from '../settings/available-hours.js?v=new-personalities-1';
+import { validTagSettings } from '../notes/note-types.js?v=new-personalities-1';
 
 const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const clone = (value) => structuredClone(value);
 export function sharedPreferences(settings, layout = 'zen') {
-  if (!['zen', 'builder', 'founder'].includes(layout))
-    throw new Error('Invalid personality preference.');
+  if (!PERSONALITY_IDS.includes(layout)) throw new Error('Invalid personality preference.');
   const valid = validState({ version: 1, days: {}, settings }).settings;
   return {
     ...valid,

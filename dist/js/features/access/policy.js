@@ -2,9 +2,10 @@
 // No checkout, admin endpoint, protected asset delivery, or paywall is enabled.
 // A browser flag, an imported file, and this evaluator are NOT proof of purchase.
 import { validateAccountId } from '../../shared/account-id.js';
-export const PERSONALITY_IDS = Object.freeze(['zen', 'builder', 'founder']);
+import { PERSONALITY_IDS } from '../../personalities/ids.js';
+export { PERSONALITY_IDS };
 export const PAYMENTS_ENABLED = false;
-const FEATURE = /^personality\.(zen|builder|founder)$/;
+const validFeature = (value) => PERSONALITY_IDS.some((id) => value === `personality.${id}`);
 const PRODUCT = /^[a-z][a-z0-9._-]{0,79}$/;
 export const DEFAULT_ACCESS_POLICY = Object.freeze({
   version: 1,
@@ -60,7 +61,7 @@ export function validateGrants(value) {
     if (
       seen.has(grant.id) ||
       typeof grant.featureKey !== 'string' ||
-      !FEATURE.test(grant.featureKey) ||
+      !validFeature(grant.featureKey) ||
       !['active', 'revoked'].includes(grant.status) ||
       !['purchase', 'admin', 'legacy'].includes(grant.source)
     )

@@ -151,10 +151,18 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.equal(document.querySelector('#monthly-view').hidden, false);
     assert.match(document.querySelector('#monthly-view').textContent, /Weekly direction/);
     document.querySelector('#settings-tab').click();
+    for (const mode of ['astronaut', 'gamer', 'zen', 'builder', 'founder']) {
+      const choice = document.querySelector(`input[name="layout"][value="${mode}"]`);
+      choice.checked = true;
+      choice.dispatchEvent(new window.Event('change'));
+      assert.equal(document.documentElement.dataset.layout, mode);
+      assert.equal(local.getItem('dayline.appearance.v1'), mode);
+      assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
+    }
     document.querySelector('#reopen-welcome').click();
     const welcome = document.querySelector('.welcome-window');
     assert.equal(welcome.open, true);
-    assert.equal(welcome.querySelectorAll('input[name="welcome-personality"]').length, 3);
+    assert.equal(welcome.querySelectorAll('input[name="welcome-personality"]').length, 5);
     for (const input of welcome.querySelectorAll('input[name="welcome-personality"]')) {
       input.checked = input.value === 'builder';
     }

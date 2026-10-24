@@ -1,0 +1,45 @@
+:root[data-layout='astronaut'] body {
+  background-image:
+    radial-gradient(ellipse at 88% 0%, #644d9d22, transparent 50%),
+    radial-gradient(ellipse at 0% 60%, #32739a12, transparent 50%);
+}
+:root[data-layout='astronaut'] :is(h1, .settings-card h2, .focus-window h2, .auth-card h2) {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  letter-spacing: -0.7px;
+}
+:root[data-layout='astronaut'] .brand-icon {
+  color: #b6ddff;
+  text-shadow: 0 0 22px #94ccff44;
+}
+:root[data-layout='astronaut'] :is(.eyebrow, .timeline-top, .focus-stats, .month-week h2) {
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  letter-spacing: 2px;
+}
+:root[data-layout='astronaut']
+  :is(.entry, .settings-card, .focus-section, .focus-commitment, dialog) {
+  border-radius: 16px;
+  border-color: var(--line);
+  box-shadow: 0 10px 35px #00000012;
+}
+:root[data-layout='astronaut'] .entry {
+  border-left: 2px solid #9acdeb66;
+}
+:root[data-layout='astronaut'] .focus-mantra {
+  border-radius: 0 12px 12px 0;
+  color: #d6e8ff;
+}
+:root[data-layout='astronaut'] .topbar {
+  border-bottom-color: #a1def433;
+}
+:root[data-layout='astronaut'] :is(.primary, .focus-mini) {
+  box-shadow: 0 0 20px #97d6ff16;
+}
+.swatch-astronaut {
+  background:
+    radial-gradient(circle at 78% 30%, #b5d1f4 0 7px, #b5d1f422 8px 13px, transparent 14px),
+    radial-gradient(ellipse at 10% 80%, #454275, #080f22 70%);
+}
+.swatch-astronaut i {
+  background: #b7dcf4;
+}
