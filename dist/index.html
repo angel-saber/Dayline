@@ -25,6 +25,7 @@
   <p class="auth-footnote">Your account notes are private. Without signing in, notes stay on this device.</p>
 </section>
 <div id="planner" hidden>
+<aside id="device-notes-notice" class="settings-card" aria-label="Device notes recovery" hidden><h2>Your device notes</h2><p id="device-notes-message" class="field-hint" role="status"></p><div class="inline"><button id="review-device-notes" class="primary" type="button">Add device notes to my account</button><button id="export-device-notes" class="secondary" type="button">Download device notes backup</button></div></aside>
 <section id="daily-view" aria-labelledby="day-heading">
 <div class="eyebrow" id="relative-day">YOUR DAY, AT YOUR PACE</div>
 <div class="date-heading"><h1 id="day-heading"></h1><button id="today-top" class="pill">Today <span>↗</span></button></div>
@@ -73,5 +74,5 @@
 <dialog id="restore-dialog"><form method="dialog"><h2>Restore this backup?</h2><p id="restore-explanation">This replaces all notes and settings on this device. Download your current backup first if you want to keep it.</p><div class="inline"><button value="cancel" class="secondary">Cancel</button><button value="restore" class="primary">Restore backup</button></div></form></dialog>
 <dialog id="migration-dialog"><form method="dialog"><h2>Bring your notes along?</h2><p>This adds this device’s notes to the account you’re signed into. Existing account notes and the original device notes are kept.</p><div class="inline"><button value="cancel" class="secondary">Cancel</button><button value="import" class="primary">Add notes to my account</button></div></form></dialog>
 <div class="sr-only" id="announcer" aria-live="polite"></div>
-<script type="module" src="./js/app.js?v=builder-description-2"></script>
+<script type="module" src="./js/app.js?v=device-recovery-1"></script>
 </body></html>

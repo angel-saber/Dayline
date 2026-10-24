@@ -2,10 +2,11 @@ import { cloudConfig } from './config.js?v=private-accounts-2';
 import { CloudClient, takeSignInReturn } from './cloud.js?v=private-accounts-2';
 import { SyncEngine, mergeGuestDays, clearSyncedDrafts } from './sync.js?v=weekly-notes-1';
 import { load, save, validState } from './storage.js?v=embodied-voices-1';
+import {deviceNotes,countDeviceNotes,preserveDeviceNotes} from './device-notes.js?v=device-recovery-1';
 
 const $ = selector => document.querySelector(selector);
 
-export function setupAccounts({ getState, setState, flushEditor, toast, onStatus }) {
+export function setupAccounts({ getState, setState, flushEditor, toast, onStatus, downloadDeviceBackup }) {
   const linkLogin = cloudConfig.authMethod === 'link';
   const signInReturn = takeSignInReturn(window.location, window.history);
   let cloud, engine, user = null, busy = false, resendAt = 0, viewIsLogin = false;
@@ -35,13 +36,21 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
     $('#reopen-welcome').hidden = viewIsLogin;
     $('#sign-out-button').hidden = !user;
     $('#sync-now').hidden = !user;
-    let hasGuest = false;
-    try { hasGuest = Object.values(load().days).some(notes => notes.length); } catch { /* Existing recovery flow remains available. */ }
+    let hasGuest = false,count=0,deviceError=false;
+    try {
+      const saved=deviceNotes();hasGuest=countDeviceNotes(saved)>0;
+      count=Object.entries(saved.days).reduce((total,[date,notes])=>total+notes.filter(note=>!getState().days[date]?.some(other=>other.id===note.id)).length,0);
+    } catch { deviceError=true; }
     $('#import-device-notes').hidden = !user || !hasGuest;
+    $('#device-notes-notice').hidden = !user || (!count&&!deviceError);
+    $('#device-notes-message').textContent=deviceError?'Dayline could not read this browser’s device notes. They have not been replaced by your account. Download a device recovery copy before clearing browser data.':`You’re viewing your account notes. ${count} ${count===1?'note is':'notes are'} still saved separately in this browser. Add them to your account to see them here.`;
+    $('#review-device-notes').hidden=!hasGuest;
     $('#backup-description').textContent = user ? 'Download a copy of your account notes. Notes waiting to sync are included. Restoring a backup replaces this account’s notes across devices.' : 'Saved automatically in this browser, on this device. Sign in to sync, or download a backup before switching devices.';
   }
 
   async function enterAccount(session) {
+    flushEditor();
+    if(!user){try{preserveDeviceNotes();}catch{toast('A separate device checkpoint could not be created. Existing browser data was left untouched.');}}
     const current = ++generation;
     engine?.stop(); engine = null; user = session.user;
     const preferences = { ...getState().settings };
@@ -49,7 +58,7 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
       engine = new SyncEngine({ cloud, userId: user.id, cacheId: tabId,
         onDays(days) {
           if (current !== generation) return;
-          setState({ version: 1, days, settings: getState().settings });
+          setState({ version: 1, days, settings: getState().settings });accountView();
         },
         onStatus(status, error) {
           if (current !== generation) return;
@@ -128,13 +137,18 @@ export function setupAccounts({ getState, setState, flushEditor, toast, onStatus
   $('#sign-in-button').onclick = () => showLogin(true);
   $('#sync-now').onclick = () => { flushEditor(); engine?.sync().catch(error => toast(error.message)); };
   $('#import-device-notes').onclick = () => $('#migration-dialog').showModal();
+  $('#review-device-notes').onclick = () => $('#migration-dialog').showModal();
+  $('#export-device-notes').onclick = async () => {
+    try{await downloadDeviceBackup();}catch(error){toast(`Could not export device notes: ${error.message}`);}
+  };
   $('#migration-dialog').addEventListener('close', () => {
     if ($('#migration-dialog').returnValue !== 'import' || !engine) return;
     try {
       flushEditor();
       const state = getState();
-      const days = mergeGuestDays(state.days, load().days);
+      const days = mergeGuestDays(state.days, deviceNotes().days);
       engine.stage(days); setState({ ...state, days });
+      accountView();$('#device-notes-notice').hidden=true;
       toast('Device notes added to your account. The original device notes are kept too.');
     } catch (error) { toast(error.message); }
   });

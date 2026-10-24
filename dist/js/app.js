@@ -1,4 +1,5 @@
 import {rescheduleNote} from './reschedule.js?v=reschedule-background-1';
+import {deviceNotes} from './device-notes.js?v=device-recovery-1';
 import {changeWeekly} from './weekly-model.js?v=weekly-notes-1';
 import {indentLevel} from './indents.js?v=indentation-1';
 import {availableHours,validAvailableHours,hourInput,inputMinute,dailySlotVisible} from './available-hours.js?v=available-hours-1';
@@ -21,7 +22,7 @@ import {dayKey,parseDay,offsetDay,slots,grouped,dropEntry,timeLabel} from './mod
 import {load,save,validState} from './storage.js?v=embodied-voices-1';
 import {attachGestures} from './gestures.js?v=bulk-notes-1';
 import {Reminders,resolveReminder} from './reminders.js?v=reschedule-background-1';
-import {setupAccounts} from './accounts.js?v=private-accounts-2';
+import {setupAccounts} from './accounts.js?v=device-recovery-1';
 import {dailyQuote} from './quotes.js?v=embodied-voices-1';
 import {renderFormatted} from './format.js?v=hyperlinks-1';
 import {createNoteEditor} from './note-editor.js?v=weekly-notes-1';
@@ -263,6 +264,16 @@ $('#export').onclick=async()=>{
     const url=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=node('a');a.href=url;a.download=`dayline-backup-${dayKey()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }catch(error){toast(`Could not export: ${error.message}`);}
 };
+async function downloadDeviceBackup(){
+  let backup;
+  try{backup=deviceNotes();}catch{
+    const raw=localStorage.getItem('dayline.v1');
+    if(!raw)throw new Error('No device copy was found in this browser.');
+    const url=URL.createObjectURL(new Blob([raw],{type:'application/json'})),a=node('a');a.href=url;a.download=`dayline-device-recovery-${dayKey()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;
+  }
+  const data=JSON.stringify(await exportFiles(structuredClone(backup)));
+  const url=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=node('a');a.href=url;a.download=`dayline-device-notes-${dayKey()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
 $('#import').onclick=()=>$('#import-file').click();
 $('#import-file').onchange=async e=>{
   const file=e.target.files[0];if(!file)return;
@@ -301,7 +312,7 @@ bulk=setupBulk({getState:()=>state,getView:()=>view,flush:flushEditor,
 });
 renderTimeline();
 accounts=setupAccounts({
-  getState:()=>state, flushEditor, toast,
+  getState:()=>state, flushEditor, toast,downloadDeviceBackup,
   setState(next,options={}){
     const changed=JSON.stringify(state.days[selected]||[])!==JSON.stringify(next.days[selected]||[]);
     state=next;readFailed=options.readFailed??readFailed;window.dispatchEvent(new Event('dayline:notes-changed'));
