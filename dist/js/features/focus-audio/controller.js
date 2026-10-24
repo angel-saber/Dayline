@@ -1,8 +1,8 @@
-import { node } from '../../shared/dom.js?v=15ded251c55d';
-import { PERSONALITIES, personality } from '../../personalities/index.js?v=15ded251c55d';
-import { musicProfile } from './music.js?v=15ded251c55d';
-import { FocusAudio } from './audio.js?v=15ded251c55d';
-import { restoreAudioSettings } from './settings.js?v=15ded251c55d';
+import { node } from '../../shared/dom.js?v=3964ffef2821';
+import { PERSONALITIES, personality } from '../../personalities/index.js?v=3964ffef2821';
+import { musicProfile } from './music.js?v=3964ffef2821';
+import { FocusAudio } from './audio.js?v=3964ffef2821';
+import { restoreAudioSettings } from './settings.js?v=3964ffef2821';
 const defaults = {
   binaural: false,
   ambient: true,
@@ -28,6 +28,7 @@ export function setupFocusAudio({ audio = new FocusAudio(), storage = localStora
   dialog.setAttribute('aria-labelledby', 'focus-audio-title');
   document.body.append(dialog);
   let error = '',
+    playbackPending = false,
     audioPersonality = personality(),
     raw;
   try {
@@ -54,7 +55,10 @@ export function setupFocusAudio({ audio = new FocusAudio(), storage = localStora
   function buttons() {
     launch.textContent = audio.playing ? 'Focus Audio · Playing' : 'Launch Focus Audio';
     const toggle = dialog.querySelector('.focus-audio-playback');
-    if (toggle) toggle.textContent = audio.playing ? 'Pause audio' : 'Play audio';
+    if (toggle) {
+      toggle.textContent = audio.playing ? 'Pause audio' : 'Play audio';
+      toggle.disabled = playbackPending;
+    }
   }
   function minimize() {
     dialog.close();
@@ -81,6 +85,7 @@ export function setupFocusAudio({ audio = new FocusAudio(), storage = localStora
       statusLine,
       audioSection(),
     );
+    buttons();
   }
   function open() {
     render();
@@ -144,6 +149,7 @@ export function setupFocusAudio({ audio = new FocusAudio(), storage = localStora
     const action = button(
       audio.playing ? 'Pause audio' : 'Play audio',
       async () => {
+        playbackPending = true;
         action.disabled = true;
         try {
           save();
@@ -155,6 +161,7 @@ export function setupFocusAudio({ audio = new FocusAudio(), storage = localStora
           error = e.message;
           status();
         } finally {
+          playbackPending = false;
           action.disabled = false;
           buttons();
         }
@@ -306,14 +313,10 @@ export function setupFocusAudio({ audio = new FocusAudio(), storage = localStora
     const next = personality();
     if (next !== audioPersonality) {
       audioPersonality = next;
-      audioSettings.soundtrack = musicProfile(next).layout;
+      // Appearance changes must not replace a playing (or starting) audio source.
+      // Associate the retained track with the new theme so reload restores it too.
+      if (!audio.playing && !playbackPending) audioSettings.soundtrack = musicProfile(next).layout;
       save();
-      if (audio.playing)
-        audio.play({ ...audioSettings, layout: audioSettings.soundtrack }).catch((e) => {
-          error = e.message;
-          status();
-          buttons();
-        });
     }
     if (dialog.open) render();
   });

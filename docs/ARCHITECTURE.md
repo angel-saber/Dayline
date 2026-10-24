@@ -187,8 +187,11 @@ Audio preferences use `dayline.focus-audio.v1` on this device, separately from
 notes, accounts and `dayline.focus.v1`. A legacy session's audio preferences can
 seed the player when no standalone preference record exists, without editing or
 deleting that draft. Restored preferences validate IDs, booleans and numeric
-bounds. Personality changes choose that mode's default track while retaining
-layer/tempo settings; users can still select another soundtrack.
+bounds. When idle, personality changes choose that mode's default track while
+retaining layer/tempo settings. When audio is playing or starting, appearance
+changes preserve the track and existing sources without restarting playback,
+including while minimized. The retained selection is associated with the new
+personality in device preferences. Manual soundtrack controls still work.
 
 The Focus controller owns no audio engine, mixer settings, playback stops or
 volume controls. Its only audio integration is an `openAudio` callback. Existing
