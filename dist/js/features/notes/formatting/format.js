@@ -1,5 +1,5 @@
-import { safeLink, detectedLinks } from './links.js?v=c5c32a011f1c';
-import { lineRange } from './tasks.js?v=c5c32a011f1c';
+import { safeLink, detectedLinks } from './links.js?v=15ded251c55d';
+import { lineRange } from './tasks.js?v=15ded251c55d';
 // Formatting is stored as plain-text ranges, never as executable HTML.
 export const HIGHLIGHTS = { blue: '#cde7ff', yellow: '#fff0a6', green: '#d6edcc', red: '#ffd3d3' };
 const FLAGS = ['bold', 'italic', 'underline'];

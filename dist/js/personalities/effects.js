@@ -1,4 +1,4 @@
-import { getPersonality } from './index.js?v=c5c32a011f1c';
+import { getPersonality } from './index.js?v=15ded251c55d';
 const KEY = 'dayline.effects.v1';
 const LEVELS = ['full', 'subtle', 'off'];
 export function effectiveEffects(level, reduced, hidden) {
@@ -71,23 +71,11 @@ export function setupPersonalityEffects() {
     node.className = 'personality-burst';
     node.dataset.kind = event.detail.kind;
     node.setAttribute('aria-hidden', 'true');
-    const style = getPersonality(root.dataset.layout).effects;
-    const labels =
-      style === 'orbital'
-        ? {
-            complete: 'Signal secured',
-            'focus-commit': 'Course set',
-            'focus-finish': 'Journey logged',
-          }
-        : {
-            complete: 'Objective complete',
-            'focus-commit': 'Build engaged',
-            'focus-finish': 'Session complete',
-          };
+    const labels = getPersonality(root.dataset.layout).effectLabels;
     node.innerHTML =
-      '<svg class="effect-mark" viewBox="0 0 240 100"><g class="effect-orbital"><ellipse cx="120" cy="50" rx="88" ry="28"/><path d="M45 65L88 36L135 57L183 27"/><circle cx="45" cy="65" r="3"/><circle cx="88" cy="36" r="4"/><circle cx="135" cy="57" r="3"/><circle cx="183" cy="27" r="5"/></g><g class="effect-mastery"><path d="M34 50H90L120 20L150 50H206M90 50L120 80L150 50"/><path d="M111 50L118 57L133 40"/><circle cx="34" cy="50" r="5"/><circle cx="206" cy="50" r="5"/></g></svg>';
+      '<svg class="effect-mark" viewBox="0 0 240 100"><g class="effect-orbital"><ellipse cx="120" cy="50" rx="88" ry="28"/><path d="M45 65L88 36L135 57L183 27"/><circle cx="45" cy="65" r="3"/><circle cx="88" cy="36" r="4"/><circle cx="135" cy="57" r="3"/><circle cx="183" cy="27" r="5"/></g><g class="effect-mastery"><path d="M30 50H210M120 20L150 50L120 80L90 50Z"/><path d="M111 50L118 57L133 40"/><path class="checkpoint-spark" d="M30 25V17M17 50H9M210 25V17M223 50H231M44 30L38 24M196 30L202 24"/><circle class="checkpoint" cx="30" cy="50" r="6"/><circle class="checkpoint" cx="120" cy="50" r="3"/><circle class="checkpoint" cx="210" cy="50" r="6"/></g></svg>';
     const label = document.createElement('span');
-    label.textContent = labels[event.detail.kind];
+    label.textContent = labels?.[event.detail.kind] || 'Progress made';
     node.append(label);
     document.body.append(node);
     // A manual popover floats above modal dialogs without trapping focus or input.

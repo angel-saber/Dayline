@@ -189,6 +189,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
       ['builder', 'Prepare for thoughtful work.'],
       ['founder', 'Set the board in your favor.'],
       ['poet', 'Make room for a different argument.'],
+      ['gamer', 'Make progress feel like play.'],
       ['zen', 'Find a pace you can sustain.'],
     ]) {
       const choice = document.querySelector(`input[name="layout"][value="${id}"]`);
@@ -218,6 +219,13 @@ test('the assembled planner starts, switches views/personalities, edits settings
       /Choose how you will move through this/,
     );
     assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
+    const gamer = document.querySelector('input[name="layout"][value="gamer"]');
+    gamer.checked = true;
+    gamer.dispatchEvent(new window.Event('change'));
+    assert.equal(
+      document.querySelector('.focus-window h1').textContent,
+      'Choose your quest. Get ready to win.',
+    );
     const astronaut = document.querySelector('input[name="layout"][value="astronaut"]');
     astronaut.checked = true;
     astronaut.dispatchEvent(new window.Event('change'));
@@ -238,7 +246,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
       ['founder', 'Symphonic horizon'],
       ['poet', 'Undertow'],
       ['astronaut', 'Orbital drift'],
-      ['gamer', 'Ascension protocol'],
+      ['gamer', 'Next level'],
     ]) {
       const choice = document.querySelector(`input[name="layout"][value="${mode}"]`);
       choice.checked = true;
@@ -271,6 +279,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
     skip.click();
     assert.equal(document.querySelector('.focus-window').open, false);
     assert.equal(document.querySelector('.personality-burst')?.dataset.kind, 'focus-finish');
+    assert.match(document.querySelector('.personality-burst').textContent, /Progress saved!/);
     assert.equal(
       document.querySelector('#launch-focus-audio').textContent,
       'Focus Audio · Playing',

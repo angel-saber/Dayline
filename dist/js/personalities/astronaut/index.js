@@ -1,8 +1,13 @@
-import { renderScore } from './music.js?v=c5c32a011f1c';
+import { renderScore } from './music.js?v=15ded251c55d';
 // Original authored personality. User notes and saved commitments are never rewritten.
 export default {
   renderScore,
   effects: 'orbital',
+  effectLabels: {
+    complete: 'Signal secured',
+    'focus-commit': 'Course set',
+    'focus-finish': 'Journey logged',
+  },
   id: 'astronaut',
   name: 'Astronaut',
   description: 'Curious and courageous.',

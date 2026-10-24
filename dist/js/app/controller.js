@@ -1,44 +1,44 @@
-import { setupFocusAudio } from '../features/focus-audio/controller.js?v=c5c32a011f1c';
-import { setupPersonalityEffects } from '../personalities/effects.js?v=c5c32a011f1c';
-import { node } from '../shared/dom.js?v=c5c32a011f1c';
-import { setupBackups } from '../features/settings/backups.js?v=c5c32a011f1c';
-import { setupSettings } from '../features/settings/controller.js?v=c5c32a011f1c';
-import { renderNoteLines } from '../features/notes/render.js?v=c5c32a011f1c';
-import { rescheduleNote } from '../features/daily/reschedule.js?v=c5c32a011f1c';
-import { changeWeekly } from '../features/monthly/weekly-model.js?v=c5c32a011f1c';
+import { setupFocusAudio } from '../features/focus-audio/controller.js?v=15ded251c55d';
+import { setupPersonalityEffects } from '../personalities/effects.js?v=15ded251c55d';
+import { node } from '../shared/dom.js?v=15ded251c55d';
+import { setupBackups } from '../features/settings/backups.js?v=15ded251c55d';
+import { setupSettings } from '../features/settings/controller.js?v=15ded251c55d';
+import { renderNoteLines } from '../features/notes/render.js?v=15ded251c55d';
+import { rescheduleNote } from '../features/daily/reschedule.js?v=15ded251c55d';
+import { changeWeekly } from '../features/monthly/weekly-model.js?v=15ded251c55d';
 import {
   availableHours,
   dailySlotVisible,
-} from '../features/settings/available-hours.js?v=c5c32a011f1c';
+} from '../features/settings/available-hours.js?v=15ded251c55d';
 import {
   attachmentList,
   bindFileDrop,
-} from '../features/attachments/attachments.js?v=c5c32a011f1c';
-import { setupTagSettings } from '../features/notes/tag-settings.js?v=c5c32a011f1c';
-import { setupBulk } from '../features/bulk/view.js?v=c5c32a011f1c';
-import { bulkChange } from '../features/bulk/model.js?v=c5c32a011f1c';
-import { openShareNote } from '../features/sharing/share-note.js?v=c5c32a011f1c';
+} from '../features/attachments/attachments.js?v=15ded251c55d';
+import { setupTagSettings } from '../features/notes/tag-settings.js?v=15ded251c55d';
+import { setupBulk } from '../features/bulk/view.js?v=15ded251c55d';
+import { bulkChange } from '../features/bulk/model.js?v=15ded251c55d';
+import { openShareNote } from '../features/sharing/share-note.js?v=15ded251c55d';
 import {
   tagBadges,
   categoryOptions,
   collectTagSettings,
-} from '../features/notes/note-types.js?v=c5c32a011f1c';
+} from '../features/notes/note-types.js?v=15ded251c55d';
 import {
   setupActivities,
   renderGuidedReports,
-} from '../features/activities/view.js?v=c5c32a011f1c';
-import { attachGuidedPlan } from '../features/activities/model.js?v=c5c32a011f1c';
-import { setupWelcome } from '../features/onboarding/welcome.js?v=c5c32a011f1c';
-import { voice, personality, applyPersonality } from '../personalities/index.js?v=c5c32a011f1c';
-import { setupFocus } from '../features/focus/controller.js?v=c5c32a011f1c';
-import { renderFocusReports } from '../features/focus/reports.js?v=c5c32a011f1c';
+} from '../features/activities/view.js?v=15ded251c55d';
+import { attachGuidedPlan } from '../features/activities/model.js?v=15ded251c55d';
+import { setupWelcome } from '../features/onboarding/welcome.js?v=15ded251c55d';
+import { voice, personality, applyPersonality } from '../personalities/index.js?v=15ded251c55d';
+import { setupFocus } from '../features/focus/controller.js?v=15ded251c55d';
+import { renderFocusReports } from '../features/focus/reports.js?v=15ded251c55d';
 import {
   findFocusNote,
   extendFocusNote,
   attachFocusReport,
-} from '../features/focus/model.js?v=c5c32a011f1c';
-import { setupMonthly } from '../features/monthly/view.js?v=c5c32a011f1c';
-import { moveToDay, quickNote } from '../features/monthly/model.js?v=c5c32a011f1c';
+} from '../features/focus/model.js?v=15ded251c55d';
+import { setupMonthly } from '../features/monthly/view.js?v=15ded251c55d';
+import { moveToDay, quickNote } from '../features/monthly/model.js?v=15ded251c55d';
 import {
   dayKey,
   parseDay,
@@ -46,14 +46,14 @@ import {
   grouped,
   dropEntry,
   timeLabel,
-} from '../shared/schedule.js?v=c5c32a011f1c';
-import { load, save } from '../shared/storage.js?v=c5c32a011f1c';
-import { attachGestures } from '../features/daily/gestures.js?v=c5c32a011f1c';
-import { Reminders, resolveReminder } from '../features/reminders/reminders.js?v=c5c32a011f1c';
-import { setupAccounts } from '../features/accounts/accounts.js?v=c5c32a011f1c';
-import { dailyQuote } from '../personalities/quotes.js?v=c5c32a011f1c';
-import { createNoteEditor } from '../features/notes/note-editor.js?v=c5c32a011f1c';
-import { noteTasks } from '../features/notes/formatting/tasks.js?v=c5c32a011f1c';
+} from '../shared/schedule.js?v=15ded251c55d';
+import { load, save } from '../shared/storage.js?v=15ded251c55d';
+import { attachGestures } from '../features/daily/gestures.js?v=15ded251c55d';
+import { Reminders, resolveReminder } from '../features/reminders/reminders.js?v=15ded251c55d';
+import { setupAccounts } from '../features/accounts/accounts.js?v=15ded251c55d';
+import { dailyQuote } from '../personalities/quotes.js?v=15ded251c55d';
+import { createNoteEditor } from '../features/notes/note-editor.js?v=15ded251c55d';
+import { noteTasks } from '../features/notes/formatting/tasks.js?v=15ded251c55d';
 const $ = (s) => document.querySelector(s);
 let monthly = null;
 let expandedDay = null;

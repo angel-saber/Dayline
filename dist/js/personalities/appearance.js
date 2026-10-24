@@ -7,7 +7,7 @@
     founder: '#eee5d6',
     poet: '#17171c',
     astronaut: '#080f22',
-    gamer: '#100d1d',
+    gamer: '#131023',
   };
   const key = 'dayline.appearance.v1',
     layouts = Object.keys(themes);

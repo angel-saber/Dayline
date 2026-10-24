@@ -247,3 +247,35 @@ html:is([data-personality-effect='orbital'], [data-personality-effect='mastery']
     width: 220px;
   }
 }
+
+[data-personality-effect='mastery'] .effect-mark {
+  filter: drop-shadow(0 0 7px #d6b0ff99);
+}
+[data-personality-effect='mastery'] .checkpoint {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: checkpoint-pop 0.55s ease-out both;
+}
+[data-personality-effect='mastery'] .checkpoint:nth-of-type(2) {
+  animation-delay: 0.15s;
+}
+[data-personality-effect='mastery'] .checkpoint:nth-of-type(3) {
+  animation-delay: 0.3s;
+}
+[data-personality-effect='mastery'] .checkpoint-spark {
+  stroke: #a5ecf7;
+}
+@keyframes checkpoint-pop {
+  from {
+    opacity: 0.2;
+    transform: scale(0.4);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

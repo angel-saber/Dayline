@@ -1608,14 +1608,14 @@ body:has(#monthly-view:not([hidden])) main {
 
 :root[data-layout='gamer'] {
   color-scheme: dark;
-  --paper: #100d1d;
-  --white: #1a162c;
+  --paper: #131023;
+  --white: #201a34;
   --ink: #f1ecff;
-  --muted: #b5a9cd;
-  --line: #49375f;
-  --green: #e9c97f;
+  --muted: #c2b5dc;
+  --line: #5b4377;
+  --green: #f4d180;
   --soft: #2a203e;
-  --surface: #171226;
+  --surface: #1b162c;
   --accent-ink: #21152c;
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -3656,8 +3656,8 @@ main {
 
 :root[data-layout='gamer'] body {
   background-image:
-    radial-gradient(ellipse at 90% 0%, #704cbd1b, transparent 48%),
-    radial-gradient(ellipse at 0% 65%, #5341630e, transparent 55%);
+    radial-gradient(ellipse at 90% 0%, #8356d42b, transparent 48%),
+    radial-gradient(ellipse at 0% 65%, #3f8a9d14, transparent 55%);
 }
 :root[data-layout='gamer'] :is(h1, .settings-card h2, .focus-window h2, .auth-card h2) {
   font-family: Arial, Helvetica, sans-serif;
@@ -3677,34 +3677,57 @@ main {
     0 8px 25px #00000013;
 }
 :root[data-layout='gamer'] .entry {
-  border-left: 2px solid #ac8adf77;
+  border-left: 3px solid #b79af2;
 }
 :root[data-layout='gamer'] .topbar {
-  border-bottom-color: #e9c97f66;
+  border-bottom-color: #f4d18088;
 }
 :root[data-layout='gamer'] .brand-icon {
   color: var(--green);
   text-shadow: 0 0 20px #d8b06b44;
 }
 :root[data-layout='gamer'] :is(.primary, .focus-mini) {
-  background: linear-gradient(120deg, #e9c97f, #c8a7f4);
+  background: linear-gradient(120deg, #f4d180, #d1a6ff);
   color: #21152c;
 }
 :root[data-layout='gamer'] #progress {
-  background: linear-gradient(90deg, #b29ae9, #e9c97f);
+  background: linear-gradient(90deg, #88deef, #c59bff, #f4d180);
 }
 :root[data-layout='gamer'] .focus-mantra {
   font-family: Georgia, 'Times New Roman', serif;
   color: #eaddff;
 }
 .swatch-gamer {
-  background: linear-gradient(125deg, #241438, #110d1f);
+  background: linear-gradient(125deg, #35214f, #131023);
   box-shadow: inset 0 0 0 1px #e9c97f33;
 }
 .swatch-gamer i {
   background: linear-gradient(90deg, #c4a0fa, #edcf85);
   height: 4px;
   border-radius: 0;
+}
+
+:root[data-layout='gamer'] .progress-track {
+  border: 1px solid #b79af233;
+  background: #2b2042;
+}
+:root[data-layout='gamer'] #progress {
+  box-shadow: 0 0 12px #cfafff33;
+}
+:root[data-layout='gamer'] .focus-mantra {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  border-left-color: #88deef;
+  background: #2a2040;
+}
+:root[data-layout='gamer'] .eyebrow {
+  color: #d5b5ff;
+}
+@media (hover: hover) {
+  :root[data-layout='gamer'] .primary:hover {
+    box-shadow: 0 0 18px #d1a6ff44;
+  }
 }
 
 :root[data-layout='poet'] body {
@@ -4030,6 +4053,38 @@ html:is([data-personality-effect='orbital'], [data-personality-effect='mastery']
     right: 20px;
     bottom: 100px;
     width: 220px;
+  }
+}
+
+[data-personality-effect='mastery'] .effect-mark {
+  filter: drop-shadow(0 0 7px #d6b0ff99);
+}
+[data-personality-effect='mastery'] .checkpoint {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: checkpoint-pop 0.55s ease-out both;
+}
+[data-personality-effect='mastery'] .checkpoint:nth-of-type(2) {
+  animation-delay: 0.15s;
+}
+[data-personality-effect='mastery'] .checkpoint:nth-of-type(3) {
+  animation-delay: 0.3s;
+}
+[data-personality-effect='mastery'] .checkpoint-spark {
+  stroke: #a5ecf7;
+}
+@keyframes checkpoint-pop {
+  from {
+    opacity: 0.2;
+    transform: scale(0.4);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
