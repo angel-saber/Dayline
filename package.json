@@ -5,7 +5,12 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "check": "node --experimental-vm-modules scripts/check.mjs",
+    "build:styles": "node scripts/build-styles.mjs",
+    "check": "node --experimental-vm-modules scripts/check.mjs && node scripts/build-styles.mjs --check",
     "start": "python3 -m http.server 8080 --directory dist"
+  },
+  "devDependencies": {
+    "linkedom": "0.18.14",
+    "prettier": "3.9.10"
   }
 }

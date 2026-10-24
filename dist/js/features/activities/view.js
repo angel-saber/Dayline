@@ -1,8 +1,9 @@
+import {node as el} from '../../shared/dom.js';
 import {weekStart} from '../monthly/weekly-model.js?v=weekly-notes-1';
 import {dimensions,breathingFrame,compassTitle,compassDates} from './model.js?v=weekly-notes-1';
 import {activityCatalog,activityFields} from './catalog.js?v=activities-2';
 import {dayKey} from '../../shared/schedule.js?v=weekly-notes-1';
-const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
+
 const button=(text,fn,cls='secondary')=>{const b=el('button',cls,text);b.type='button';b.onclick=fn;return b;};
 export function renderGuidedReports(container,reports=[]){
   for(const report of reports){

@@ -1,3 +1,4 @@
+import {node} from '../../shared/dom.js';
 import {weekStart} from '../monthly/weekly-model.js?v=weekly-notes-1';
 import {offsetDay} from '../../shared/schedule.js?v=weekly-notes-1';
 import {indentLevel} from '../notes/formatting/indents.js?v=indentation-1';
@@ -67,7 +68,7 @@ export function openShareNotes(items,clock='12'){if(items.length)return openShar
 export function emailNoteUrl(title,text){return `mailto:?subject=${encodeURIComponent(title?.trim()||'Dayline note')}&body=${encodeURIComponent(text)}`;}
 function openShareItems(items,clock,multiple){
   const {entry,date}=items[0];
-  const node=(tag,cls,text)=>{const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;};
+  
   const dialog=node('dialog','share-note-dialog'),heading=node('h2','','Share note');heading.id='share-note-heading';dialog.setAttribute('aria-labelledby',heading.id);
   const intro=node('p','field-hint','Share a clean text copy. Recipients do not need a Dayline account. Choose what to include below.');
   let preparedFiles=[],loadingFiles=false,fileError='',fileLoad=0;

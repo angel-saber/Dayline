@@ -1,10 +1,11 @@
+import {node} from '../../shared/dom.js';
 import {createWeeklySection} from './weekly-notes.js?v=weekly-notes-1';
 import {NOTE_TYPES,categoryOptions,typeChips,tagBadges,matchesNoteType,typeBadge,noteTags,categoryLabel} from '../notes/note-types.js?v=multi-tags-1';
 import {voice,focusMantras,focusIdeas} from '../../personalities/index.js?v=embodied-voices-1';
 import {dateActions} from './date-actions.js?v=quick-add-1';
 import {dayKey,parseDay,timeLabel} from '../../shared/schedule.js?v=weekly-notes-1';
 import {monthWeeks,offsetMonth,noteTitle} from './model.js?v=monthly-1';
-const node=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;};
+
 const button=(text,label,action)=>{const el=node('button','',text);el.type='button';el.setAttribute('aria-label',label);el.addEventListener('click',action);return el;};
 function categoryColor(tag){
   if(Object.hasOwn(NOTE_TYPES,tag))return `var(--type-${tag})`;
@@ -74,7 +75,7 @@ export function setupMonthly({root,getState,onOpen,onMove,onAdd,announce,selecti
     const previous=button('←','Previous month',()=>shift(-1)),next=button('→','Next month',()=>shift(1));previous.dataset.monthStep=-1;next.dataset.monthStep=1;
     const picker=node('input');picker.type='month';picker.value=month;picker.setAttribute('aria-label','Go to month');picker.addEventListener('change',()=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(picker.value)){month=picker.value;render();}});
     nav.append(previous,picker,next,button('This month','Go to this month',()=>{month=dayKey().slice(0,7);render();}));head.append(heading,nav);
-    content.append(node('div','eyebrow',voice("A LITTLE ROOM TO SEE AHEAD")),head,node('p','intro','Click or tap a date to add a title and time. Double-click or double-tap to open its day. Drag titles to reschedule. Note colors show their tags; multiple tags split the colors evenly. Scroll for more notes, or use Expand day for full titles, times, and tags.'));
+    content.append(node('div','eyebrow',voice("monthly.eyebrow")),head,node('p','intro','Click or tap a date to add a title and time. Double-click or double-tap to open its day. Drag titles to reschedule. Note colors show their tags; multiple tags split the colors evenly. Scroll for more notes, or use Expand day for full titles, times, and tags.'));
     const selectionControls=selection?.controls();if(selectionControls)content.append(selectionControls);
     const filter=node('fieldset','month-type-filters');filter.append(node('legend','','Show tags'));
     const all=button('All tags','Show all tags',()=>{allFilters=true;for(const key of filterKeys)filters.add(key);render();root.querySelector('.month-type-all')?.focus();});all.className='secondary month-type-all';all.setAttribute('aria-pressed',String(filterKeys.every(key=>filters.has(key))));filter.append(all);

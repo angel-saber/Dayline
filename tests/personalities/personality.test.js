@@ -5,11 +5,11 @@ import {MANTRAS,newFocus,commitFocus,validFocusDraft} from '../../dist/js/featur
 import {dailyQuote} from '../../dist/js/personalities/quotes.js';
 
 test('personality changes authored copy and safely falls back for other text',()=>{
-  assert.equal(voice('Make a little progress.','builder'),'Work carefully. Build steadily.');
-  assert.equal(voice('Make a little progress.','founder'),'Make the next move count.');
-  assert.equal(voice('Make a little progress.','zen'),'Breathe. Return to this step.');
+  assert.equal(voice('focus.activeHeading','builder'),'Work carefully. Build steadily.');
+  assert.equal(voice('focus.activeHeading','founder'),'Make the next move count.');
+  assert.equal(voice('focus.activeHeading','zen'),'Breathe. Return to this step.');
   assert.equal(voice('My personal note','builder'),'My personal note');
-  assert.equal(voice('Your timeline','unknown'),'Your timeline');
+  assert.equal(voice('settings.timelineHeading','unknown'),'Your timeline');
 });
 test('each personality gets a stable daily quote that changes the next day',()=>{
   const date=new Date(2026,9,22,10),later=new Date(2026,9,22,22),next=new Date(2026,9,23,10);

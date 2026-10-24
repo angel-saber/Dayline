@@ -1,8 +1,9 @@
+import {node} from '../../shared/dom.js';
 import {indentLevel} from '../notes/formatting/indents.js?v=indentation-1';
 import {attachmentList,bindFileDrop} from '../attachments/attachments.js?v=attachments-1';
 import {tagBadges,categoryOptions} from '../notes/note-types.js?v=multi-tags-1';
 import {musicProfile} from './music.js?v=cyber-mission-12';
-import {voice,personality,focusMantras,focusIdeas} from '../../personalities/index.js?v=embodied-voices-1';
+import {voice,personality,focusMantras,focusIdeas,PERSONALITIES} from '../../personalities/index.js?v=embodied-voices-1';
 import {dayKey,timeLabel,bucket} from '../../shared/schedule.js?v=weekly-notes-1';
 import {focusIntervalNotes,newFocus,advanceFocus,commitFocus,findFocusNote,validFocusDraft,durationLabel,MANTRAS,INSPIRATION} from './model.js?v=embodied-voices-1';
 import {FocusAudio} from './audio.js?v=speaker-playback-1';
@@ -11,7 +12,7 @@ import {renderFormatted} from '../notes/formatting/format.js?v=hyperlinks-1';
 import {noteTasks} from '../notes/formatting/tasks.js?v=line-tasks-1';
 const KEY='dayline.focus.v1';
 const defaults={binaural:false,ambient:true,warmAmbient:false,metronome:false,beat:10,bpm:80,tonesVolume:30,ambientVolume:35,warmVolume:35,metronomeVolume:50};
-const node=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;};
+
 const button=(text,action,className='secondary')=>{const el=node('button',className,text);el.type='button';el.addEventListener('click',action);return el;};
 export function setupFocus(api){
   const owner=crypto.randomUUID(),audio=new FocusAudio(),launch=document.querySelector('#launch-focus');
@@ -67,7 +68,7 @@ export function setupFocus(api){
     refreshPageSnapshot();const p=page(),choices=focusIntervalNotes(api.getState(),p);
     const section=node('section','focus-section focus-notes-section'),heading=node('div','focus-section-heading');
     const addHost=node('div','focus-add-note');
-    heading.append(node('h2','',voice('Intention')),button('Add a note',()=>editNote(addHost)));
+    heading.append(node('h2','',voice('focus.noteHeading')),button('Add a note',()=>editNote(addHost)));
     section.append(heading,node('p','focus-interval-label',`${p.date} · ${timeLabel(p.minute,api.getState().settings.clock)} – ${timeLabel(Math.min(1440,p.minute+(p.interval||session.interval)),api.getState().settings.clock)}`));
     if(choices.length>1)section.append(node('p','field-hint','All notes in this interval. Choose which note receives the session summary.'));
     for(const entry of choices){
@@ -98,13 +99,13 @@ export function setupFocus(api){
     const section=dialog.querySelector('.focus-notes-section');if(section){section.replaceWith(noteSection());if(session.owner===owner)save();}
   }
   function prepare(){
-    base(voice("A little commitment. A steady beginning."));const fields=node('div','focus-prep-fields');
-    fields.append(node('p','focus-lead',voice("For this interval, you have chosen to focus on:")),noteSection());
+    base(voice("focus.preparationHeading"));const fields=node('div','focus-prep-fields');
+    fields.append(node('p','focus-lead',voice("focus.preparationIntro")),noteSection());
     for(const [title,copy] of [
-      [voice("Overwhelmed about your tasks?"),voice("Break the task into smaller chunks and write just the next few steps. Ask for help, or consider delegating a task to someone who can take it on. If starting feels hard, try just two minutes of one small action. You can decide what comes next after that.")],
-      [voice("Confused about your tasks?"),voice("Clarify the result you are aiming for: what would “done” look like? Work backwards from that result to find your first step. If information is missing, name the question and who you could ask for clarification. Set aside time to research or explore before expecting yourself to have the answer.")],
+      [voice("focus.overwhelmedHeading"),voice("focus.overwhelmedAdvice")],
+      [voice("focus.confusedHeading"),voice("focus.confusedAdvice")],
     ]){const details=node('details','focus-advice');details.append(node('summary','',title),node('p','',copy));fields.append(details);}
-    const commitment=node('section','focus-commitment');commitment.append(node('h2','',voice("Choose your commitment")));
+    const commitment=node('section','focus-commitment');commitment.append(node('h2','',voice("focus.commitmentHeading")));
     const mantra=node('textarea','focus-mantra-input');mantra.rows=3;mantra.value=session.mantra;mantra.setAttribute('aria-label','Commitment mantra');mantra.addEventListener('input',()=>{mantra.setCustomValidity('');session.mantra=mantra.value;save();});
     const controls=node('div','inline');controls.append(button('Reshuffle mantra',()=>{const pool=focusMantras(MANTRAS);let next=pool[Math.floor(Math.random()*pool.length)];if(next===session.mantra)next=pool[(pool.indexOf(next)+1)%pool.length];session.mantra=next;mantra.value=next;save();}),button('Commit',()=>{
       if(!session.mantra.trim()){mantra.setCustomValidity('Choose or write a mantra first.');mantra.reportValidity();return;}mantra.setCustomValidity('');
@@ -144,7 +145,7 @@ export function setupFocus(api){
       const row=node('div','focus-audio-row'),toggleLabel=node('label',''),toggle=node('input');toggle.type='checkbox';toggle.checked=audioSettings[key];toggleLabel.append(toggle,document.createTextNode(' '+label));
       if(key==='ambient'){
         const select=node('select','focus-soundtrack-select');select.setAttribute('aria-label','Focus soundtrack');
-        for(const [layout,name] of [['zen','Zen'],['builder','Builder'],['founder','Founder']]){const profile=musicProfile(layout),option=node('option','',profile.label+(layout===personality()?` · ${name} default`:''));option.value=layout;select.append(option);}
+        for(const {id:layout,name} of Object.values(PERSONALITIES)){const profile=musicProfile(layout),option=node('option','',profile.label+(layout===personality()?` · ${name} default`:''));option.value=layout;select.append(option);}
         select.value=audioSettings.soundtrack;select.addEventListener('change',()=>{audioSettings.soundtrack=select.value;updateDescription();changeAudio();});
         const group=node('div','focus-soundtrack-choice');group.append(toggleLabel,select);row.append(group);
       }else row.append(toggleLabel);
@@ -167,7 +168,7 @@ export function setupFocus(api){
     section.append(action);return section;
   }
   function active(){
-    base(voice("Make a little progress."));dialog.append(node('p','focus-mantra',session.mantra));
+    base(voice("focus.activeHeading"));dialog.append(node('p','focus-mantra',session.mantra));
     const stats=node('div','focus-stats');stats.append(node('span','focus-elapsed'),node('span','focus-live-position'));dialog.append(stats);
     const pages=node('div','focus-page-nav');const previous=button('← Previous interval',()=>{flushNote();session.viewIndex--;save();render();}),next=button('Next interval →',()=>{flushNote();session.viewIndex++;save();render();});previous.disabled=session.viewIndex===0;next.disabled=session.viewIndex===session.pages.length-1;
     pages.append(previous,node('span','',`${session.viewIndex+1} / ${session.pages.length}`),next);
@@ -180,15 +181,15 @@ export function setupFocus(api){
         }
       }));dialog.append(extend);
     }
-    dialog.append(audioSection());const inspiration=node('section','focus-section');inspiration.append(node('h2','',voice("Inspiration pocket")),node('p','focus-inspiration'),node('small','field-hint',voice("A new encouraging line every 10 minutes.")));dialog.append(inspiration);
-    const interruptions=node('section','focus-section');interruptions.append(node('h2','','Interruption log'),node('p','field-hint',voice("Put distractions, reminders, questions, or passing thoughts here. This interval has its own page.")));
-    const log=node('textarea','focus-log-input');log.rows=5;log.placeholder=voice("Set it down here, then return to your work…");log.value=page().log;log.setAttribute('aria-label','Interruption log for '+page().date+' '+timeLabel(page().minute));const p=page();log.addEventListener('input',()=>{p.log=log.value;save();});interruptions.append(log);dialog.append(interruptions,button('Finish session',finish,'primary focus-finish'));tickLabels();
+    dialog.append(audioSection());const inspiration=node('section','focus-section');inspiration.append(node('h2','',voice("focus.inspirationHeading")),node('p','focus-inspiration'),node('small','field-hint',voice("focus.inspirationHint")));dialog.append(inspiration);
+    const interruptions=node('section','focus-section');interruptions.append(node('h2','','Interruption log'),node('p','field-hint',voice("focus.interruptionHint")));
+    const log=node('textarea','focus-log-input');log.rows=5;log.placeholder=voice("focus.interruptionPlaceholder");log.value=page().log;log.setAttribute('aria-label','Interruption log for '+page().date+' '+timeLabel(page().minute));const p=page();log.addEventListener('input',()=>{p.log=log.value;save();});interruptions.append(log);dialog.append(interruptions,button('Finish session',finish,'primary focus-finish'));tickLabels();
   }
   function finish(){
     flushNote();advanceFocus(session,api.getState(),Date.now());session.endedAt=Math.max(session.startedAt,Date.now());session.phase='reflect';save();audio.fadeOut().then(buttons);render();
   }
   function reflect(){
-    base(voice("A gentle look back."));dialog.append(node('p','focus-mantra',session.mantra),node('p','focus-lead',`${durationLabel(session.endedAt-session.startedAt)} ${voice("of showing up. Your reflection is optional.")}`));
+    base(voice("focus.reflectionHeading"));dialog.append(node('p','focus-mantra',session.mantra),node('p','focus-lead',`${durationLabel(session.endedAt-session.startedAt)} ${voice("focus.reflectionDurationSuffix")}`));
     for(const [key,label] of [['progress','What moved forward?'],['learned','What did you learn, if anything?'],['next','Where will you pick up next?']]){
       const field=node('label','focus-reflection-label',label),input=node('textarea');input.rows=3;input.value=session.reflection[key];input.setAttribute('aria-label',label);input.addEventListener('input',()=>{session.reflection[key]=input.value;save();});field.append(input);dialog.append(field);
     }

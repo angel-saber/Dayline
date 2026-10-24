@@ -1,5 +1,6 @@
+import {node} from '../../shared/dom.js';
 import {durationLabel} from './model.js?v=embodied-voices-1';
-const node=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;};
+
 export function renderFocusReports(container,reports=[]){
   for(const report of reports){
     const details=node('details','focus-report'),when=new Date(report.startedAt).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});

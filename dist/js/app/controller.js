@@ -1,9 +1,11 @@
+import {node} from '../shared/dom.js';
+import {setupBackups} from '../features/settings/backups.js';
+import {setupSettings} from '../features/settings/controller.js';
+import {renderNoteLines} from '../features/notes/render.js';
 import {rescheduleNote} from '../features/daily/reschedule.js?v=reschedule-background-1';
-import {deviceNotes} from '../features/accounts/device-notes.js?v=device-recovery-1';
 import {changeWeekly} from '../features/monthly/weekly-model.js?v=weekly-notes-1';
-import {indentLevel} from '../features/notes/formatting/indents.js?v=indentation-1';
-import {availableHours,validAvailableHours,hourInput,inputMinute,dailySlotVisible} from '../features/settings/available-hours.js?v=available-hours-1';
-import {attachmentList,bindFileDrop,exportFiles,prepareFiles,storeFiles,MAX_BACKUP_SIZE} from '../features/attachments/attachments.js?v=attachments-1';
+import {availableHours,dailySlotVisible} from '../features/settings/available-hours.js?v=available-hours-1';
+import {attachmentList,bindFileDrop} from '../features/attachments/attachments.js?v=attachments-1';
 import {setupTagSettings} from '../features/notes/tag-settings.js?v=multi-tags-1';
 import {setupBulk} from '../features/bulk/view.js?v=weekly-notes-1';
 import {bulkChange} from '../features/bulk/model.js?v=weekly-notes-1';
@@ -19,18 +21,17 @@ import {findFocusNote,extendFocusNote,attachFocusReport} from '../features/focus
 import {setupMonthly} from '../features/monthly/view.js?v=embodied-voices-1';
 import {moveToDay,quickNote} from '../features/monthly/model.js?v=note-drop-1';
 import {dayKey,parseDay,offsetDay,slots,grouped,dropEntry,timeLabel} from '../shared/schedule.js?v=weekly-notes-1';
-import {load,save,validState} from '../shared/storage.js?v=embodied-voices-1';
+import {load,save} from '../shared/storage.js?v=embodied-voices-1';
 import {attachGestures} from '../features/daily/gestures.js?v=bulk-notes-1';
 import {Reminders,resolveReminder} from '../features/reminders/reminders.js?v=reschedule-background-1';
 import {setupAccounts} from '../features/accounts/accounts.js?v=password-signin-1';
 import {dailyQuote} from '../personalities/quotes.js?v=embodied-voices-1';
-import {renderFormatted} from '../features/notes/formatting/format.js?v=hyperlinks-1';
 import {createNoteEditor} from '../features/notes/note-editor.js?v=weekly-notes-1';
 import {noteTasks} from '../features/notes/formatting/tasks.js?v=line-tasks-1';
 const $=s=>document.querySelector(s);
 let monthly=null;
 let expandedDay=null;
-let state,readFailed=false,selected=dayKey(),view='daily',undo=null,editor=null,moveId=null,pendingImport=null,accounts=null,bulk=null,tagSettings=null;
+let state,readFailed=false,selected=dayKey(),view='daily',undo=null,editor=null,moveId=null,accounts=null,bulk=null,tagSettings=null,settingsPanel=null;
 try{state=load();}catch{readFailed=true;state={version:1,days:{},settings:{interval:60,clock:'12',notifications:false,sound:false}};}
 const announce=text=>{$('#announcer').textContent=text;};
 function toast(text,withUndo=false){$('#toast-text').textContent=text;$('#undo').hidden=!withUndo;$('#toast').hidden=false;announce(text);}
@@ -49,12 +50,11 @@ const reminders=new Reminders(()=>accounts?.isLoginVisible()?{...state,settings:
 const readyReminderAudio=()=>{if(state.settings.sound&&!reminders.audioReady)reminders.unlockAudio().catch(()=>{});};
 // Retry after later interactions too: audio may be suspended after switching tabs.
 document.addEventListener('click',readyReminderAudio);document.addEventListener('keydown',readyReminderAudio);
-function node(tag,className,text){const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;}
 function button(text,label,fn,className=''){const b=node('button',className,text);b.type='button';b.setAttribute('aria-label',label);b.addEventListener('click',fn);return b;}
 function renderHeader(){
   renderDailyQuote();
   const d=parseDay(selected),today=dayKey(),isToday=selected===today;
-  $('#relative-day').textContent=isToday?voice("YOUR DAY, AT YOUR PACE"):selected===offsetDay(today,-1)?voice("A LITTLE LOOK BACK"):selected===offsetDay(today,1)?voice("A LITTLE LOOK AHEAD"):voice("ONE DAY AT A TIME");
+  $('#relative-day').textContent=isToday?voice("daily.headingToday"):selected===offsetDay(today,-1)?voice("daily.headingPast"):selected===offsetDay(today,1)?voice("daily.headingFuture"):voice("daily.headingOther");
   $('#day-heading').textContent=`${d.toLocaleDateString(undefined,{weekday:'long'})}, `;
   $('#day-heading').append(node('span','date-number',d.toLocaleDateString(undefined,{month:'short',day:'numeric'})));
   $('#footer-date').textContent=d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
@@ -69,7 +69,7 @@ function renderDailyQuote(){
 }
 function renderSummary(){
   const list=entries(),done=list.filter(e=>e.done).length;
-  $('#summary').textContent=list.length?`${done} of ${list.length} ${list.length===1?'note':'notes'} completed`:voice("A fresh page for your day");
+  $('#summary').textContent=list.length?`${done} of ${list.length} ${list.length===1?'note':'notes'} completed`:voice("daily.emptySummary");
   $('#progress').style.width=`${list.length?done/list.length*100:0}%`;
 }
 function renderTimeline(){
@@ -110,26 +110,7 @@ function renderTimeline(){
   $('#timeline').replaceChildren(fragment);
   // Keep most empty rows quiet; the current/first visible invitation explains the action.
   const invitation=$('#timeline .current .empty-add')||$('#timeline .empty-add');
-  if(invitation){invitation.append(node('span','','+'),document.createTextNode(voice("What would you like to make time for?")));}
-}
-// Render line controls beside text; never nest a checkbox inside an edit button.
-function renderNoteLines(container,text,format=[],tasks=[],onCheck,onEdit,bullets=[],indents=[]){
-  container.replaceChildren();let start=0;
-  for(const line of text.split('\n')){
-    const row=node('div','note-line');row.style.setProperty('--indent-level',indentLevel(indents,start));const task=tasks.find(t=>t.start===start),anchor=start;
-    if(task){
-      const check=node('input','line-checkbox');check.type='checkbox';check.checked=task.done;
-      check.setAttribute('aria-label',`Complete task: ${line||'Empty line'}`);
-      check.addEventListener('change',()=>onCheck(anchor));row.append(check);
-    }
-    if(!task&&bullets.some(item=>item.start===start)){const marker=node('span','bullet-marker','•');marker.setAttribute('aria-hidden','true');row.append(marker);}
-    const textNode=node('span','note-text');
-    if(onEdit){textNode.tabIndex=0;textNode.setAttribute('role','button');textNode.setAttribute('aria-label',`Edit note: ${line||'Empty line'}`);textNode.addEventListener('click',onEdit);textNode.addEventListener('keydown',event=>{if(event.target===textNode&&(event.key==='Enter'||event.key===' ')){event.preventDefault();onEdit();}});}
-    const marks=format.filter(m=>m.start<start+line.length&&m.end>start).map(m=>({...m,start:Math.max(0,m.start-start),end:Math.min(line.length,m.end-start)}));
-    renderFormatted(textNode,line,marks);if(!line)textNode.append(document.createTextNode('\u200b'));
-    textNode.classList.toggle('task-completed',!!task?.done);row.append(textNode);container.append(row);
-    start+=line.length+1;
-  }
+  if(invitation){invitation.append(node('span','','+'),document.createTextNode(voice("daily.addPrompt")));}
 }
 function openEditor(container,minute,entry,focusTime=false){
   const slotMinute=Math.floor(minute/state.settings.interval)*state.settings.interval;
@@ -225,31 +206,11 @@ setupActivities({root:$('#more-view'),savePlan(report){
 },onSaved({date,minute}){selected=date;if(!dailySlotVisible(minute,state.settings.interval,availableHours(state.settings)))expandedDay=selected;switchView('daily');$(`#timeline .slot[data-minute="${minute}"]`)?.scrollIntoView({block:'center'});}});
 $('#more-tab').onclick=()=>switchView('more');
 $('#daily-tab').onclick=()=>switchView('daily');$('#monthly-tab').onclick=()=>switchView('monthly');$('#settings-tab').onclick=()=>switchView('settings');$('#interval-shortcut').onclick=()=>switchView('settings');
-function renderSettings(){tagSettings?.render();const s=state.settings,isPreset=[15,30,60,120,240].includes(s.interval);$('#interval').value=isPreset?s.interval:'custom';$('#custom-field').hidden=isPreset;$('#custom-minutes').value=s.interval;$('#clock').value=s.clock;$('#notifications').checked=s.notifications;$('#sound').checked=s.sound;const hours=availableHours(s);$('#available-from').value=hourInput(hours.from);$('#available-until').value=hourInput(hours.to);$('#hide-before-hours').checked=hours.hideBefore;$('#hide-after-hours').checked=hours.hideAfter;notificationStatus();}
-function notificationStatus(){let status='Keep Dayline open. Sounds can play while you use another tab after audio is activated here. Browsers may delay or suspend background reminders, especially on a locked phone. Closed-tab alerts are not supported; device settings may silence sounds.';if(!globalThis.Notification)status+=' System notifications are unavailable here; in-app reminders still work.';else if(Notification.permission==='denied')status+=' System notifications are blocked in browser settings; in-app reminders still work.';else if(state.settings.notifications&&Notification.permission==='default')status+=' Allow notifications on this device to see system alerts.';$('#notification-permission').hidden=!state.settings.notifications||!globalThis.Notification||Notification.permission!=='default';$('#notification-status').textContent=status;$('#sound-status').textContent=!state.settings.sound?'Reminder sound is off. Turn on Play a sound to hear planned-note reminders.':reminders.audioReady?'Reminder player is enabled in this tab. Planned notes use this same player.':'Sound is enabled. Click Test sound to activate audio in this tab.';}
-function setIntervalLength(value){if(!Number.isInteger(value)||value<1||value>1440){toast('Choose a whole number from 1 to 1440 minutes.');return;}state.settings.interval=value;undo=null;persist();renderSettings();toast('Timeline updated. All your notes are kept.');}
-$('#interval').onchange=e=>{if(e.target.value==='custom'){$('#custom-field').hidden=false;$('#custom-minutes').focus();}else setIntervalLength(Number(e.target.value));};
-$('#apply-custom').onclick=()=>setIntervalLength(Number($('#custom-minutes').value));
-$('#clock').onchange=e=>{state.settings.clock=e.target.value;persist();};
-function saveAvailableHours(){
-  if(!$('#available-from').reportValidity()||!$('#available-until').reportValidity())return false;
-  const previous=state.settings;
-  try{
-    const hours=validAvailableHours({from:inputMinute($('#available-from').value),to:inputMinute($('#available-until').value,true),hideBefore:$('#hide-before-hours').checked,hideAfter:$('#hide-after-hours').checked});
-    state.settings={...previous,availableHours:hours};if(!persist()){state.settings=previous;renderSettings();return false;}
-    expandedDay=null;$('#available-hours-status').textContent='Available hours saved. Daily visibility and sharing defaults updated.';return true;
-  }catch(error){$('#available-hours-status').textContent=error.message;return false;}
-}
-$('#save-available-hours').onclick=saveAvailableHours;
-for(const selector of ['#hide-before-hours','#hide-after-hours'])$(selector).onchange=()=>{if(!saveAvailableHours()){const hours=availableHours(state.settings);$('#hide-before-hours').checked=hours.hideBefore;$('#hide-after-hours').checked=hours.hideAfter;}};
-$('#notifications').onchange=async e=>{
-  state.settings.notifications=e.target.checked;persist();
-  if(e.target.checked&&globalThis.Notification?.permission==='default'){try{await Notification.requestPermission();}catch{toast('System notification permission is unavailable. In-app reminders are enabled.');}}
-  notificationStatus();
-};
-$('#notification-permission').onclick=async()=>{try{await Notification.requestPermission();}catch{toast('Notification permission is unavailable in this browser.');}notificationStatus();};
-$('#sound').onchange=async e=>{state.settings.sound=e.target.checked;if(e.target.checked){try{await reminders.chime();}catch(error){toast(error.message);}}persist();renderSettings();};
-$('#test-sound').onclick=async()=>{const test=$('#test-sound');test.disabled=true;try{await reminders.chime();toast(state.settings.sound?'Test chime played. If silent, check device volume and whether this tab is muted.':'Test chime played. Turn on Play a sound to use it for reminders.');}catch(error){toast(error.message);}finally{test.disabled=false;notificationStatus();}};
+settingsPanel=setupSettings({getState:()=>state,persist,toast,getReminders:()=>reminders,
+  renderTags:()=>tagSettings?.render(),onIntervalChange:()=>{undo=null;},onHoursChange:()=>{expandedDay=null;},
+});
+function renderSettings(){settingsPanel.render();}
+function notificationStatus(){settingsPanel?.notificationStatus();}
 $('#undo').onclick=()=>{
   if(!undo)return;
   if(undo.days)Object.assign(state.days,undo.days);else state.days[undo.date]=undo.entries;
@@ -257,37 +218,8 @@ $('#undo').onclick=()=>{
   undo=null;persist();if(view==='monthly')monthly.render();else if(view==='daily')renderTimeline();else if(view==='settings')renderSettings();toast('Change undone.');
 };
 $('#dismiss-toast').onclick=()=>{$('#toast').hidden=true;};
-$('#export').onclick=async()=>{
-  flushEditor();
-  try{
-    let backup=state;if(readFailed){const raw=localStorage.getItem('dayline.v1');if(raw)backup=JSON.parse(raw);}
-    const data=JSON.stringify(await exportFiles(structuredClone(backup)));
-    const url=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=node('a');a.href=url;a.download=`dayline-backup-${dayKey()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
-  }catch(error){toast(`Could not export: ${error.message}`);}
-};
-async function downloadDeviceBackup(){
-  let backup;
-  try{backup=deviceNotes();}catch{
-    const raw=localStorage.getItem('dayline.v1');
-    if(!raw)throw new Error('No device copy was found in this browser.');
-    const url=URL.createObjectURL(new Blob([raw],{type:'application/json'})),a=node('a');a.href=url;a.download=`dayline-device-recovery-${dayKey()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;
-  }
-  const data=JSON.stringify(await exportFiles(structuredClone(backup)));
-  const url=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=node('a');a.href=url;a.download=`dayline-device-notes-${dayKey()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
-}
-$('#import').onclick=()=>$('#import-file').click();
-$('#import-file').onchange=async e=>{
-  const file=e.target.files[0];if(!file)return;
-  try{if(file.size>MAX_BACKUP_SIZE)throw new Error('Choose a backup under 100 MB.');const data=JSON.parse(await file.text());pendingImport=prepareFiles(validState(data),data.attachmentFiles);$('#restore-dialog').showModal();}
-  catch(error){toast(`Could not restore: ${error.message}`);}e.target.value='';
-};
-$('#restore-dialog').addEventListener('close',async()=>{
-  if($('#restore-dialog').returnValue==='restore'&&pendingImport){
-    // Permission and audio must be enabled deliberately on each new device.
-    const backup=pendingImport;pendingImport=null;backup.state.settings.notifications=false;backup.state.settings.sound=false;
-    try{await storeFiles(backup.files);if(accounts)accounts.persist(backup.state);else save(backup.state);state=backup.state;readFailed=false;undo=null;renderSettings();toast('Backup restored. Enable reminders again when you’re ready.');}
-    catch{toast('Your browser could not save the backup. Existing data was kept.');}
-  }pendingImport=null;
+const backups=setupBackups({getState:()=>state,getReadFailed:()=>readFailed,getAccounts:()=>accounts,flushEditor,toast,
+  onRestore(next){state=next;readFailed=false;undo=null;renderSettings();},
 });
 window.addEventListener('pagehide',flushEditor);
 window.addEventListener('storage',event=>{if(event.key==='dayline.v1'&&!accounts?.isSignedIn()){try{state=load();readFailed=false;undo=null;window.dispatchEvent(new Event('dayline:notes-changed'));if(!editor){if(view==='daily')renderTimeline();else if(view==='monthly')monthly.render();else if(view==='settings')renderSettings();}toast('Notes updated from another tab.');}catch{toast('Another tab saved data that could not be read.');}}});
@@ -313,7 +245,7 @@ bulk=setupBulk({getState:()=>state,getView:()=>view,flush:flushEditor,
 });
 renderTimeline();
 accounts=setupAccounts({
-  getState:()=>state, flushEditor, toast,downloadDeviceBackup,
+  getState:()=>state, flushEditor, toast,downloadDeviceBackup:backups.downloadDeviceBackup,
   setState(next,options={}){
     const changed=JSON.stringify(state.days[selected]||[])!==JSON.stringify(next.days[selected]||[]);
     state=next;readFailed=options.readFailed??readFailed;window.dispatchEvent(new Event('dayline:notes-changed'));

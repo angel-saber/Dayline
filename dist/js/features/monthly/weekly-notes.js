@@ -1,3 +1,4 @@
+import {node} from '../../shared/dom.js';
 import {bindFileDrop} from '../attachments/attachments.js?v=attachments-1';
 import {weeklyNotes,weekStart} from './weekly-model.js?v=weekly-notes-1';
 import {dayKey,parseDay,timeLabel} from '../../shared/schedule.js?v=weekly-notes-1';
@@ -6,7 +7,7 @@ import {createNoteEditor} from '../notes/note-editor.js?v=weekly-notes-1';
 import {categoryOptions,tagBadges} from '../notes/note-types.js?v=multi-tags-1';
 import {openShareNote} from '../sharing/share-note.js?v=embodied-voices-1';
 import {noteTitle} from './model.js?v=monthly-1';
-const node=(tag,cls,text)=>{const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;};
+
 const button=(text,fn,cls='secondary')=>{const el=node('button',cls,text);el.type='button';el.onclick=fn;return el;};
 export function createWeeklySection({week,getState,apply,onChanged}){
   const section=node('section','weekly-notes'),header=node('div','weekly-notes-header'),list=node('div','weekly-notes-list');let editors=[];

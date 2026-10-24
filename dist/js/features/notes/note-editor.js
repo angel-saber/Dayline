@@ -1,3 +1,4 @@
+import {node as element} from '../../shared/dom.js';
 import {applyIndent,editIndents,indentLevel,MAX_INDENT} from './formatting/indents.js?v=indentation-1';
 import {prepareUploadFiles,reviewCompression} from '../attachments/file-compression.js?v=file-sharing-1';
 import {addFiles,attachmentList} from '../attachments/attachments.js?v=attachments-1';
@@ -8,9 +9,7 @@ import {HIGHLIGHTS,renderFormatted,editFormat,setLink} from './formatting/format
 import {lineRange,noteTasks,editTasks} from './formatting/tasks.js?v=line-tasks-1';
 import {recognizeBullets,replaceText,insertLineBreak,applyStyle,applyCheckbox,checkTask,selectionStyle} from './editor-state.js?v=indentation-1';
 
-const element=(tag,className,text)=>{
-  const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;
-};
+
 const makeButton=(text,label,action)=>{
   const el=element('button','',text);el.type='button';el.setAttribute('aria-label',label);el.addEventListener('click',action);return el;
 };

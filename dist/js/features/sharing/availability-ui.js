@@ -1,9 +1,10 @@
+import {node} from '../../shared/dom.js';
 import {availableHours,hourInput} from '../settings/available-hours.js?v=available-hours-1';
 import {dayKey,parseDay,timeLabel} from '../../shared/schedule.js?v=weekly-notes-1';
 import {scopeRange} from '../bulk/model.js?v=weekly-notes-1';
 import {emptyIntervals,availabilityText,mergeAvailability,validTimeZone} from './availability-model.js?v=weekly-notes-1';
 import {emailNoteUrl} from './share-note.js?v=embodied-voices-1';
-const node=(tag,cls,text)=>{const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;};
+
 const button=(text,fn,cls='secondary')=>{const el=node('button',cls,text);el.type='button';el.onclick=fn;return el;};
 export function openAvailability(api){
   api.flush();

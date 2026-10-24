@@ -1,8 +1,9 @@
+import {node} from '../../shared/dom.js';
 import {openAvailability} from '../sharing/availability-ui.js?v=weekly-notes-1';
 import {selectionKey,selectedNotes,matchingNotes,scopeRange} from './model.js?v=weekly-notes-1';
 import {categoryOptions,typeChips} from '../notes/note-types.js?v=multi-tags-1';
 import {openShareNotes} from '../sharing/share-note.js?v=embodied-voices-1';
-const node=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
+
 const button=(text,fn,cls='secondary')=>{const e=node('button',cls,text);e.type='button';e.onclick=fn;return e;};
 export function setupBulk(api){
  let active=false;const keys=new Set(),bar=node('div','bulk-bar');bar.hidden=true;bar.setAttribute('aria-label','Selected note actions');bar.setAttribute('role','region');document.body.append(bar);
