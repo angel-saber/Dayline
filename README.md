@@ -12,37 +12,41 @@ Dayline is a browser-based daily planner and focus workspace. Plan in time inter
 - Focus Mode with a commitment, editable interval notes, generated music, separate ambient/binaural/metronome layers, audio presets, inspiration, interruption logs, optional reflection, and saved session reports.
 - Minimize Focus Mode using its button or by clicking outside the window; audio continues while the page remains open.
 - Automatic device-local saving, JSON backup export/restore, and optional browser reminders with sound.
-- Optional account creation and a guest path. First-time users start at the sign-in page. After sign-in or choosing to continue without an account, the introduction appears over Daily with interval setup and live personality previews.
+- Private tester account sign-in and a guest path. First-time users start at the sign-in page. After sign-in or choosing to continue without an account, the introduction appears over Daily with interval setup and live personality previews.
 
 ## Run locally
 
 ```sh
 git clone https://github.com/angel-saber/Dayline.git
 cd Dayline
+npm ci --ignore-scripts
 npm run check
 npm test
 npm start
 ```
 
-Node.js 24+ runs the checks; Python 3 serves the website at http://localhost:8080. No npm install or build step is required.
+Node.js 24 runs the development checks; Python 3 serves the website at http://localhost:8080. The exactly pinned development tools are only for formatting and tests. The deployed website has no npm runtime dependency. After changing stylesheet sources, run `npm run build:styles` and commit the generated stylesheet.
 
 ## Code structure
 
-- `dist/index.html`, `dist/styles.css`: page structure, responsive styling, and layouts.
-- `dist/js/app/controller.js`: planner coordination and view integration.
-- `dist/js/shared/schedule.js`, `month-model.js`, `date-actions.js`: scheduling and calendar behavior.
-- `dist/js/features/notes/note-editor.js`, `editor-state.js`, `format.js`, `tasks.js`: note editing and formatting.
-- `dist/js/personalities/appearance.js`, `personality.js`, `quotes.js`, `welcome.js`: presentation, voice, and introduction.
-- `dist/js/features/focus/controller.js`, `focus-model.js`, `focus-audio.js`, `focus-music.js`, `focus-reports.js`: session UI, session rules, generated audio, and reports.
-- `dist/js/shared/storage.js`, `reminders.js`: browser persistence and reminders.
-- `dist/js/features/accounts/accounts.js`, `cloud.js`, `sync.js`, `config.js`: optional website account integration.
-- Root `*.test.js` and `tests/`: automated web tests; `scripts/check.mjs`: JavaScript syntax checks.
+- `dist/index.html`: page structure; `dist/js/app.js`: small application entry point.
+- `dist/js/app/`: planner coordination and connections between features.
+- `dist/js/features/`: accounts, activities, attachments, bulk actions, Daily, Focus, Monthly/Weekly Notes, note editing, onboarding, reminders, settings/backups, and sharing.
+- `dist/js/personalities/zen/`, `builder/`, `founder/`: each personality's authored copy, descriptions, quotes, mantras, onboarding preview, theme, and original soundtrack.
+- `dist/js/shared/`: date/time, scheduling, validated storage, DOM, and download helpers.
+- `dist/styles/index.css`: ordered stylesheet sources; `dist/styles.css`: generated single-file browser bundle.
+- `tests/<feature>/`: organized behavior and regression tests.
+- `scripts/`: dependency/export checks and local stylesheet generation.
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for module ownership and guidelines. Personalities belong in folders within the same application; use temporary branches for developing changes, rather than permanent branches for each personality.
 
 ## Current hosting and account status
 
-The complete website is in `dist/`. GitHub Pages is the current development host. In repository settings choose **Pages → Source → GitHub Actions**. The **Deploy GitHub Pages** workflow publishes changes to `dist/` on `main` and also supports **Run workflow** for a manual deployment. **Checks** validates the code; it does not publish a separate version of the site.
+The complete website is in `dist/`. GitHub Pages is the current development host. In repository settings choose **Pages → Source → GitHub Actions**. The **Deploy GitHub Pages** workflow publishes changes to `dist/` on `main` and supports a manual deployment from `main`. Feature branches cannot deploy through this workflow. **Checks** validates code; it does not publish the site.
 
-Account services are not configured: `dist/js/features/accounts/config.js` contains empty public configuration values. Guests can continue without an account and keep notes in their browser. Email sign-in and cross-device sync need a configured account service before they are available. The optional integration and setup reference remain in [docs/ACCOUNTS_SETUP.md](docs/ACCOUNTS_SETUP.md); they are not required for guest use or static hosting.
+The dedicated Supabase Free project is configured for private account testing, with public signup disabled. Existing accounts can use email links or password sign-in when a password is provisioned. Notes and selected settings sync per account; attachment binaries and browser notification/audio permission remain device-local. The default email sender has recipient restrictions. See [docs/ACCOUNTS_SETUP.md](docs/ACCOUNTS_SETUP.md). Guest planning remains usable without an account.
+
+End-to-end encryption is a separate development prototype, not an enabled feature of the live app. This organizational refactor does not migrate account data or change authentication rules.
 
 Browser storage belongs to each site's origin. Before moving to a new domain or host, export notes from the old site and restore them on the new site. Do not assume local notes transfer automatically. Browser reminders and focus audio require the page to remain open; this website does not currently cache its shell for offline loading.
 
@@ -61,4 +65,4 @@ These are planned features, not currently active payments or ads. Hosting limits
 
 ## Development and validation
 
-Follow [docs/WORKFLOW.md](docs/WORKFLOW.md). Run `npm run check` and `npm test`, then verify relevant browser interactions before release. Keep planner backups, credentials, account tokens, and payment secrets out of the repository.
+Follow [docs/WORKFLOW.md](docs/WORKFLOW.md). Run `npm run format` after edits, then `npm run format:check`, `npm run check`, and `npm test`. Verify relevant browser interactions before release. Keep planner backups, credentials, account tokens, and payment secrets out of the repository.

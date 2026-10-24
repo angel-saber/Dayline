@@ -1,9 +1,41 @@
-:root[data-layout=founder] :is(h1,.brand,.settings-card h2,dialog h2,.focus-window h2,.daily-note-title,.note-title-input){font-family:Georgia,'Times New Roman',serif}
-:root[data-layout=founder] h1{letter-spacing:-1.5px}
-:root[data-layout=founder] .brand{font-weight:normal;letter-spacing:-1px}
-:root[data-layout=founder] .topbar{border-bottom:double 3px var(--line)}
-:root[data-layout=founder] :is(.entry,.settings-card,.focus-section,.focus-commitment,.month-grid){border-radius:3px;box-shadow:0 4px 16px #51371b07}
-:root[data-layout=founder] .entry{padding-top:18px;padding-bottom:18px}
-:root[data-layout=founder] .daily-note-title{font-size:17px;font-weight:normal}
-:root[data-layout=founder] .eyebrow{letter-spacing:3px}
-:root[data-layout=founder] .focus-mantra{border-radius:0}
+:root[data-layout='founder']
+  :is(
+    h1,
+    .brand,
+    .settings-card h2,
+    dialog h2,
+    .focus-window h2,
+    .daily-note-title,
+    .note-title-input
+  ) {
+  font-family: Georgia, 'Times New Roman', serif;
+}
+:root[data-layout='founder'] h1 {
+  letter-spacing: -1.5px;
+}
+:root[data-layout='founder'] .brand {
+  font-weight: normal;
+  letter-spacing: -1px;
+}
+:root[data-layout='founder'] .topbar {
+  border-bottom: double 3px var(--line);
+}
+:root[data-layout='founder']
+  :is(.entry, .settings-card, .focus-section, .focus-commitment, .month-grid) {
+  border-radius: 3px;
+  box-shadow: 0 4px 16px #51371b07;
+}
+:root[data-layout='founder'] .entry {
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+:root[data-layout='founder'] .daily-note-title {
+  font-size: 17px;
+  font-weight: normal;
+}
+:root[data-layout='founder'] .eyebrow {
+  letter-spacing: 3px;
+}
+:root[data-layout='founder'] .focus-mantra {
+  border-radius: 0;
+}

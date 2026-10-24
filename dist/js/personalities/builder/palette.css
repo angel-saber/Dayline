@@ -1,1 +1,13 @@
-:root[data-layout=builder]{color-scheme:dark;--paper:#0b111b;--white:#141f2e;--ink:#e5edf7;--muted:#a2b2c7;--line:#2c4057;--green:#74dce9;--soft:#1d3444;--surface:#101a28;--accent-ink:#091b25;font-family:Arial,Helvetica,sans-serif}
+:root[data-layout='builder'] {
+  color-scheme: dark;
+  --paper: #0b111b;
+  --white: #141f2e;
+  --ink: #e5edf7;
+  --muted: #a2b2c7;
+  --line: #2c4057;
+  --green: #74dce9;
+  --soft: #1d3444;
+  --surface: #101a28;
+  --accent-ink: #091b25;
+  font-family: Arial, Helvetica, sans-serif;
+}

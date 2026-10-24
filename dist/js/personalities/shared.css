@@ -1,20 +1,89 @@
-:root:is([data-layout=builder],[data-layout=founder]) :is(nav,.notice,.entry.done,.outside-month,.focus-extend,.focus-combined-log){background:var(--soft)}
-:root:is([data-layout=builder],[data-layout=founder]) :is(.settings-card,.secondary,.focus-window textarea){background:var(--surface);border-color:var(--line)}
-:root:is([data-layout=builder],[data-layout=founder]) :is(.pill,.entry,.check,.editor,select,input[type=number],.auth-card input,.month-note){border-color:var(--line)}
-:root:is([data-layout=builder],[data-layout=founder]) :is(.tab,.slot-time,.end-time,.empty-add,.entry-tools button,.drag-handle,.day-end,.day-end span,.gesture-guide,.notice,.month-empty){color:var(--muted)}
-:root:is([data-layout=builder],[data-layout=founder]) .tab.active{color:var(--ink)}
-:root:is([data-layout=builder],[data-layout=founder]) :is(.primary,.focus-mini){background:var(--green);color:var(--accent-ink)}
-:root:is([data-layout=builder],[data-layout=founder]) footer{background:var(--paper)}
-:root:is([data-layout=builder],[data-layout=founder]) :is(.now-badge,.month-note,.month-today,.empty-add:hover,.focus-mantra){background:var(--soft)}
-:root:is([data-layout=builder],[data-layout=founder]) .focus-mantra{border-left-color:var(--green)}
-:root:is([data-layout=builder],[data-layout=founder]) :is(.slot.drop-target,.month-drop-target){background:var(--soft);outline-color:var(--green)}
-:root:is([data-layout=builder],[data-layout=founder]) :is(.slot.current .slot-time,.empty-add:hover){color:var(--green)}
-:root:is([data-layout=builder],[data-layout=founder]) :is(.status-dot,#progress,.entry.done .check){background:var(--green)}
-:root:is([data-layout=builder],[data-layout=founder]) .entry.done .check{color:var(--accent-ink);border-color:var(--green)}
-:root:is([data-layout=builder],[data-layout=founder]) .entry.done .note-text{color:var(--muted)}
-:root:is([data-layout=builder],[data-layout=founder]) .format-toolbar button:not(.format-highlight){background:var(--soft);color:var(--ink)}
-:root:is([data-layout=builder],[data-layout=founder]) .format-toolbar button[aria-pressed=true]{box-shadow:inset 0 0 0 2px var(--green)}
-:root:is([data-layout=builder],[data-layout=founder]) .format-toolbar .format-highlight{color:#293b30}
-:root:is([data-layout=builder],[data-layout=founder]) .switch{background:var(--line)}
-:root:is([data-layout=builder],[data-layout=founder]) .switch:checked{background:var(--green)}
-:root:is([data-layout=builder],[data-layout=founder]) .focus-save-status{color:var(--green)}
+:root:is([data-layout='builder'], [data-layout='founder'])
+  :is(nav, .notice, .entry.done, .outside-month, .focus-extend, .focus-combined-log) {
+  background: var(--soft);
+}
+:root:is([data-layout='builder'], [data-layout='founder'])
+  :is(.settings-card, .secondary, .focus-window textarea) {
+  background: var(--surface);
+  border-color: var(--line);
+}
+:root:is([data-layout='builder'], [data-layout='founder'])
+  :is(.pill, .entry, .check, .editor, select, input[type='number'], .auth-card input, .month-note) {
+  border-color: var(--line);
+}
+:root:is([data-layout='builder'], [data-layout='founder'])
+  :is(
+    .tab,
+    .slot-time,
+    .end-time,
+    .empty-add,
+    .entry-tools button,
+    .drag-handle,
+    .day-end,
+    .day-end span,
+    .gesture-guide,
+    .notice,
+    .month-empty
+  ) {
+  color: var(--muted);
+}
+:root:is([data-layout='builder'], [data-layout='founder']) .tab.active {
+  color: var(--ink);
+}
+:root:is([data-layout='builder'], [data-layout='founder']) :is(.primary, .focus-mini) {
+  background: var(--green);
+  color: var(--accent-ink);
+}
+:root:is([data-layout='builder'], [data-layout='founder']) footer {
+  background: var(--paper);
+}
+:root:is([data-layout='builder'], [data-layout='founder'])
+  :is(.now-badge, .month-note, .month-today, .empty-add:hover, .focus-mantra) {
+  background: var(--soft);
+}
+:root:is([data-layout='builder'], [data-layout='founder']) .focus-mantra {
+  border-left-color: var(--green);
+}
+:root:is([data-layout='builder'], [data-layout='founder'])
+  :is(.slot.drop-target, .month-drop-target) {
+  background: var(--soft);
+  outline-color: var(--green);
+}
+:root:is([data-layout='builder'], [data-layout='founder'])
+  :is(.slot.current .slot-time, .empty-add:hover) {
+  color: var(--green);
+}
+:root:is([data-layout='builder'], [data-layout='founder'])
+  :is(.status-dot, #progress, .entry.done .check) {
+  background: var(--green);
+}
+:root:is([data-layout='builder'], [data-layout='founder']) .entry.done .check {
+  color: var(--accent-ink);
+  border-color: var(--green);
+}
+:root:is([data-layout='builder'], [data-layout='founder']) .entry.done .note-text {
+  color: var(--muted);
+}
+:root:is([data-layout='builder'], [data-layout='founder'])
+  .format-toolbar
+  button:not(.format-highlight) {
+  background: var(--soft);
+  color: var(--ink);
+}
+:root:is([data-layout='builder'], [data-layout='founder'])
+  .format-toolbar
+  button[aria-pressed='true'] {
+  box-shadow: inset 0 0 0 2px var(--green);
+}
+:root:is([data-layout='builder'], [data-layout='founder']) .format-toolbar .format-highlight {
+  color: #293b30;
+}
+:root:is([data-layout='builder'], [data-layout='founder']) .switch {
+  background: var(--line);
+}
+:root:is([data-layout='builder'], [data-layout='founder']) .switch:checked {
+  background: var(--green);
+}
+:root:is([data-layout='builder'], [data-layout='founder']) .focus-save-status {
+  color: var(--green);
+}
