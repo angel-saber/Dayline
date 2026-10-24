@@ -48,7 +48,7 @@ test('effects honor reduced motion and hidden tabs, persist device preference, a
     ]),
   );
   const { window } = parseHTML(
-    '<html data-layout="astronaut"><body><select id="visual-effects"><option>full</option><option>subtle</option><option>off</option></select><p id="effects-status"></p></body></html>',
+    '<html data-layout="astronaut"><body><select id="visual-effects"><option>full</option><option>subtle</option><option>off</option></select><p id="effects-status"></p><dialog class="focus-window" open></dialog></body></html>',
   );
   const media = {
     matches: false,
@@ -74,6 +74,9 @@ test('effects honor reduced motion and hidden tabs, persist device preference, a
       value: 'full',
       writable: true,
     });
+    window.HTMLElement.prototype.showPopover = function () {
+      this.dataset.popoverShown = 'true';
+    };
     effects = setupPersonalityEffects();
     const root = document.documentElement,
       select = document.querySelector('select');
@@ -84,6 +87,13 @@ test('effects honor reduced motion and hidden tabs, persist device preference, a
     emit();
     emit();
     assert.equal(document.querySelectorAll('.personality-burst').length, 1);
+    const burst = document.querySelector('.personality-burst');
+    assert.equal(burst.parentNode, document.body);
+    assert.equal(burst.getAttribute('popover'), 'manual');
+    assert.equal(burst.dataset.popoverShown, 'true');
+    assert.match(burst.textContent, /Signal secured/);
+    document.querySelector('.focus-window').replaceChildren();
+    assert.equal(document.querySelector('.personality-burst'), burst);
     media.matches = true;
     media.listener();
     assert.equal(root.dataset.effects, 'off');
@@ -101,9 +111,18 @@ test('effects honor reduced motion and hidden tabs, persist device preference, a
     Object.defineProperty(document, 'hidden', { value: false, configurable: true });
     document.dispatchEvent(new window.Event('visibilitychange'));
     assert.equal(root.dataset.effects, 'subtle');
+    assert.equal(document.querySelector('.effects-preview').disabled, true);
+    select.value = 'full';
+    select.dispatchEvent(new window.Event('change'));
+    const snapshot = JSON.stringify([...memory]);
+    document.querySelector('.effects-preview').click();
+    assert.match(document.querySelector('.personality-burst').textContent, /Course set/);
+    assert.equal(JSON.stringify([...memory]), snapshot);
     effects.destroy();
     effects = null;
     assert.equal(document.querySelector('.personality-scene'), null);
+    assert.equal(document.querySelector('.effects-preview'), null);
+    assert.equal(document.querySelector('.personality-burst'), null);
   } finally {
     effects?.destroy();
     for (const [key, descriptor] of originals) {

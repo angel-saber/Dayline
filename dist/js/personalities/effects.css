@@ -22,7 +22,7 @@ html:is([data-personality-effect='orbital'], [data-personality-effect='mastery']
 .scene-orbit {
   width: 70vw;
   height: 70vw;
-  border: 1px solid #8bcfff26;
+  border: 1px solid #8bcfff55;
   border-radius: 50%;
   right: -35vw;
   top: 5vh;
@@ -41,7 +41,7 @@ html:is([data-personality-effect='orbital'], [data-personality-effect='mastery']
     radial-gradient(circle at 72% 13%, #c4eaff88 0 1px, transparent 2px),
     radial-gradient(circle at 30% 80%, #b99aff77 0 1px, transparent 2px);
   background-size: 290px 310px;
-  opacity: 0.5;
+  opacity: 0.7;
 }
 [data-personality-effect='mastery'] .scene-orbit,
 [data-personality-effect='mastery'] .scene-stars {
@@ -62,7 +62,7 @@ html:is([data-personality-effect='orbital'], [data-personality-effect='mastery']
   opacity: 0.65;
 }
 [data-effects='full'] .scene-stars {
-  animation: orbital-drift 70s ease-in-out infinite alternate;
+  animation: orbital-drift 18s ease-in-out infinite alternate;
 }
 [data-effects='full'] .scene-grid {
   animation: mastery-breathe 12s ease-in-out infinite alternate;
@@ -73,17 +73,82 @@ html:is([data-personality-effect='orbital'], [data-personality-effect='mastery']
 .personality-burst {
   pointer-events: none;
   position: fixed;
-  inset: 12%;
+  inset: auto 28px 100px auto;
   z-index: 30;
-  border: 1px solid #a1def4;
-  border-radius: 50%;
+  width: 260px;
+  max-width: calc(100vw - 40px);
+  height: 150px;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 16px;
+  background: radial-gradient(ellipse, #102b43ed, #102b4300 72%);
+  color: #b7eeff;
+  text-align: center;
   opacity: 0;
-  animation: progress-arrival 1.8s ease-out forwards;
+  animation: progress-arrival 2.4s ease-out forwards;
+}
+.personality-burst::backdrop {
+  background: transparent;
+  pointer-events: none;
+}
+.personality-burst span {
+  display: block;
+  font:
+    600 13px/1.5 system-ui,
+    sans-serif;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 8px #000;
+}
+.effect-mark {
+  display: block;
+  width: 100%;
+  height: 108px;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 6px #85d9ff80);
+}
+.effect-mark circle {
+  fill: currentColor;
+}
+.effect-orbital path,
+.effect-mastery path {
+  stroke-dasharray: 300;
+  stroke-dashoffset: 300;
+  animation: trace-progress 0.85s ease-out forwards;
+}
+.effect-orbital ellipse {
+  transform-origin: center;
+  animation: arrival-orbit 2.4s ease-out forwards;
+}
+.effect-mastery {
+  display: none;
+}
+[data-personality-effect='mastery'] .effect-orbital {
+  display: none;
+}
+[data-personality-effect='mastery'] .effect-mastery {
+  display: block;
 }
 [data-personality-effect='mastery'] .personality-burst {
-  border-radius: 14px;
-  border-color: #e9c97f;
-  box-shadow: inset 0 0 35px #a98bdf25;
+  color: #f6daa0;
+  background: radial-gradient(ellipse, #34244ced, #34244c00 72%);
+}
+@keyframes trace-progress {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes arrival-orbit {
+  from {
+    transform: rotate(-18deg) scale(0.75);
+  }
+  to {
+    transform: rotate(8deg) scale(1.05);
+  }
 }
 [data-effects='off'] .personality-burst {
   display: none;
@@ -101,14 +166,16 @@ html:is([data-personality-effect='orbital'], [data-personality-effect='mastery']
 @keyframes progress-arrival {
   0% {
     opacity: 0;
-    transform: scale(0.92);
+    transform: translateY(10px) scale(0.94);
   }
-  25% {
-    opacity: 0.5;
+  15%,
+  70% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
   100% {
     opacity: 0;
-    transform: scale(1.06);
+    transform: translateY(-5px) scale(1.03);
   }
 }
 .layout-options {
@@ -146,7 +213,7 @@ html:is([data-personality-effect='orbital'], [data-personality-effect='mastery']
   stroke: #ac8adf;
   stroke-width: 1;
   fill: none;
-  opacity: 0.14;
+  opacity: 0.28;
 }
 [data-personality-effect='mastery'] .scene-skills {
   display: block;
@@ -156,7 +223,7 @@ html:is([data-personality-effect='orbital'], [data-personality-effect='mastery']
   stroke: #e9c97f;
 }
 [data-effects='full'] .scene-orbit {
-  animation: orbit-align 90s ease-in-out infinite alternate;
+  animation: orbit-align 24s ease-in-out infinite alternate;
 }
 [data-effects='full'][data-focus-active='true'] .scene-skills {
   animation: mastery-breathe 8s ease-in-out infinite alternate;
@@ -170,5 +237,16 @@ html:is([data-personality-effect='orbital'], [data-personality-effect='mastery']
   .scene-skills {
     right: -100px;
     opacity: 0.1;
+  }
+}
+
+.effects-preview {
+  margin-top: 10px;
+}
+@media (max-width: 600px) {
+  .personality-burst {
+    right: 20px;
+    bottom: 100px;
+    width: 220px;
   }
 }

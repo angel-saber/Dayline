@@ -3,6 +3,6 @@
 export {
   SupabaseClient as CloudClient,
   validateConfig,
-} from './providers/supabase.js?v=5010270c32fe';
-export { CloudError } from './errors.js?v=5010270c32fe';
-export { takeSignInReturn } from './sign-in-return.js?v=5010270c32fe';
+} from './providers/supabase.js?v=6880fc00acca';
+export { CloudError } from './errors.js?v=6880fc00acca';
+export { takeSignInReturn } from './sign-in-return.js?v=6880fc00acca';

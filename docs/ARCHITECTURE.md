@@ -163,3 +163,12 @@ register it once in `personalities/index.js`. Include its theme CSS in the order
 stylesheet sources, then run the build and tests. The server preference validator
 remains an explicit backend allowlist; new IDs need an additive migration before
 account sync can accept them. Browser metadata cannot authorize server access.
+
+Completion responses include whole notes, individual checkboxes in Daily/Focus,
+and Weekly Notes. They fire only after a successful save and never for reopening
+an item. Focus commitment responds after the preparation fade and active view
+render, so replacing the preparation DOM cannot erase the effect. Responses use
+a pointer-transparent manual popover above modal dialogs where supported, with
+an in-dialog fallback. They carry no note text, never move focus, and clear on
+hide, personality/effect changes, or their short lifetime. Settings offers a
+Preview effects button that changes no notes or Focus session data.
