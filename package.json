@@ -5,14 +5,17 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "format": "prettier --write \"dist/js/**/*.js\" \"dist/js/personalities/**/*.css\" \"dist/styles/**/*.css\" dist/index.html \"tests/**/*.js\" \"scripts/*.mjs\" \"docs/*.md\" README.md package.json .prettierrc.json \".github/workflows/*.yml\" && npm run build:styles",
-    "format:check": "prettier --check \"dist/js/**/*.js\" \"dist/js/personalities/**/*.css\" \"dist/styles/**/*.css\" dist/index.html \"tests/**/*.js\" \"scripts/*.mjs\" \"docs/*.md\" README.md package.json .prettierrc.json \".github/workflows/*.yml\"",
+    "format": "prettier --write \"dist/js/**/*.js\" \"dist/js/personalities/**/*.css\" \"dist/styles/**/*.css\" dist/index.html \"tests/**/*.js\" \"scripts/*.mjs\" \"docs/*.md\" \"experiments/e2ee/**/*.{js,css,html,md}\" README.md package.json .prettierrc.json \".github/workflows/*.yml\" && npm run build:styles",
+    "format:check": "prettier --check \"dist/js/**/*.js\" \"dist/js/personalities/**/*.css\" \"dist/styles/**/*.css\" dist/index.html \"tests/**/*.js\" \"scripts/*.mjs\" \"docs/*.md\" \"experiments/e2ee/**/*.{js,css,html,md}\" README.md package.json .prettierrc.json \".github/workflows/*.yml\"",
     "build:styles": "node scripts/build-styles.mjs",
-    "check": "node --experimental-vm-modules scripts/check.mjs && node scripts/build-styles.mjs --check",
-    "start": "python3 -m http.server 8080 --directory dist"
+    "check": "node --experimental-vm-modules scripts/check.mjs && node scripts/build-styles.mjs --check && node --experimental-vm-modules scripts/check-e2ee.mjs",
+    "start": "python3 -m http.server 8080 --directory dist",
+    "test:e2ee": "node --test experiments/e2ee/tests/*.test.js",
+    "start:e2ee": "python3 -m http.server 8081 --bind 127.0.0.1"
   },
   "devDependencies": {
     "linkedom": "0.18.14",
-    "prettier": "3.9.10"
+    "prettier": "3.9.10",
+    "@electric-sql/pglite": "0.5.11"
   }
 }
