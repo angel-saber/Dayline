@@ -46,3 +46,17 @@ test('moving procedural scores preserves the exact original audio samples', () =
     );
   }
 });
+
+// The pre-paint classic script can remain cached across module/app releases.
+// Tie its URL to its bytes so returning users always receive new supported IDs.
+test('appearance script cache key changes whenever its content changes', () => {
+  const html = readFileSync(new URL('../../dist/index.html', import.meta.url), 'utf8');
+  const source = readFileSync(
+    new URL('../../dist/js/personalities/appearance.js', import.meta.url),
+  );
+  const digest = createHash('sha256').update(source).digest('hex').slice(0, 12);
+  assert.ok(
+    html.includes(`./js/personalities/appearance.js?v=${digest}`),
+    'Update the appearance script URL to the first 12 SHA-256 characters of its content.',
+  );
+});
