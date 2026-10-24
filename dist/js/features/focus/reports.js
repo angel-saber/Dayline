@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=fe286a6e269a';
-import { durationLabel } from './model.js?v=fe286a6e269a';
+import { node } from '../../shared/dom.js?v=c17c8abbdfaa';
+import { durationLabel } from './model.js?v=c17c8abbdfaa';
 
 export function renderFocusReports(container, reports = []) {
   for (const report of reports) {

@@ -1,4 +1,4 @@
-import { renderScore } from './music.js?v=fe286a6e269a';
+import { renderScore } from './music.js?v=c17c8abbdfaa';
 // Original copy for creative practice; user writing is never restyled or rewritten.
 export default {
   id: 'poet',
@@ -85,11 +85,11 @@ export default {
   },
   soundtrack: {
     layout: 'poet',
-    bpm: 66,
-    label: 'Velvet reverie',
+    bpm: 122,
+    label: 'Afterglow letters',
     description:
-      'Original expressive chamber-inspired score: softly struck piano-like phrases, warm cello-like foundations, and sustained string-like harmonies. A patient rise into a held emotional peak returns to a quieter, hopeful passage. No vocals or percussion; synthesized locally at 66 BPM.',
-    bars: 128,
+      'Original emotional melodic electronica: spacious layered synths, warm rounded bass, a flowing broken-beat rhythm, and echoing melodic phrases. A gradual harmonic bloom opens into a held middle passage before a spacious return. Instrumental and synthesized locally at 122 BPM.',
+    bars: 256,
     renderSampleRate: 24000,
   },
   settingsDescription: 'Expressive and imaginative · feeling & creative practice',
