@@ -3440,6 +3440,58 @@ main {
   }
 }
 
+/* The independent player shares the planner's floating control area. */
+.focus-audio-launch {
+  position: fixed;
+  right: max(24px, env(safe-area-inset-right));
+  bottom: calc(150px + env(safe-area-inset-bottom));
+  z-index: 8;
+  max-width: calc(100vw - 32px);
+}
+.focus-audio-launch button {
+  padding: 12px 18px;
+  border-radius: 28px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  box-shadow: 0 4px 18px #00000018;
+  font-size: 12px;
+}
+.focus-audio-window {
+  width: calc(100% - 30px);
+  max-width: 720px;
+  max-height: 90dvh;
+  padding: 28px 32px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.focus-audio-window h1 {
+  font-size: 30px;
+  margin: 12px 0;
+}
+.focus-audio-window .focus-audio-status {
+  color: var(--muted);
+  font-size: 12px;
+}
+.bulk-mode .focus-audio-launch {
+  display: none;
+}
+main {
+  padding-bottom: 220px;
+}
+@media (max-width: 600px) {
+  .focus-audio-launch {
+    right: max(16px, env(safe-area-inset-right));
+  }
+  .focus-audio-window {
+    padding: 20px;
+  }
+}
+.focus-window-header {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 
 :root[data-layout='astronaut'] body {
   background-image:

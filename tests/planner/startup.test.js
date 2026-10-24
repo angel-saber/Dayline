@@ -1,3 +1,4 @@
+import { MockContext } from '../focus/mock-audio-context.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -32,6 +33,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
     'setInterval',
     'clearInterval',
     'fetch',
+    'AudioContext',
   ];
   const previous = new Map(
     names.map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]),
@@ -142,6 +144,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
       cancelAnimationFrame() {},
       setInterval: () => 0,
       clearInterval() {},
+      AudioContext: MockContext,
       fetch: async (url) => {
         network.push(url);
         throw new Error('Unexpected network request');
@@ -201,6 +204,12 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.deepEqual(saved.days, fixture.days);
     document.querySelector('#daily-tab').click();
     assert.match(document.querySelector('#timeline').textContent, /Saved plan/);
+    document.querySelector('#launch-focus-audio').click();
+    assert.equal(document.querySelector('.focus-audio-window').open, true);
+    assert.equal(local.getItem('dayline.focus.v1'), null);
+    [...document.querySelectorAll('.focus-audio-window button')]
+      .find((button) => button.textContent === 'Minimize audio')
+      .click();
     document.querySelector('#launch-focus').click();
     assert.equal(document.querySelector('.focus-window').open, true);
     assert.match(
@@ -219,6 +228,9 @@ test('the assembled planner starts, switches views/personalities, edits settings
     await new Promise((resolve) => setTimeout(resolve, 1150));
     assert.equal(document.querySelector('.personality-burst')?.dataset.kind, 'focus-commit');
     assert.equal(document.querySelector('.personality-burst')?.parentNode, document.body);
+    document.querySelector('.focus-open-audio').click();
+    assert.equal(document.querySelector('.focus-audio-window').open, true);
+    assert.equal(document.querySelector('.focus-window .focus-soundtrack-select'), null);
     for (const [mode, label] of [
       ['zen', 'Still temple'],
       ['builder', 'Cyberpunk mission'],
@@ -237,6 +249,18 @@ test('the assembled planner starts, switches views/personalities, edits settings
         new RegExp(label),
       );
     }
+    [...document.querySelectorAll('.focus-audio-window button')]
+      .find((button) => button.textContent === 'Play audio')
+      .click();
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(
+      document.querySelector('#launch-focus-audio').textContent,
+      'Focus Audio · Playing',
+    );
+    const independentAudio = local.getItem('dayline.focus-audio.v1');
+    [...document.querySelectorAll('.focus-audio-window button')]
+      .find((button) => button.textContent === 'Minimize audio')
+      .click();
     document.querySelector('.focus-finish').click();
     const skip = [...document.querySelectorAll('.focus-window button')].find(
       (button) => button.textContent === 'Skip reflection & close',
@@ -245,6 +269,18 @@ test('the assembled planner starts, switches views/personalities, edits settings
     skip.click();
     assert.equal(document.querySelector('.focus-window').open, false);
     assert.equal(document.querySelector('.personality-burst')?.dataset.kind, 'focus-finish');
+    assert.equal(
+      document.querySelector('#launch-focus-audio').textContent,
+      'Focus Audio · Playing',
+    );
+    assert.equal(local.getItem('dayline.focus-audio.v1'), independentAudio);
+    document.querySelector('#launch-focus-audio').click();
+    [...document.querySelectorAll('.focus-audio-window button')]
+      .find((button) => button.textContent === 'Pause audio')
+      .click();
+    await new Promise((resolve) => setTimeout(resolve, 850));
+    assert.equal(document.querySelector('#launch-focus-audio').textContent, 'Launch Focus Audio');
+
     assert.deepEqual(network, []);
   } finally {
     for (const [name, descriptor] of previous) {
