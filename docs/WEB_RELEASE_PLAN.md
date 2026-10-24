@@ -4,7 +4,7 @@
 
 Validate daily and monthly planning, rich formatting, checkbox behavior, drag and swipe interactions, interval settings, personalities, quotes, reminders, Focus Mode, audio layers and presets, reflection reports, backups, and introduction behavior after leaving the sign-in page through either sign-in or the guest option. Verify keyboard and touch interactions, narrow screens, reduced motion, and storage/network failures.
 
-Keep core guest use independent of an account service. Account creation remains optional; email sign-in and cross-device sync are unavailable until the existing integration is configured and tested.
+Keep core guest use independent of an account service. Private account testing is configured on the current backend; public signup remains disabled. Follow [PROVIDER_PORTABILITY.md](PROVIDER_PORTABILITY.md) and [INFRASTRUCTURE_POLICY.json](INFRASTRUCTURE_POLICY.json): free plans first, no automatic paid upgrades, and paid upgrades require explicit owner approval after owner-confirmed app revenue. Review per-sale fees separately.
 
 ## 2. Prepare free runtime hosting
 

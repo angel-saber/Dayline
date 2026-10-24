@@ -96,6 +96,13 @@ host because the generated website is checked in.
 
 ## Validation
 
+Account interfaces and provider-neutral migration/access models are described in
+[PROVIDER_PORTABILITY.md](PROVIDER_PORTABILITY.md). The account controller uses the
+auth, notes, and preferences ports; provider transport lives under
+`features/accounts/providers/`. Pure future policy/ledger models live in
+`features/access/`, and account migration serialization in `features/portability/`.
+These preparations do not enable checkout or change backend providers.
+
 `npm run check` checks syntax recursively and statically links all published
 modules, without executing planner code, to catch missing exports and broken
 paths. It also checks lazy PDF-library paths, HTML references, stylesheet imports,

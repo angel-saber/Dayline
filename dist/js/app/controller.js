@@ -55,7 +55,7 @@ import {
   Reminders,
   resolveReminder,
 } from '../features/reminders/reminders.js?v=reschedule-background-1';
-import { setupAccounts } from '../features/accounts/accounts.js?v=password-signin-1';
+import { setupAccounts } from '../features/accounts/accounts.js?v=provider-ports-1';
 import { dailyQuote } from '../personalities/quotes.js?v=embodied-voices-1';
 import { createNoteEditor } from '../features/notes/note-editor.js?v=weekly-notes-1';
 import { noteTasks } from '../features/notes/formatting/tasks.js?v=line-tasks-1';
