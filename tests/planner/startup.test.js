@@ -235,7 +235,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
       ['zen', 'Still temple'],
       ['builder', 'Cyberpunk mission'],
       ['founder', 'Symphonic horizon'],
-      ['poet', 'Velvet reverie'],
+      ['poet', 'Afterglow letters'],
       ['astronaut', 'Orbital drift'],
       ['gamer', 'Ascension protocol'],
     ]) {

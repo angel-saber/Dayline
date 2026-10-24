@@ -217,8 +217,9 @@ backup and sharing formats are unchanged.
 Poet is a free basic profile with no special effects, registered beside the other
 profiles. Its rose-paper/plum palette and editorial typography support creative
 practice; copy, original inspiration and instructional mantras encourage turning
-feeling into specific creative work. Velvet Reverie is an original locally
-synthesized piano-and-strings-like chamber score with a gradual emotional arc.
+feeling into specific creative work. Afterglow Letters is an original locally
+synthesized melodic electronic score with spacious synth layers, warm bass, flowing breakbeats
+and a gradual emotional arc.
 The same registry drives Settings, onboarding, quotes, Focus copy and audio. The
 additive `poet_personality_preferences` migration permits its stable ID in the
 existing account preferences RPC without changing owner policies or note data.

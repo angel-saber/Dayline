@@ -1,77 +1,118 @@
-import { scoreTools } from '../score-tools.js?v=fe286a6e269a';
-// Velvet Reverie: an original minor-to-major chamber miniature, without recordings.
+import { scoreTools } from '../score-tools.js?v=c17c8abbdfaa';
+// Afterglow Letters: original melodic electronica. No borrowed melodies or samples.
 export function renderScore(data, rate) {
   if (!data.length || rate <= 0) return;
-  const { add, tau, normalize } = scoreTools(data, rate),
-    beat = 60 / 66;
-  function piano(midi, at, length, volume) {
-    const hz = 440 * 2 ** ((midi - 69) / 12);
+  const { add, tau, noise, normalize } = scoreTools(data, rate),
+    beat = 60 / 122;
+  const hz = (midi) => 440 * 2 ** ((midi - 69) / 12);
+  const roots = [40, 36, 43, 38, 40, 36, 43, 38];
+  const chords = [
+    [52, 59, 66, 67],
+    [48, 55, 59, 64],
+    [55, 62, 66, 69],
+    [50, 57, 64, 66],
+  ];
+  const motifs = [
+    [76, 71, 74, 78, 74, 71],
+    [76, 79, 74, 71, 72, 76],
+    [79, 78, 74, 71, 74, 78],
+    [78, 76, 74, 69, 74, 76],
+  ];
+  const energy = [0.4, 0.55, 0.7, 0.85, 1, 0.92, 0.72, 0.46];
+  function pad(midi, at, length, volume) {
+    const f = hz(midi);
     add(at, length, (t, duration) => {
-      const envelope =
-        Math.min(1, t / 0.012) * Math.min(1, (duration - t) / 0.6) * Math.exp(-t * 1.05);
-      let value = 0;
-      for (const [partial, level] of [
-        [1, 1],
-        [2, 0.28],
-        [3, 0.11],
-        [4, 0.05],
-      ])
-        if (hz * partial < rate * 0.45)
-          value += Math.sin(tau * hz * partial * t) * level * Math.exp(-t * (partial - 1) * 0.32);
-      return value * volume * envelope;
-    });
-  }
-  function strings(midi, at, length, volume) {
-    const hz = 440 * 2 ** ((midi - 69) / 12);
-    add(at, length, (t, duration) => {
-      const envelope = Math.min(1, t / 1.8) * Math.min(1, (duration - t) / 3);
-      const phase = tau * hz * t + 0.12 * Math.sin(tau * 4.6 * t);
+      const envelope = Math.min(1, t / 2.2) * Math.min(1, (duration - t) / 3);
+      const breath = 0.82 + 0.18 * Math.sin((tau * t) / (8 * beat));
+      const phase = tau * f * t;
       return (
-        (Math.sin(phase) + 0.25 * Math.sin(phase * 1.002) + 0.13 * Math.sin(phase * 2)) *
-        volume *
-        envelope
+        (Math.sin(phase) + 0.32 * Math.sin(phase * 1.003) + 0.12 * Math.sin(phase * 2)) *
+        envelope *
+        breath *
+        volume
       );
     });
   }
-  const chords = [
-    [50, 57, 64, 65],
-    [46, 53, 57, 62],
-    [41, 48, 57, 64],
-    [48, 55, 62, 64],
-    [43, 50, 58, 65],
-    [46, 53, 57, 62],
-    [50, 57, 64, 65],
-    [41, 48, 57, 64],
-  ];
-  const melodies = [
-    [77, 76, 72, 69],
-    [74, 72, 69, 65],
-    [76, 77, 81, 79],
-    [76, 74, 72, 67],
-    [77, 81, 79, 77],
-    [74, 77, 81, 79],
-    [77, 76, 72, 69],
-    [72, 76, 77, 76],
-  ];
-  const arc = [0.55, 0.65, 0.8, 0.9, 1, 0.85, 0.7, 0.55];
+  function pluck(midi, at, volume, length = 1.6) {
+    const f = hz(midi);
+    add(at, length, (t, duration) => {
+      const phase = tau * f * t,
+        envelope = Math.min(1, t / 0.018) * Math.min(1, (duration - t) / 0.18) * Math.exp(-t * 3.2);
+      const brightness = 0.3 * Math.exp(-t * 5);
+      return (
+        (Math.sin(phase) +
+          brightness * Math.sin(phase * 2) +
+          brightness * 0.35 * Math.sin(phase * 3)) *
+        envelope *
+        volume
+      );
+    });
+  }
+  function bass(midi, at, length, volume) {
+    const f = hz(midi);
+    add(at, length, (t, duration) => {
+      const envelope = Math.min(1, t / 0.025) * Math.min(1, (duration - t) / 0.08);
+      return (Math.sin(tau * f * t) + 0.16 * Math.sin(tau * f * 2 * t)) * envelope * volume;
+    });
+  }
+  function kick(at, volume) {
+    add(
+      at,
+      0.32,
+      (t) =>
+        Math.sin(tau * (43 * t + (42 * (1 - Math.exp(-t * 32))) / 32)) *
+        Math.min(1, t / 0.004) *
+        Math.exp(-t * 18) *
+        volume,
+    );
+  }
+  function snare(at, volume) {
+    add(
+      at,
+      0.16,
+      (t) =>
+        (noise() * 0.65 + Math.sin(tau * 185 * t) * 0.35) *
+        Math.min(1, t / 0.003) *
+        Math.exp(-t * 29) *
+        volume,
+    );
+  }
   for (let section = 0; section < 8; section++) {
-    const start = section * 16 * beat,
-      chord = chords[section],
-      level = arc[section];
-    strings(chord[0] - 12, start, 19 * beat, 0.032 * level);
-    chord
-      .slice(1)
-      .forEach((note, index) => strings(note, start + 0.2 * index, 19 * beat, 0.022 * level));
-    for (let step = 0; step < 8; step++) {
-      const note = chord[[0, 1, 2, 1, 0, 1, 3, 2][step]],
-        at = start + step * 2 * beat;
-      piano(note, at, 4.5 * beat, 0.05 * level);
+    const start = section * 32 * beat,
+      level = energy[section],
+      chord = chords[section % 4];
+    chord.forEach((note, index) => pad(note, start + index * 0.12, 35 * beat, 0.028 * level));
+    for (let bar = 0; bar < 8; bar++) {
+      const at = start + bar * 4 * beat;
+      // A restrained broken rhythm supplies forward motion without a club-style drop.
+      if (section > 0 && section < 7) {
+        for (const offset of [0, 1.75, 2.5]) kick(at + offset * beat, 0.13 * level);
+        for (const offset of [1, 3]) snare(at + offset * beat, 0.045 * level);
+        for (const offset of [0.5, 1.5, 2.25, 2.75, 3.5])
+          add(at + offset * beat, 0.045, (t) => noise() * Math.exp(-t * 100) * 0.013 * level);
+      } else if (bar % 2 === 0) kick(at, 0.035);
+      for (const offset of [0.5, 1.5, 2.75])
+        bass(roots[section], at + offset * beat, 0.7 * beat, 0.065 * level);
+      if (section > 1 && section < 7) {
+        for (let step = 0; step < 4; step++) {
+          const note = chord[(bar + step) % 4] + 12;
+          pluck(note, at + (step + 0.5) * beat, 0.018 * level, 0.9);
+        }
+      }
     }
-    for (let step = 0; step < 4; step++) {
-      const at = start + (2 + step * 4) * beat,
-        note = melodies[section][step];
-      piano(note, at, 5 * beat, 0.065 * level);
-      piano(note, at + 0.75 * beat, 4 * beat, 0.012 * level);
+    for (let phrase = 0; phrase < 2; phrase++) {
+      const offsets = [0, 2.5, 4, 7, 10.5, 13];
+      motifs[section % 4].forEach((note, index) => {
+        const at = start + (phrase * 16 + offsets[index]) * beat;
+        pluck(note, at, 0.055 * level, 2.4);
+        pluck(note, at + 0.75 * beat, 0.018 * level, 2);
+        pluck(note, at + 1.5 * beat, 0.006 * level, 1.6);
+      });
+    }
+    // A slow wordless harmonic bloom, held over the middle passage.
+    if (section === 3 || section === 4) {
+      pad(chord[2] + 12, start + 8 * beat, 26 * beat, 0.025 * level);
+      pad(chord[3] + 12, start + 12 * beat, 22 * beat, 0.02 * level);
     }
   }
   normalize();

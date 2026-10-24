@@ -24,10 +24,10 @@ test('Poet is a free basic personality in the same copy, quote, mantra, audio an
   assert.notEqual(dailyQuote(today, 'poet'), dailyQuote(tomorrow, 'poet'));
   const preferences = sharedPreferences({ interval: 60 }, 'poet');
   assert.equal(validatePreferences(JSON.parse(JSON.stringify(preferences))).layout, 'poet');
-  assert.equal(musicProfile('poet').label, 'Velvet reverie');
+  assert.equal(musicProfile('poet').label, 'Afterglow letters');
 });
 
-test('Velvet Reverie renders deterministic finite music with expressive dynamics', () => {
+test('Afterglow Letters renders deterministic finite music with expressive dynamics', () => {
   const rate = 1000,
     data = new Float32Array(musicLength(rate, 'poet')),
     again = new Float32Array(data.length);
@@ -40,7 +40,7 @@ test('Velvet Reverie renders deterministic finite music with expressive dynamics
     Math.sqrt(
       data.slice(start, end).reduce((sum, value) => sum + value * value, 0) / (end - start),
     );
-  const section = Math.round(((16 * 60) / 66) * rate);
+  const section = Math.round(((32 * 60) / 122) * rate);
   assert.ok(
     rms(section * 4, section * 5) > rms(0, section),
     'The score rises into its middle passage.',
