@@ -3,7 +3,9 @@ import { getPersonality } from '../../personalities/index.js';
 import { renderScore as zen } from '../../personalities/zen/music.js';
 import { renderScore as builder } from '../../personalities/builder/music.js';
 import { renderScore as founder } from '../../personalities/founder/music.js';
-const scores = { zen, builder, founder };
+import { renderScore as astronaut } from '../../personalities/astronaut/music.js';
+import { renderScore as gamer } from '../../personalities/gamer/music.js';
+const scores = { zen, builder, founder, astronaut, gamer };
 export function musicProfile(layout) {
   const { bars, ...profile } = getPersonality(layout).soundtrack;
   return { ...profile };

@@ -4,22 +4,26 @@ import {
   editIndents,
   indentLevel,
   MAX_INDENT,
-} from './formatting/indents.js?v=indentation-1';
+} from './formatting/indents.js?v=new-personalities-1';
 import {
   prepareUploadFiles,
   reviewCompression,
-} from '../attachments/file-compression.js?v=file-sharing-1';
-import { addFiles, attachmentList } from '../attachments/attachments.js?v=attachments-1';
-import { typeChips, noteTags } from './note-types.js?v=multi-tags-1';
-import { safeLink } from './formatting/links.js?v=hyperlinks-1';
-import { toggleBullets, editBullets, selectedLines } from './formatting/bullets.js?v=bullets-1';
+} from '../attachments/file-compression.js?v=new-personalities-1';
+import { addFiles, attachmentList } from '../attachments/attachments.js?v=new-personalities-1';
+import { typeChips, noteTags } from './note-types.js?v=new-personalities-1';
+import { safeLink } from './formatting/links.js?v=new-personalities-1';
+import {
+  toggleBullets,
+  editBullets,
+  selectedLines,
+} from './formatting/bullets.js?v=new-personalities-1';
 import {
   HIGHLIGHTS,
   renderFormatted,
   editFormat,
   setLink,
-} from './formatting/format.js?v=hyperlinks-1';
-import { lineRange, noteTasks, editTasks } from './formatting/tasks.js?v=line-tasks-1';
+} from './formatting/format.js?v=new-personalities-1';
+import { lineRange, noteTasks, editTasks } from './formatting/tasks.js?v=new-personalities-1';
 import {
   recognizeBullets,
   replaceText,
@@ -28,7 +32,7 @@ import {
   applyCheckbox,
   checkTask,
   selectionStyle,
-} from './editor-state.js?v=indentation-1';
+} from './editor-state.js?v=new-personalities-1';
 
 const makeButton = (text, label, action) => {
   const el = element('button', '', text);

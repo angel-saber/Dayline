@@ -48,7 +48,7 @@ test('focus suggestions select the voice without altering existing commitment te
 
 test('approved instructional mantras replace the old lists in all three modes', () => {
   assert.deepEqual(
-    Object.values(PERSONALITY_MANTRAS).map((pool) => pool.length),
+    ['zen', 'builder', 'founder'].map((id) => PERSONALITY_MANTRAS[id].length),
     [10, 11, 9],
   );
   assert.deepEqual(MANTRAS, PERSONALITY_MANTRAS.zen);

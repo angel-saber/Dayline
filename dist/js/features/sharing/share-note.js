@@ -1,20 +1,24 @@
 import { node } from '../../shared/dom.js';
-import { weekStart } from '../monthly/weekly-model.js?v=weekly-notes-1';
-import { offsetDay } from '../../shared/schedule.js?v=weekly-notes-1';
-import { indentLevel } from '../notes/formatting/indents.js?v=indentation-1';
+import { weekStart } from '../monthly/weekly-model.js?v=new-personalities-1';
+import { offsetDay } from '../../shared/schedule.js?v=new-personalities-1';
+import { indentLevel } from '../notes/formatting/indents.js?v=new-personalities-1';
 import {
   shareAttachments,
   prepareShareFiles,
   supportsFileShare,
-} from './share-files.js?v=file-sharing-1';
-import { attachmentList } from '../attachments/attachments.js?v=attachments-1';
-import { parseDay, timeLabel } from '../../shared/schedule.js?v=weekly-notes-1';
-import { noteTasks } from '../notes/formatting/tasks.js?v=line-tasks-1';
-import { NOTE_TYPES, categoryLabel, noteTags } from '../notes/note-types.js?v=multi-tags-1';
-import { safeLink } from '../notes/formatting/links.js?v=hyperlinks-1';
-import { durationLabel } from '../focus/model.js?v=embodied-voices-1';
-import { dimensions, compassTitle, compassDates } from '../activities/model.js?v=weekly-notes-1';
-import { activityCatalog, activityFields } from '../activities/catalog.js?v=activities-2';
+} from './share-files.js?v=new-personalities-1';
+import { attachmentList } from '../attachments/attachments.js?v=new-personalities-1';
+import { parseDay, timeLabel } from '../../shared/schedule.js?v=new-personalities-1';
+import { noteTasks } from '../notes/formatting/tasks.js?v=new-personalities-1';
+import { NOTE_TYPES, categoryLabel, noteTags } from '../notes/note-types.js?v=new-personalities-1';
+import { safeLink } from '../notes/formatting/links.js?v=new-personalities-1';
+import { durationLabel } from '../focus/model.js?v=new-personalities-1';
+import {
+  dimensions,
+  compassTitle,
+  compassDates,
+} from '../activities/model.js?v=new-personalities-1';
+import { activityCatalog, activityFields } from '../activities/catalog.js?v=new-personalities-1';
 export const SHARE_DEFAULTS = {
   dateTime: true,
   type: true,

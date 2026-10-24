@@ -1,7 +1,7 @@
 /* Apply appearance immediately; account sync listens only to committed changes. */
 (() => {
   const key = 'dayline.appearance.v1',
-    layouts = ['zen', 'builder', 'founder'];
+    layouts = ['zen', 'builder', 'founder', 'astronaut', 'gamer'];
   let current = 'zen';
   try {
     const saved = localStorage.getItem(key);
@@ -10,9 +10,16 @@
   function apply(value) {
     document.documentElement.dataset.layout = value;
     window.dispatchEvent(new Event('dayline:appearance'));
-    document
-      .querySelector('meta[name="theme-color"]')
-      ?.setAttribute('content', { zen: '#f5f4ef', builder: '#0b111b', founder: '#eee5d6' }[value]);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute(
+      'content',
+      {
+        zen: '#f5f4ef',
+        builder: '#0b111b',
+        founder: '#eee5d6',
+        astronaut: '#080f22',
+        gamer: '#100d1d',
+      }[value],
+    );
   }
   apply(current);
   document.addEventListener('DOMContentLoaded', () => {

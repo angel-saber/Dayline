@@ -1,4 +1,4 @@
-import { MAX_FILE_SIZE } from './attachments.js?v=attachments-1';
+import { MAX_FILE_SIZE } from './attachments.js?v=new-personalities-1';
 const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 export function compressionType(file) {
   const extension = file.name?.split('.').at(-1).toLowerCase();

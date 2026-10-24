@@ -1,1 +1,1 @@
-import './app/controller.js?v=provider-ports-1';
+import './app/controller.js?v=new-personalities-1';

@@ -1,0 +1,13 @@
+:root[data-layout='gamer'] {
+  color-scheme: dark;
+  --paper: #100d1d;
+  --white: #1a162c;
+  --ink: #f1ecff;
+  --muted: #b5a9cd;
+  --line: #49375f;
+  --green: #e9c97f;
+  --soft: #2a203e;
+  --surface: #171226;
+  --accent-ink: #21152c;
+  font-family: Arial, Helvetica, sans-serif;
+}

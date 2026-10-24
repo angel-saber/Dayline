@@ -1,16 +1,16 @@
 import { node } from '../../shared/dom.js';
-import { bindFileDrop } from '../attachments/attachments.js?v=attachments-1';
-import { weeklyNotes, weekStart } from './weekly-model.js?v=weekly-notes-1';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=weekly-notes-1';
+import { bindFileDrop } from '../attachments/attachments.js?v=new-personalities-1';
+import { weeklyNotes, weekStart } from './weekly-model.js?v=new-personalities-1';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=new-personalities-1';
 import {
   availableHours,
   hourInput,
   inputMinute,
-} from '../settings/available-hours.js?v=available-hours-1';
-import { createNoteEditor } from '../notes/note-editor.js?v=weekly-notes-1';
-import { categoryOptions, tagBadges } from '../notes/note-types.js?v=multi-tags-1';
-import { openShareNote } from '../sharing/share-note.js?v=embodied-voices-1';
-import { noteTitle } from './model.js?v=monthly-1';
+} from '../settings/available-hours.js?v=new-personalities-1';
+import { createNoteEditor } from '../notes/note-editor.js?v=new-personalities-1';
+import { categoryOptions, tagBadges } from '../notes/note-types.js?v=new-personalities-1';
+import { openShareNote } from '../sharing/share-note.js?v=new-personalities-1';
+import { noteTitle } from './model.js?v=new-personalities-1';
 
 const button = (text, fn, cls = 'secondary') => {
   const el = node('button', cls, text);

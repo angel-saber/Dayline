@@ -38,7 +38,7 @@ an elaborate global state system merely to shorten this file.
 
 ## Personalities are bundles, not separate applications
 
-`personalities/zen/`, `builder/`, and `founder/` each own:
+`personalities/zen/`, `builder/`, `founder/`, `astronaut/`, and `gamer/` each own:
 
 - `index.js`: approved descriptions, authored copy, mantras, daily inspiration,
   onboarding preview, and default soundtrack profile.
@@ -119,3 +119,23 @@ The encryption prototype remains in a **separate draft branch/PR**. Do not merge
 its experimental migration into this organizational cleanup or claim that this
 refactor encrypts existing notes. When integrating that branch, update its imports
 to this directory map and preserve its isolated production rollout gates.
+
+## Personality effects
+
+`personalities/ids.js` owns the shared stable IDs used by account preferences and
+future access policy models. The pre-paint appearance script mirrors these IDs
+without delaying the initial theme. All five modes remain free.
+
+`personalities/effects.js` owns decorative scenes and short completion/Focus
+responses. Its events contain only an action kind, never note content. Full
+animates the background and responses; Subtle keeps a static decorative scene;
+Off hides them. OS reduced motion and hidden tabs override the preference. The
+choice uses the device-local `dayline.effects.v1` key so a phone can choose less
+motion independently of a desktop. New scores render on demand at up to 24 kHz;
+legacy score samples are unchanged. No recordings, remote assets, extra sounds,
+XP totals, or levels are introduced.
+
+The additive `additional_personality_preferences` SQL migration expands the
+existing invoker RPC validator without changing notes, owner policies, or revision
+checks. `supabase/tests/personality-preferences.sql` verifies the five IDs, stale
+revision rejection, and invalid ID rejection in a rolled-back disposable fixture.

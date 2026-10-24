@@ -1,16 +1,17 @@
+import { PERSONALITY_IDS } from '../../personalities/ids.js';
 import { node } from '../../shared/dom.js';
-import { indentLevel } from '../notes/formatting/indents.js?v=indentation-1';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=attachments-1';
-import { tagBadges, categoryOptions } from '../notes/note-types.js?v=multi-tags-1';
-import { musicProfile } from './music.js?v=cyber-mission-12';
+import { indentLevel } from '../notes/formatting/indents.js?v=new-personalities-1';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=new-personalities-1';
+import { tagBadges, categoryOptions } from '../notes/note-types.js?v=new-personalities-1';
+import { musicProfile } from './music.js?v=new-personalities-1';
 import {
   voice,
   personality,
   focusMantras,
   focusIdeas,
   PERSONALITIES,
-} from '../../personalities/index.js?v=embodied-voices-1';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=weekly-notes-1';
+} from '../../personalities/index.js?v=new-personalities-1';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=new-personalities-1';
 import {
   focusIntervalNotes,
   newFocus,
@@ -21,11 +22,11 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=embodied-voices-1';
-import { FocusAudio } from './audio.js?v=speaker-playback-1';
-import { createNoteEditor } from '../notes/note-editor.js?v=weekly-notes-1';
-import { renderFormatted } from '../notes/formatting/format.js?v=hyperlinks-1';
-import { noteTasks } from '../notes/formatting/tasks.js?v=line-tasks-1';
+} from './model.js?v=new-personalities-1';
+import { FocusAudio } from './audio.js?v=new-personalities-1';
+import { createNoteEditor } from '../notes/note-editor.js?v=new-personalities-1';
+import { renderFormatted } from '../notes/formatting/format.js?v=new-personalities-1';
+import { noteTasks } from '../notes/formatting/tasks.js?v=new-personalities-1';
 const KEY = 'dayline.focus.v1';
 const defaults = {
   binaural: false,
@@ -96,7 +97,13 @@ export function setupFocus(api) {
   function status() {
     dialog.querySelector('.focus-save-status')?.replaceChildren(document.createTextNode(error));
   }
+  let lastPhase;
   function buttons() {
+    const phase = session?.phase || 'closed';
+    if (phase !== lastPhase) {
+      lastPhase = phase;
+      window.dispatchEvent(new CustomEvent('dayline:focus-state', { detail: { phase } }));
+    }
     launch.hidden = !!session;
     launch.textContent = unreadable ? 'Recover Focus draft' : 'Launch Focus Mode';
     mini.hidden = !session || dialog.open;
@@ -399,7 +406,10 @@ export function setupFocus(api) {
           mantra.setCustomValidity('');
           flushNote();
           commitFocus(session, api.getState(), Date.now());
-          save();
+          if (save())
+            window.dispatchEvent(
+              new CustomEvent('dayline:effect', { detail: { kind: 'focus-commit' } }),
+            );
           transition = true;
           dialog.classList.add('focus-committing');
           controls.querySelectorAll('button').forEach((b) => (b.disabled = true));
@@ -764,6 +774,9 @@ export function setupFocus(api) {
         buttons();
         api.refresh();
         api.toast('Focus session saved inside its interval note.');
+        window.dispatchEvent(
+          new CustomEvent('dayline:effect', { detail: { kind: 'focus-finish' } }),
+        );
       } else {
         error = 'Your session could not be saved. Your draft is kept here so you can try again.';
         status();
@@ -847,7 +860,7 @@ export function setupFocus(api) {
     audioPersonality = personality();
     audioSettings.soundtrack =
       session.audio?.soundtrackPersonality === audioPersonality &&
-      ['zen', 'builder', 'founder'].includes(session.audio?.soundtrack)
+      PERSONALITY_IDS.includes(session.audio?.soundtrack)
         ? session.audio.soundtrack
         : musicProfile(audioPersonality).layout;
     if (session.audio)

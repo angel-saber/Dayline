@@ -1,0 +1,13 @@
+:root[data-layout='astronaut'] {
+  color-scheme: dark;
+  --paper: #080f22;
+  --white: #101c32;
+  --ink: #e9f1ff;
+  --muted: #a1b4cd;
+  --line: #31405d;
+  --green: #a1def4;
+  --soft: #192a46;
+  --surface: #0e192e;
+  --accent-ink: #081421;
+  font-family: Arial, Helvetica, sans-serif;
+}

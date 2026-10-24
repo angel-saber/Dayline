@@ -1,4 +1,4 @@
-import { musicProfile, musicLength, renderMusic } from './music.js?v=cyber-mission-12';
+import { musicProfile, musicLength, renderMusic } from './music.js?v=new-personalities-1';
 // All sounds are generated locally; no remote tracks, accounts or audio downloads.
 export class FocusAudio {
   constructor() {
@@ -48,9 +48,10 @@ export class FocusAudio {
       this.musicBuffers ??= new Map();
       let buffer = this.musicBuffers.get(profile.layout);
       if (!buffer) {
-        buffer = ctx.createBuffer(1, musicLength(ctx.sampleRate, profile.layout), ctx.sampleRate);
+        const rate = Math.min(ctx.sampleRate, profile.renderSampleRate ?? ctx.sampleRate);
+        buffer = ctx.createBuffer(1, musicLength(rate, profile.layout), rate);
         const data = buffer.getChannelData(0);
-        renderMusic(data, ctx.sampleRate, profile.layout);
+        renderMusic(data, rate, profile.layout);
         this.musicBuffers.set(profile.layout, buffer);
       }
       const source = ctx.createBufferSource();
