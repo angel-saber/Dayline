@@ -3,7 +3,7 @@ import { node } from '../../shared/dom.js';
 import { indentLevel } from '../notes/formatting/indents.js?v=new-personalities-1';
 import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=new-personalities-1';
 import { tagBadges, categoryOptions } from '../notes/note-types.js?v=new-personalities-1';
-import { musicProfile } from './music.js?v=new-personalities-1';
+import { musicProfile } from './music.js?v=focus-defaults-2';
 import {
   voice,
   personality,
@@ -23,7 +23,7 @@ import {
   MANTRAS,
   INSPIRATION,
 } from './model.js?v=new-personalities-1';
-import { FocusAudio } from './audio.js?v=new-personalities-1';
+import { FocusAudio } from './audio.js?v=focus-defaults-2';
 import { createNoteEditor } from '../notes/note-editor.js?v=new-personalities-1';
 import { renderFormatted } from '../notes/formatting/format.js?v=new-personalities-1';
 import { noteTasks } from '../notes/formatting/tasks.js?v=new-personalities-1';

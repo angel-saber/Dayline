@@ -79,6 +79,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
   local.setItem('dayline.v1', raw);
   local.setItem('dayline.welcome.v1', 'done');
   HTMLElement.prototype.focus = function () {};
+  HTMLElement.prototype.setCustomValidity = function () {};
   HTMLElement.prototype.scrollIntoView = function () {};
   HTMLElement.prototype.reportValidity = function () {
     return true;
@@ -200,6 +201,27 @@ test('the assembled planner starts, switches views/personalities, edits settings
       /Choose how you will move through this/,
     );
     assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
+    const commit = [...document.querySelectorAll('.focus-window button')].find(
+      (button) => button.textContent === 'Commit',
+    );
+    assert.ok(commit);
+    commit.click();
+    await new Promise((resolve) => setTimeout(resolve, 1150));
+    for (const [mode, label] of [
+      ['astronaut', 'Orbital drift'],
+      ['gamer', 'Ascension protocol'],
+    ]) {
+      const choice = document.querySelector(`input[name="layout"][value="${mode}"]`);
+      choice.checked = true;
+      choice.dispatchEvent(new window.Event('change'));
+      const soundtrack = document.querySelector('.focus-soundtrack-select');
+      assert.ok(soundtrack);
+      assert.equal(soundtrack.value, mode);
+      assert.match(
+        soundtrack.querySelector(`option[value="${mode}"]`).textContent,
+        new RegExp(label),
+      );
+    }
     assert.deepEqual(network, []);
   } finally {
     for (const [name, descriptor] of previous) {

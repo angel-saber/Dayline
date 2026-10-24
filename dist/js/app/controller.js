@@ -27,13 +27,13 @@ import {
   renderGuidedReports,
 } from '../features/activities/view.js?v=new-personalities-1';
 import { attachGuidedPlan } from '../features/activities/model.js?v=new-personalities-1';
-import { setupWelcome } from '../features/onboarding/welcome.js?v=new-personalities-1';
+import { setupWelcome } from '../features/onboarding/welcome.js?v=focus-defaults-2';
 import {
   voice,
   personality,
   applyPersonality,
 } from '../personalities/index.js?v=new-personalities-1';
-import { setupFocus } from '../features/focus/controller.js?v=new-personalities-1';
+import { setupFocus } from '../features/focus/controller.js?v=focus-defaults-2';
 import { renderFocusReports } from '../features/focus/reports.js?v=new-personalities-1';
 import {
   findFocusNote,
