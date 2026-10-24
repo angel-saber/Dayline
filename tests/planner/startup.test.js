@@ -80,6 +80,9 @@ test('the assembled planner starts, switches views/personalities, edits settings
   local.setItem('dayline.welcome.v1', 'done');
   HTMLElement.prototype.focus = function () {};
   HTMLElement.prototype.setCustomValidity = function () {};
+  HTMLElement.prototype.showPopover = function () {
+    this.dataset.popoverShown = 'true';
+  };
   HTMLElement.prototype.scrollIntoView = function () {};
   HTMLElement.prototype.reportValidity = function () {
     return true;
@@ -129,7 +132,11 @@ test('the assembled planner starts, switches views/personalities, edits settings
       sessionStorage: memoryStorage(),
       Event: window.Event,
       CustomEvent: window.CustomEvent,
-      matchMedia: () => ({ matches: true, addEventListener() {}, removeEventListener() {} }),
+      matchMedia: (query) => ({
+        matches: query !== '(prefers-reduced-motion: reduce)',
+        addEventListener() {},
+        removeEventListener() {},
+      }),
       CSS: { escape: (text) => text },
       requestAnimationFrame: () => 0,
       cancelAnimationFrame() {},
@@ -201,12 +208,17 @@ test('the assembled planner starts, switches views/personalities, edits settings
       /Choose how you will move through this/,
     );
     assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
+    const astronaut = document.querySelector('input[name="layout"][value="astronaut"]');
+    astronaut.checked = true;
+    astronaut.dispatchEvent(new window.Event('change'));
     const commit = [...document.querySelectorAll('.focus-window button')].find(
       (button) => button.textContent === 'Commit',
     );
     assert.ok(commit);
     commit.click();
     await new Promise((resolve) => setTimeout(resolve, 1150));
+    assert.equal(document.querySelector('.personality-burst')?.dataset.kind, 'focus-commit');
+    assert.equal(document.querySelector('.personality-burst')?.parentNode, document.body);
     for (const [mode, label] of [
       ['zen', 'Still temple'],
       ['builder', 'Cyberpunk mission'],
@@ -225,6 +237,14 @@ test('the assembled planner starts, switches views/personalities, edits settings
         new RegExp(label),
       );
     }
+    document.querySelector('.focus-finish').click();
+    const skip = [...document.querySelectorAll('.focus-window button')].find(
+      (button) => button.textContent === 'Skip reflection & close',
+    );
+    assert.ok(skip);
+    skip.click();
+    assert.equal(document.querySelector('.focus-window').open, false);
+    assert.equal(document.querySelector('.personality-burst')?.dataset.kind, 'focus-finish');
     assert.deepEqual(network, []);
   } finally {
     for (const [name, descriptor] of previous) {

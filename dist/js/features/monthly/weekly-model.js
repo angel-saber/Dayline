@@ -1,5 +1,5 @@
-import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=5010270c32fe';
-import { validDate } from '../bulk/model.js?v=5010270c32fe';
+import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=6880fc00acca';
+import { validDate } from '../bulk/model.js?v=6880fc00acca';
 export function weekStart(date) {
   if (!validDate(date)) throw new Error('Choose a valid date.');
   return offsetDay(date, -parseDay(date).getDay());

@@ -1,17 +1,17 @@
-import { PERSONALITY_IDS } from '../../personalities/ids.js?v=5010270c32fe';
-import { node } from '../../shared/dom.js?v=5010270c32fe';
-import { indentLevel } from '../notes/formatting/indents.js?v=5010270c32fe';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=5010270c32fe';
-import { tagBadges, categoryOptions } from '../notes/note-types.js?v=5010270c32fe';
-import { musicProfile } from './music.js?v=5010270c32fe';
+import { PERSONALITY_IDS } from '../../personalities/ids.js?v=6880fc00acca';
+import { node } from '../../shared/dom.js?v=6880fc00acca';
+import { indentLevel } from '../notes/formatting/indents.js?v=6880fc00acca';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=6880fc00acca';
+import { tagBadges, categoryOptions } from '../notes/note-types.js?v=6880fc00acca';
+import { musicProfile } from './music.js?v=6880fc00acca';
 import {
   voice,
   personality,
   focusMantras,
   focusIdeas,
   PERSONALITIES,
-} from '../../personalities/index.js?v=5010270c32fe';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=5010270c32fe';
+} from '../../personalities/index.js?v=6880fc00acca';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=6880fc00acca';
 import {
   focusIntervalNotes,
   newFocus,
@@ -22,11 +22,11 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=5010270c32fe';
-import { FocusAudio } from './audio.js?v=5010270c32fe';
-import { createNoteEditor } from '../notes/note-editor.js?v=5010270c32fe';
-import { renderFormatted } from '../notes/formatting/format.js?v=5010270c32fe';
-import { noteTasks } from '../notes/formatting/tasks.js?v=5010270c32fe';
+} from './model.js?v=6880fc00acca';
+import { FocusAudio } from './audio.js?v=6880fc00acca';
+import { createNoteEditor } from '../notes/note-editor.js?v=6880fc00acca';
+import { renderFormatted } from '../notes/formatting/format.js?v=6880fc00acca';
+import { noteTasks } from '../notes/formatting/tasks.js?v=6880fc00acca';
 const KEY = 'dayline.focus.v1';
 const defaults = {
   binaural: false,
@@ -406,10 +406,7 @@ export function setupFocus(api) {
           mantra.setCustomValidity('');
           flushNote();
           commitFocus(session, api.getState(), Date.now());
-          if (save())
-            window.dispatchEvent(
-              new CustomEvent('dayline:effect', { detail: { kind: 'focus-commit' } }),
-            );
+          const committed = save();
           transition = true;
           dialog.classList.add('focus-committing');
           controls.querySelectorAll('button').forEach((b) => (b.disabled = true));
@@ -417,6 +414,10 @@ export function setupFocus(api) {
             transition = false;
             dialog.classList.remove('focus-committing');
             if (session && dialog.open) render();
+            if (committed && session?.phase === 'active')
+              window.dispatchEvent(
+                new CustomEvent('dayline:effect', { detail: { kind: 'focus-commit' } }),
+              );
           }, 1100);
         },
         'primary',

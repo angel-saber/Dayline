@@ -1,4 +1,4 @@
-import { getPersonality } from './index.js?v=5010270c32fe';
+import { getPersonality } from './index.js?v=6880fc00acca';
 const KEY = 'dayline.effects.v1';
 const LEVELS = ['full', 'subtle', 'off'];
 export function effectiveEffects(level, reduced, hidden) {
@@ -9,6 +9,11 @@ export function setupPersonalityEffects() {
   const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
   const select = document.querySelector('#visual-effects');
   const status = document.querySelector('#effects-status');
+  const preview = document.createElement('button');
+  preview.type = 'button';
+  preview.className = 'secondary effects-preview';
+  preview.textContent = 'Preview effects';
+  select?.after(preview);
   const scene = document.createElement('div');
   scene.className = 'personality-scene';
   scene.setAttribute('aria-hidden', 'true');
@@ -28,13 +33,22 @@ export function setupPersonalityEffects() {
   }
   function refresh() {
     clear();
+    last = -Infinity;
     root.dataset.personalityEffect = getPersonality(root.dataset.layout).effects || 'none';
     root.dataset.effects = effectiveEffects(level, media?.matches, document.hidden);
     if (select) select.value = level;
+    preview.disabled =
+      root.dataset.effects !== 'full' || !getPersonality(root.dataset.layout).effects;
     if (status)
       status.textContent = media?.matches
-        ? 'Motion is off to respect your reduced-motion preference.'
-        : 'Visual effects only. This choice is saved on this device.';
+        ? 'Animations are off because your device requests reduced motion.'
+        : !getPersonality(root.dataset.layout).effects
+          ? 'This personality uses a still design. Astronaut and Gamer include optional animated effects.'
+          : level === 'full'
+            ? 'Full: animated background and visible completion/Focus responses. Preview them without changing any notes.'
+            : level === 'subtle'
+              ? 'Subtle: static background decoration. Choose Full for animated responses.'
+              : 'Off: background decoration and animated responses are hidden. This choice is saved on this device.';
   }
   function change() {
     level = LEVELS.includes(select?.value) ? select.value : 'full';
@@ -57,9 +71,42 @@ export function setupPersonalityEffects() {
     node.className = 'personality-burst';
     node.dataset.kind = event.detail.kind;
     node.setAttribute('aria-hidden', 'true');
-    (document.querySelector('.focus-window[open]') || document.body).append(node);
-    timer = setTimeout(() => node.remove(), 1800);
+    const style = getPersonality(root.dataset.layout).effects;
+    const labels =
+      style === 'orbital'
+        ? {
+            complete: 'Signal secured',
+            'focus-commit': 'Course set',
+            'focus-finish': 'Journey logged',
+          }
+        : {
+            complete: 'Objective complete',
+            'focus-commit': 'Build engaged',
+            'focus-finish': 'Session complete',
+          };
+    node.innerHTML =
+      '<svg class="effect-mark" viewBox="0 0 240 100"><g class="effect-orbital"><ellipse cx="120" cy="50" rx="88" ry="28"/><path d="M45 65L88 36L135 57L183 27"/><circle cx="45" cy="65" r="3"/><circle cx="88" cy="36" r="4"/><circle cx="135" cy="57" r="3"/><circle cx="183" cy="27" r="5"/></g><g class="effect-mastery"><path d="M34 50H90L120 20L150 50H206M90 50L120 80L150 50"/><path d="M111 50L118 57L133 40"/><circle cx="34" cy="50" r="5"/><circle cx="206" cy="50" r="5"/></g></svg>';
+    const label = document.createElement('span');
+    label.textContent = labels[event.detail.kind];
+    node.append(label);
+    document.body.append(node);
+    // A manual popover floats above modal dialogs without trapping focus or input.
+    // Keeping it outside the Focus subtree also survives that window's redraws.
+    if (typeof node.showPopover === 'function') {
+      node.setAttribute('popover', 'manual');
+      try {
+        node.showPopover();
+      } catch {
+        node.removeAttribute('popover');
+        document.querySelector('.focus-window[open]')?.append(node);
+      }
+    } else document.querySelector('.focus-window[open]')?.append(node);
+    timer = setTimeout(() => node.remove(), 2400);
   }
+  function previewEffect() {
+    burst({ detail: { kind: 'focus-commit' } });
+  }
+  preview.addEventListener('click', previewEffect);
   function phase(event) {
     root.dataset.focusActive = String(event.detail?.phase === 'active');
   }
@@ -74,6 +121,7 @@ export function setupPersonalityEffects() {
     destroy() {
       clear();
       scene.remove();
+      preview.remove();
       select?.removeEventListener('change', change);
       media?.removeEventListener?.('change', refresh);
       document.removeEventListener('visibilitychange', refresh);

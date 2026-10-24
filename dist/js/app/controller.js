@@ -1,43 +1,43 @@
-import { setupPersonalityEffects } from '../personalities/effects.js?v=5010270c32fe';
-import { node } from '../shared/dom.js?v=5010270c32fe';
-import { setupBackups } from '../features/settings/backups.js?v=5010270c32fe';
-import { setupSettings } from '../features/settings/controller.js?v=5010270c32fe';
-import { renderNoteLines } from '../features/notes/render.js?v=5010270c32fe';
-import { rescheduleNote } from '../features/daily/reschedule.js?v=5010270c32fe';
-import { changeWeekly } from '../features/monthly/weekly-model.js?v=5010270c32fe';
+import { setupPersonalityEffects } from '../personalities/effects.js?v=6880fc00acca';
+import { node } from '../shared/dom.js?v=6880fc00acca';
+import { setupBackups } from '../features/settings/backups.js?v=6880fc00acca';
+import { setupSettings } from '../features/settings/controller.js?v=6880fc00acca';
+import { renderNoteLines } from '../features/notes/render.js?v=6880fc00acca';
+import { rescheduleNote } from '../features/daily/reschedule.js?v=6880fc00acca';
+import { changeWeekly } from '../features/monthly/weekly-model.js?v=6880fc00acca';
 import {
   availableHours,
   dailySlotVisible,
-} from '../features/settings/available-hours.js?v=5010270c32fe';
+} from '../features/settings/available-hours.js?v=6880fc00acca';
 import {
   attachmentList,
   bindFileDrop,
-} from '../features/attachments/attachments.js?v=5010270c32fe';
-import { setupTagSettings } from '../features/notes/tag-settings.js?v=5010270c32fe';
-import { setupBulk } from '../features/bulk/view.js?v=5010270c32fe';
-import { bulkChange } from '../features/bulk/model.js?v=5010270c32fe';
-import { openShareNote } from '../features/sharing/share-note.js?v=5010270c32fe';
+} from '../features/attachments/attachments.js?v=6880fc00acca';
+import { setupTagSettings } from '../features/notes/tag-settings.js?v=6880fc00acca';
+import { setupBulk } from '../features/bulk/view.js?v=6880fc00acca';
+import { bulkChange } from '../features/bulk/model.js?v=6880fc00acca';
+import { openShareNote } from '../features/sharing/share-note.js?v=6880fc00acca';
 import {
   tagBadges,
   categoryOptions,
   collectTagSettings,
-} from '../features/notes/note-types.js?v=5010270c32fe';
+} from '../features/notes/note-types.js?v=6880fc00acca';
 import {
   setupActivities,
   renderGuidedReports,
-} from '../features/activities/view.js?v=5010270c32fe';
-import { attachGuidedPlan } from '../features/activities/model.js?v=5010270c32fe';
-import { setupWelcome } from '../features/onboarding/welcome.js?v=5010270c32fe';
-import { voice, personality, applyPersonality } from '../personalities/index.js?v=5010270c32fe';
-import { setupFocus } from '../features/focus/controller.js?v=5010270c32fe';
-import { renderFocusReports } from '../features/focus/reports.js?v=5010270c32fe';
+} from '../features/activities/view.js?v=6880fc00acca';
+import { attachGuidedPlan } from '../features/activities/model.js?v=6880fc00acca';
+import { setupWelcome } from '../features/onboarding/welcome.js?v=6880fc00acca';
+import { voice, personality, applyPersonality } from '../personalities/index.js?v=6880fc00acca';
+import { setupFocus } from '../features/focus/controller.js?v=6880fc00acca';
+import { renderFocusReports } from '../features/focus/reports.js?v=6880fc00acca';
 import {
   findFocusNote,
   extendFocusNote,
   attachFocusReport,
-} from '../features/focus/model.js?v=5010270c32fe';
-import { setupMonthly } from '../features/monthly/view.js?v=5010270c32fe';
-import { moveToDay, quickNote } from '../features/monthly/model.js?v=5010270c32fe';
+} from '../features/focus/model.js?v=6880fc00acca';
+import { setupMonthly } from '../features/monthly/view.js?v=6880fc00acca';
+import { moveToDay, quickNote } from '../features/monthly/model.js?v=6880fc00acca';
 import {
   dayKey,
   parseDay,
@@ -45,14 +45,14 @@ import {
   grouped,
   dropEntry,
   timeLabel,
-} from '../shared/schedule.js?v=5010270c32fe';
-import { load, save } from '../shared/storage.js?v=5010270c32fe';
-import { attachGestures } from '../features/daily/gestures.js?v=5010270c32fe';
-import { Reminders, resolveReminder } from '../features/reminders/reminders.js?v=5010270c32fe';
-import { setupAccounts } from '../features/accounts/accounts.js?v=5010270c32fe';
-import { dailyQuote } from '../personalities/quotes.js?v=5010270c32fe';
-import { createNoteEditor } from '../features/notes/note-editor.js?v=5010270c32fe';
-import { noteTasks } from '../features/notes/formatting/tasks.js?v=5010270c32fe';
+} from '../shared/schedule.js?v=6880fc00acca';
+import { load, save } from '../shared/storage.js?v=6880fc00acca';
+import { attachGestures } from '../features/daily/gestures.js?v=6880fc00acca';
+import { Reminders, resolveReminder } from '../features/reminders/reminders.js?v=6880fc00acca';
+import { setupAccounts } from '../features/accounts/accounts.js?v=6880fc00acca';
+import { dailyQuote } from '../personalities/quotes.js?v=6880fc00acca';
+import { createNoteEditor } from '../features/notes/note-editor.js?v=6880fc00acca';
+import { noteTasks } from '../features/notes/formatting/tasks.js?v=6880fc00acca';
 const $ = (s) => document.querySelector(s);
 let monthly = null;
 let expandedDay = null;
@@ -308,10 +308,14 @@ function renderTimeline() {
         noteTasks(e),
         (start) => {
           const tasks = noteTasks(e).map((t) => (t.start === start ? { ...t, done: !t.done } : t));
-          commit(
+          const saved = commit(
             entries().map((item) => (item.id === e.id ? { ...item, tasks, task: false } : item)),
             'Task updated',
           );
+          if (saved && tasks.find((task) => task.start === start)?.done)
+            window.dispatchEvent(
+              new CustomEvent('dayline:effect', { detail: { kind: 'complete' } }),
+            );
         },
         () => openEditor(notes, slot.minute, e),
         e.bullets,
@@ -619,6 +623,13 @@ monthly = setupMonthly({
         state.days = before;
         return false;
       }
+      if (
+        action.kind === 'complete' &&
+        Object.values(result.previous).some((notes) =>
+          notes.some((note) => note.id === id && !note.done),
+        )
+      )
+        window.dispatchEvent(new CustomEvent('dayline:effect', { detail: { kind: 'complete' } }));
       if (action.kind !== 'update') {
         undo = { days: result.previous };
         toast(
@@ -970,6 +981,8 @@ const focus = setupFocus({
     else {
       undo = null;
       refreshPlanner();
+      if (tasks.find((task) => task.start === start)?.done)
+        window.dispatchEvent(new CustomEvent('dayline:effect', { detail: { kind: 'complete' } }));
     }
   },
   extendNote(id, source, target, minute, interval) {
