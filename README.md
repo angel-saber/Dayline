@@ -42,6 +42,12 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for module ownership and guidel
 
 ## Current hosting and account status
 
+Account operations now use separate auth, notes, and preferences interfaces, with
+Supabase as the current adapter. See [PROVIDER_PORTABILITY.md](docs/PROVIDER_PORTABILITY.md)
+for migration formats, stable identities, future purchase-policy models, and the
+free-first budget rule. All personalities remain free; payments and admin purchase
+controls are not enabled.
+
 The complete website is in `dist/`. GitHub Pages is the current development host. In repository settings choose **Pages → Source → GitHub Actions**. The **Deploy GitHub Pages** workflow publishes changes to `dist/` on `main` and supports a manual deployment from `main`. Feature branches cannot deploy through this workflow. **Checks** validates code; it does not publish the site.
 
 The dedicated Supabase Free project is configured for private account testing, with public signup disabled. Existing accounts can use email links or password sign-in when a password is provisioned. Notes and selected settings sync per account; attachment binaries and browser notification/audio permission remain device-local. The default email sender has recipient restrictions. See [docs/ACCOUNTS_SETUP.md](docs/ACCOUNTS_SETUP.md). Guest planning remains usable without an account.

@@ -1,5 +1,6 @@
 import { cloudConfig } from './config.js?v=private-accounts-2';
-import { CloudClient, takeSignInReturn } from './cloud.js?v=password-signin-1';
+import { createAccountServices } from './services.js?v=provider-ports-1';
+import { takeSignInReturn } from './sign-in-return.js';
 import { SyncEngine, mergeGuestDays, clearSyncedDrafts } from './sync.js?v=weekly-notes-1';
 import { load, save, validState } from '../../shared/storage.js?v=embodied-voices-1';
 import {
@@ -18,10 +19,13 @@ export function setupAccounts({
   toast,
   onStatus,
   downloadDeviceBackup,
+  accountConfig = cloudConfig,
+  connect = createAccountServices,
 }) {
-  const linkLogin = cloudConfig.authMethod === 'link';
+  const linkLogin = accountConfig.authMethod === 'link';
   const signInReturn = takeSignInReturn(window.location, window.history);
-  let cloud,
+  let services,
+    auth,
     engine,
     preferencesSync,
     user = null,
@@ -39,7 +43,8 @@ export function setupAccounts({
       tabId = crypto.randomUUID();
       sessionStorage.setItem('dayline.tab', tabId);
     }
-    cloud = new CloudClient(cloudConfig);
+    services = connect(accountConfig);
+    auth = services.auth;
   } catch (error) {
     $('#auth-message').textContent = error.message;
   }
@@ -61,7 +66,7 @@ export function setupAccounts({
     $('#account-email').textContent = user?.email || 'Using this device';
     $('#account-explanation').textContent = user
       ? 'Your notes and settings sync with this account. Notification permission and audio activation must be enabled separately on each device.'
-      : cloud?.config
+      : auth?.enabled
         ? 'Sign in to keep your notes and settings with you across devices.'
         : 'Use Dayline without an account. Account access is not available yet.';
     $('#sign-in-button').hidden = !!user;
@@ -116,7 +121,7 @@ export function setupAccounts({
     const preferences = { ...getState().settings };
     try {
       engine = new SyncEngine({
-        cloud,
+        cloud: services.notes,
         userId: user.id,
         cacheId: tabId,
         onDays(days) {
@@ -140,7 +145,7 @@ export function setupAccounts({
       setState({ version: 1, days: engine.days, settings: preferences }, { readFailed: false });
       try {
         preferencesSync = new PreferencesSync({
-          cloud,
+          cloud: services.preferences,
           userId: user.id,
           cacheId: tabId,
           initial: sharedPreferences(preferences, savedLayout()),
@@ -219,16 +224,16 @@ export function setupAccounts({
       $('#auth-message').textContent = error.message;
     } finally {
       busy = false;
-      $('#auth-submit').disabled = !cloud?.config;
-      $('#send-code').disabled = !cloud?.config;
-      $('#auth-method').disabled = !cloud?.config;
+      $('#auth-submit').disabled = !auth?.enabled;
+      $('#send-code').disabled = !auth?.enabled;
+      $('#auth-method').disabled = !auth?.enabled;
     }
   }
 
   async function requestLink(email) {
     if (Date.now() < resendAt)
       throw new Error('Please wait a minute before requesting another sign-in link.');
-    await cloud.sendLink(email, `${window.location.origin}${window.location.pathname}`);
+    await auth.sendLink(email, `${window.location.origin}${window.location.pathname}`);
     resendAt = Date.now() + 60000;
     $('#auth-message').textContent =
       'Check your inbox for your sign-in link. Open it in this browser on this device. Use the newest link; check spam if needed.';
@@ -239,12 +244,12 @@ export function setupAccounts({
     withBusy(async () => {
       const email = $('#auth-email').value.trim();
       const token = $('#auth-code').value.trim();
-      if (!cloud?.config)
+      if (!auth?.enabled)
         throw new Error('Account setup is not active yet. You can still continue on this device.');
       if (passwordLogin) {
         let session;
         try {
-          session = await cloud.signInPassword(email, $('#auth-password').value);
+          session = await auth.signInPassword(email, $('#auth-password').value);
         } finally {
           $('#auth-password').value = '';
         }
@@ -259,8 +264,8 @@ export function setupAccounts({
       if (!token) {
         if (Date.now() < resendAt)
           throw new Error('Please wait a minute before requesting another code.');
-        await cloud.sendCode(email, {
-          createUser: cloudConfig.allowSignup === true && $('#create-account').checked,
+        await auth.sendCode(email, {
+          createUser: accountConfig.allowSignup === true && $('#create-account').checked,
         });
         resendAt = Date.now() + 60000;
         $('#code-field').hidden = false;
@@ -271,7 +276,7 @@ export function setupAccounts({
           'Check your email for your code. Enter it below to continue.';
         $('#auth-code').focus();
       } else {
-        const session = await cloud.verifyCode(email, token);
+        const session = await auth.verifyCode(email, token);
         $('#auth-code').value = '';
         $('#auth-message').textContent = '';
         await enterAccount(session);
@@ -286,8 +291,8 @@ export function setupAccounts({
       }
       if (Date.now() < resendAt)
         throw new Error('Please wait a minute before requesting another code.');
-      await cloud.sendCode($('#auth-email').value.trim(), {
-        createUser: cloudConfig.allowSignup === true && $('#create-account').checked,
+      await auth.sendCode($('#auth-email').value.trim(), {
+        createUser: accountConfig.allowSignup === true && $('#create-account').checked,
       });
       resendAt = Date.now() + 60000;
       $('#auth-message').textContent =
@@ -326,7 +331,7 @@ export function setupAccounts({
     $('#auth-method').setAttribute('aria-expanded', String(passwordLogin));
     $('#password-help').hidden = !passwordLogin;
     $('#create-account').closest('label').hidden =
-      passwordLogin || cloudConfig.allowSignup !== true;
+      passwordLogin || accountConfig.allowSignup !== true;
     $('#auth-message').textContent = '';
     if (passwordLogin) $('#auth-password').focus();
   };
@@ -394,7 +399,7 @@ export function setupAccounts({
       await Promise.all([engine?.sync(), preferencesSync?.sync()]);
       if (engine?.pending || preferencesSync?.pending)
         throw new Error('Wait for your notes and settings to finish syncing before signing out.');
-      await cloud.signOut();
+      await auth.signOut();
       leaveAccount();
       toast('Signed out. Your account notes are kept in the cloud.');
     } catch (error) {
@@ -429,9 +434,9 @@ export function setupAccounts({
   window.addEventListener('online', () => preferencesSync?.sync().catch(() => {}));
   window.addEventListener('focus', () => preferencesSync?.sync().catch(() => {}));
   window.addEventListener('storage', (event) => {
-    if (event.key === cloud?.sessionKey) {
+    if (event.key === auth?.sessionKey) {
       try {
-        const session = cloud.readSession();
+        const session = auth.readSession();
         if (!session && user) leaveAccount();
         else if (session && session.user.id !== user?.id) enterAccount(session);
       } catch (error) {
@@ -483,23 +488,23 @@ export function setupAccounts({
   } catch {}
   showLogin(!returningGuest);
   accountView();
-  $('#create-account').closest('label').hidden = cloudConfig.allowSignup !== true;
+  $('#create-account').closest('label').hidden = accountConfig.allowSignup !== true;
   if (linkLogin) $('#auth-submit').textContent = 'Email me a sign-in link';
-  $('#auth-submit').disabled = !cloud?.config;
-  $('#create-account').disabled = !cloud?.config;
-  $('#auth-method').disabled = !cloud?.config;
+  $('#auth-submit').disabled = !auth?.enabled;
+  $('#create-account').disabled = !auth?.enabled;
+  $('#auth-method').disabled = !auth?.enabled;
   try {
-    const session = cloud?.config && cloud.readSession();
+    const session = auth?.enabled && auth.readSession();
     if (signInReturn) {
       showLogin(true);
       withBusy(async () => {
         if (signInReturn.error) throw new Error(signInReturn.error);
         $('#auth-message').textContent = 'Signing you in…';
-        await enterAccount(await cloud.exchangeLink(signInReturn.code));
+        await enterAccount(await auth.exchangeLink(signInReturn.code));
         $('#auth-message').textContent = '';
       });
     } else if (session) enterAccount(session);
-    else if (!cloud?.config)
+    else if (!auth?.enabled)
       $('#auth-message').textContent =
         'Account sign-in and sign-up are not available yet. Continue without an account to use Dayline on this device.';
   } catch (error) {

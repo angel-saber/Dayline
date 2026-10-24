@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "preferredRecurringCostUsd": 0,
+  "automaticPaidUpgrades": false,
+  "paidUpgradeRequiresOwnerApproval": true,
+  "paidUpgradePrerequisite": "owner-confirmed-app-revenue",
+  "runtimeMustRemainPortable": true,
+  "paymentProcessingFeesReviewedSeparately": true
+}
