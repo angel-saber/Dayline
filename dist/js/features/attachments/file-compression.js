@@ -1,4 +1,4 @@
-import { MAX_FILE_SIZE } from './attachments.js?v=5684b4e7c19b';
+import { MAX_FILE_SIZE } from './attachments.js?v=280f4d8eaa90';
 const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 export function compressionType(file) {
   const extension = file.name?.split('.').at(-1).toLowerCase();
@@ -48,7 +48,7 @@ export async function compressImage(file, { longest = 2400, quality = 0.8 } = {}
 }
 export async function compressPdf(
   file,
-  loadLibrary = () => import('../../../vendor/pdf-lib-1.17.1.js?v=5684b4e7c19b'),
+  loadLibrary = () => import('../../../vendor/pdf-lib-1.17.1.js?v=280f4d8eaa90'),
 ) {
   const { PDFDocument, PDFSignature } = await loadLibrary();
   const document = await PDFDocument.load(await file.arrayBuffer(), { updateMetadata: false });
