@@ -1,4 +1,4 @@
-import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=3964ffef2821';
+import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=525142851605';
 export function monthWeeks(month) {
   const first = month + '-01',
     start = offsetDay(first, -parseDay(first).getDay()),

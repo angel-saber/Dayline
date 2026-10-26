@@ -16,6 +16,10 @@ test('changing a leaf personality invalidates every parent module URL and rebuil
       'index.html',
       '<html><head><script src="./js/personalities/appearance.js?v=old"></script><link rel="stylesheet" href="./styles.css?v=old"></head><body><script type="module" src="./js/app.js?v=old"></script></body></html>',
     );
+    write(
+      'google-connect.html',
+      '<html><head><link rel="stylesheet" href="./styles.css"></head><body><script type="module" src="./js/app.js"></script></body></html>',
+    );
     write('styles.css', 'body { color: black; }');
     write('js/app.js', "import './personalities/index.js?v=stale';");
     write('js/personalities/index.js', "export { default } from './mode.js';");
@@ -32,7 +36,12 @@ test('changing a leaf personality invalidates every parent module URL and rebuil
     const outputs = new Map(
       next.outputs.map(([path, source]) => [path.href.slice(root.href.length), source]),
     );
-    for (const path of ['js/app.js', 'js/personalities/index.js', 'index.html']) {
+    for (const path of [
+      'js/app.js',
+      'js/personalities/index.js',
+      'index.html',
+      'google-connect.html',
+    ]) {
       assert.ok(outputs.get(path).includes('?v=' + next.version), path);
       assert.ok(!outputs.get(path).includes('?v=' + first.version), path);
     }

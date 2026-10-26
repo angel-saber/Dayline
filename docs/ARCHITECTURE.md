@@ -252,3 +252,17 @@ additional progress records are created; completion feedback responds to existin
 successful note/session saves. Full/Subtle/Off, reduced motion and visibility
 controls retain their existing behavior. Old/custom session commitments are not
 rewritten to the new suggestions. All modes remain free.
+
+## Optional Google connections
+
+`features/google/` owns public configuration, linked-note insertion, connection
+Settings and the isolated `google-connect.html` window. Google SDK/OAuth/Picker
+and Meet transport live in `providers/google.js`. No SDK loads while planning.
+The user opens the connection window and explicitly authorizes a single service;
+its short-lived token remains there in memory. Source/origin/request-bound
+messages return only validated Google HTTPS URLs and names. No refresh token,
+Google account identity, credential storage, backend service, or new note schema
+is introduced. Links use existing formatted text across Daily, Monthly/Weekly,
+Focus, account sync, sharing and backups. File uploads retain their existing
+local-byte behavior. The asset builder includes the connection page in the same
+release fingerprint. Activation and public-release gates are in GOOGLE_SETUP.md.
