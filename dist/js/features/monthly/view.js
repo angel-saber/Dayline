@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=e2556e318b26';
-import { createWeeklySection } from './weekly-notes.js?v=e2556e318b26';
+import { node } from '../../shared/dom.js?v=2c35f1d72996';
+import { createWeeklySection } from './weekly-notes.js?v=2c35f1d72996';
 import {
   NOTE_TYPES,
   categoryOptions,
@@ -9,11 +9,11 @@ import {
   typeBadge,
   noteTags,
   categoryLabel,
-} from '../notes/note-types.js?v=e2556e318b26';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=e2556e318b26';
-import { dateActions } from './date-actions.js?v=e2556e318b26';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=e2556e318b26';
-import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=e2556e318b26';
+} from '../notes/note-types.js?v=2c35f1d72996';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=2c35f1d72996';
+import { dateActions } from './date-actions.js?v=2c35f1d72996';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=2c35f1d72996';
+import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=2c35f1d72996';
 
 const button = (text, label, action) => {
   const el = node('button', '', text);

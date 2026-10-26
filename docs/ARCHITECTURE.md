@@ -256,7 +256,7 @@ rewritten to the new suggestions. All modes remain free.
 ## Shortcuts
 
 `features/shortcuts/` owns the shared panel, custom shortcut validation and the
-separate device-local `dayline.shortcuts.v1` preference. The planner's left-edge
+separate device-local `dayline.shortcuts.v1` preference. The planner's bottom-left
 launcher opens a native modal drawer on desktop or bottom sheet on mobile. Focus
 has a header shortcut to the same panel so it can stack above its native dialog.
 Escape, Close and deliberate backdrop clicks dismiss it and restore focus.
