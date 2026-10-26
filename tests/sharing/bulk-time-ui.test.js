@@ -4,7 +4,7 @@ import { parseHTML } from 'linkedom';
 import { setupBulk } from '../../dist/js/features/bulk/view.js';
 import { bulkChange } from '../../dist/js/features/bulk/model.js';
 
-test('bulk move dialog defaults to the same day and shifts selected times without closing on an invalid group', () => {
+test('bulk move dialog defaults to the same day and shifts selected times across midnight', () => {
   const previous = new Map(
     ['window', 'document'].map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]),
   );
@@ -71,19 +71,17 @@ test('bulk move dialog defaults to the same day and shifts selected times withou
     );
     time.value = '23:30';
     move.click();
-    assert.equal(calls, 0);
-    assert.equal(dialog.open, true);
-    time.value = '11:00';
-    time.dispatchEvent(new window.Event('input'));
-    move.click();
     assert.equal(calls, 1);
     assert.deepEqual(
       state.days[date].map((note) => [note.id, note.minute]),
       [
         ['stay', 660],
-        ['a', 660],
-        ['b', 750],
+        ['a', 1410],
       ],
+    );
+    assert.deepEqual(
+      state.days['2026-10-27'].map((note) => [note.id, note.minute]),
+      [['b', 60]],
     );
     assert.equal(document.querySelector('.bulk-dialog'), null);
   } finally {

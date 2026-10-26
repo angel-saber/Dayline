@@ -1,9 +1,9 @@
-import { node } from '../../shared/dom.js?v=3bc29ba06496';
-import { indentLevel } from '../notes/formatting/indents.js?v=3bc29ba06496';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=3bc29ba06496';
-import { tagBadges, categoryOptions } from '../notes/note-types.js?v=3bc29ba06496';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=3bc29ba06496';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=3bc29ba06496';
+import { node } from '../../shared/dom.js?v=a7be98a47197';
+import { indentLevel } from '../notes/formatting/indents.js?v=a7be98a47197';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=a7be98a47197';
+import { tagBadges, categoryOptions } from '../notes/note-types.js?v=a7be98a47197';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=a7be98a47197';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=a7be98a47197';
 import {
   focusIntervalNotes,
   newFocus,
@@ -14,10 +14,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=3bc29ba06496';
-import { createNoteEditor } from '../notes/note-editor.js?v=3bc29ba06496';
-import { renderFormatted } from '../notes/formatting/format.js?v=3bc29ba06496';
-import { noteTasks } from '../notes/formatting/tasks.js?v=3bc29ba06496';
+} from './model.js?v=a7be98a47197';
+import { createNoteEditor } from '../notes/note-editor.js?v=a7be98a47197';
+import { renderFormatted } from '../notes/formatting/format.js?v=a7be98a47197';
+import { noteTasks } from '../notes/formatting/tasks.js?v=a7be98a47197';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {

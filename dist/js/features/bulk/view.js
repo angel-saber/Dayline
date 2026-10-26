@@ -1,8 +1,8 @@
-import { node } from '../../shared/dom.js?v=3bc29ba06496';
-import { openAvailability } from '../sharing/availability-ui.js?v=3bc29ba06496';
-import { selectionKey, selectedNotes, matchingNotes, scopeRange } from './model.js?v=3bc29ba06496';
-import { categoryOptions, typeChips } from '../notes/note-types.js?v=3bc29ba06496';
-import { openShareNotes } from '../sharing/share-note.js?v=3bc29ba06496';
+import { node } from '../../shared/dom.js?v=a7be98a47197';
+import { openAvailability } from '../sharing/availability-ui.js?v=a7be98a47197';
+import { selectionKey, selectedNotes, matchingNotes, scopeRange } from './model.js?v=a7be98a47197';
+import { categoryOptions, typeChips } from '../notes/note-types.js?v=a7be98a47197';
+import { openShareNotes } from '../sharing/share-note.js?v=a7be98a47197';
 
 const button = (text, fn, cls = 'secondary') => {
   const e = node('button', cls, text);
@@ -80,8 +80,6 @@ export function setupBulk(api) {
     time.value = `${String(Math.floor(selected[0].entry.minute / 60)).padStart(2, '0')}:${String(selected[0].entry.minute % 60).padStart(2, '0')}`;
     time.setAttribute('aria-label', 'Bulk move first note time');
     timeLabel.append(time);
-    time.addEventListener('input', () => time.setCustomValidity(''));
-    time.addEventListener('change', () => time.setCustomValidity(''));
     let keepSpacing = true;
     const choices = node('fieldset', 'bulk-options');
     choices.hidden = new Set(selected.map((item) => item.date)).size === 1;
@@ -106,7 +104,7 @@ export function setupBulk(api) {
       node(
         'p',
         'field-hint',
-        'Choose the same date to move within the day. Changing the start time shifts every selected note equally, keeping all time gaps. Existing notes stay in place. The group must fit within the day.',
+        'Choose the same date to move within the day. Changing the start time shifts every selected note equally, keeping all time gaps. Existing notes stay in place. Notes crossing midnight continue on the next or previous day.',
       ),
       button(
         'Move notes',
@@ -114,14 +112,6 @@ export function setupBulk(api) {
           if (!date.reportValidity() || !time.reportValidity()) return;
           const [hour, minute] = time.value.split(':').map(Number);
           const destination = hour * 60 + minute;
-          const delta = destination - selected[0].entry.minute;
-          if (
-            selected.some(({ entry }) => entry.minute + delta < 0 || entry.minute + delta > 1439)
-          ) {
-            time.setCustomValidity('Choose a time that keeps every selected note within the day.');
-            time.reportValidity();
-            return;
-          }
           apply(d, { kind: 'move', date: date.value, minute: destination, keepSpacing });
         },
         'primary',
