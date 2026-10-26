@@ -3481,7 +3481,8 @@ main {
   z-index: 8;
   max-width: calc(100vw - 32px);
 }
-.focus-audio-launch button {
+.focus-audio-launch button,
+.shortcuts-launch {
   padding: 12px 18px;
   border-radius: 28px;
   background: var(--white);
@@ -3613,18 +3614,12 @@ main {
 
 .shortcuts-launch {
   position: fixed;
-  left: 12px;
-  top: 50%;
-  z-index: 20;
+  left: max(24px, env(safe-area-inset-left));
+  bottom: calc(95px + env(safe-area-inset-bottom));
+  z-index: 8;
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.65rem 0.85rem;
-  border: 1px solid var(--line);
-  border-radius: 0.75rem;
-  background: var(--white);
-  color: var(--ink);
-  box-shadow: 0 4px 18px #0002;
 }
 .shortcuts-panel {
   position: fixed;
@@ -3691,17 +3686,12 @@ main {
   width: 100%;
   min-width: 0;
 }
-@media (max-width: 1100px) {
-  .shortcuts-launch {
-    top: auto;
-    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-  }
+.bulk-mode .shortcuts-launch {
+  bottom: calc(210px + env(safe-area-inset-bottom));
 }
 @media (max-width: 600px) {
   .shortcuts-launch {
-    left: 10px;
-    padding: 0.6rem;
-    font-size: 0.8rem;
+    left: max(16px, env(safe-area-inset-left));
   }
   .shortcuts-panel {
     inset: auto 0 0;
