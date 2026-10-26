@@ -1,27 +1,26 @@
-import { openGoogleAction } from '../google/connection.js?v=4c96946d1cdc';
-import { appendGoogleLinks } from '../google/model.js?v=4c96946d1cdc';
-import { node as element } from '../../shared/dom.js?v=4c96946d1cdc';
+import { externalShortcuts } from './external-shortcuts.js?v=99c68c40b4e2';
+import { node as element } from '../../shared/dom.js?v=99c68c40b4e2';
 import {
   applyIndent,
   editIndents,
   indentLevel,
   MAX_INDENT,
-} from './formatting/indents.js?v=4c96946d1cdc';
+} from './formatting/indents.js?v=99c68c40b4e2';
 import {
   prepareUploadFiles,
   reviewCompression,
-} from '../attachments/file-compression.js?v=4c96946d1cdc';
-import { addFiles, attachmentList } from '../attachments/attachments.js?v=4c96946d1cdc';
-import { typeChips, noteTags } from './note-types.js?v=4c96946d1cdc';
-import { safeLink } from './formatting/links.js?v=4c96946d1cdc';
-import { toggleBullets, editBullets, selectedLines } from './formatting/bullets.js?v=4c96946d1cdc';
+} from '../attachments/file-compression.js?v=99c68c40b4e2';
+import { addFiles, attachmentList } from '../attachments/attachments.js?v=99c68c40b4e2';
+import { typeChips, noteTags } from './note-types.js?v=99c68c40b4e2';
+import { safeLink } from './formatting/links.js?v=99c68c40b4e2';
+import { toggleBullets, editBullets, selectedLines } from './formatting/bullets.js?v=99c68c40b4e2';
 import {
   HIGHLIGHTS,
   renderFormatted,
   editFormat,
   setLink,
-} from './formatting/format.js?v=4c96946d1cdc';
-import { lineRange, noteTasks, editTasks } from './formatting/tasks.js?v=4c96946d1cdc';
+} from './formatting/format.js?v=99c68c40b4e2';
+import { lineRange, noteTasks, editTasks } from './formatting/tasks.js?v=99c68c40b4e2';
 import {
   recognizeBullets,
   replaceText,
@@ -30,7 +29,7 @@ import {
   applyCheckbox,
   checkTask,
   selectionStyle,
-} from './editor-state.js?v=4c96946d1cdc';
+} from './editor-state.js?v=99c68c40b4e2';
 
 const makeButton = (text, label, action) => {
   const el = element('button', '', text);
@@ -51,7 +50,6 @@ export function createNoteEditor({
   onDone,
   onDuplicate,
   undated = false,
-  openGoogle = openGoogleAction,
 }) {
   let state = {
     indents: structuredClone(entry?.indents || []),
@@ -428,59 +426,6 @@ export function createNoteEditor({
     if (event.target.closest('button')) event.preventDefault();
   });
   const compressionAbort = new AbortController();
-  let googleBusy = false;
-  const googleButtons = [];
-  async function googleAction(action) {
-    if (googleBusy) return;
-    flush();
-    googleBusy = true;
-    for (const button of googleButtons) button.disabled = true;
-    fileStatus.textContent = 'Continue in the Google connection window…';
-    try {
-      const items = await openGoogle(action, { signal: compressionAbort.signal });
-      if (destroyed) return;
-      if (!items.length) {
-        fileStatus.textContent = 'No links were added.';
-        return;
-      }
-      const previous = state;
-      const next = appendGoogleLinks(state, items);
-      state = next;
-      if (publish() === false) {
-        state = previous;
-        throw new Error(
-          'Could not save the links. Copy these addresses before closing the note: ' +
-            items.map((item) => item.url).join(' · '),
-        );
-      }
-      past.push({
-        state: structuredClone(previous),
-        selection: { ...selection },
-        typingStyle: null,
-      });
-      future.length = 0;
-      selection = { start: state.text.length, end: state.text.length };
-      render(false);
-      fileStatus.textContent =
-        action === 'drive'
-          ? 'Drive links added. Google controls access; sharing a link does not grant file permission.'
-          : 'Meet link added. This does not create a Calendar event or send invitations.';
-    } catch (error) {
-      if (!destroyed) fileStatus.textContent = error.message;
-    } finally {
-      googleBusy = false;
-      for (const button of googleButtons) button.disabled = false;
-      if (pendingClose && !destroyed) {
-        pendingClose = false;
-        closeOutside();
-      }
-    }
-  }
-  for (const [action, label] of [
-    ['drive', 'Attach from Drive'],
-    ['meet', 'Create Meet link'],
-  ])
-    googleButtons.push(makeButton(label, label, () => googleAction(action)));
   const attachments = element('section', 'attachment-editor'),
     fileInput = element('input');
   fileInput.type = 'file';
@@ -571,7 +516,7 @@ export function createNoteEditor({
     attachments.classList.remove('file-drop-active');
     uploadFiles(event.dataTransfer.files);
   });
-  attachments.append(upload, ...googleButtons, fileInput, fileStatus, filesHost);
+  attachments.append(upload, externalShortcuts(), fileInput, fileStatus, filesHost);
   renderFiles();
   controls.append(
     makeButton('Done', 'Close note editor', () => {
@@ -582,7 +527,7 @@ export function createNoteEditor({
   if (entry?.id && onDuplicate)
     controls.prepend(
       makeButton('Duplicate', 'Duplicate note', () => {
-        if (googleBusy || uploading || composing) return;
+        if (uploading || composing) return;
         flush();
         if (onDuplicate() !== false && !destroyed) onDone();
       }),
@@ -788,7 +733,7 @@ export function createNoteEditor({
   }
   function closeOutside() {
     if (destroyed || !wrapper.isConnected) return;
-    if (composing || uploading || googleBusy) {
+    if (composing || uploading) {
       pendingClose = true;
       return;
     }
@@ -801,7 +746,7 @@ export function createNoteEditor({
   const onOutsideClick = (event) => {
     const startedInside = event.detail > 0 && pointerStartedInside;
     pointerStartedInside = false;
-    if (destroyed || googleBusy || wrapper.contains(event.target) || startedInside) return;
+    if (destroyed || wrapper.contains(event.target) || startedInside) return;
     // Let the clicked control act first; it may navigate or open a different note.
     queueMicrotask(closeOutside);
   };

@@ -1627,14 +1627,21 @@ main {
   }
 }
 
-.google-connection-page {
-  padding: 2rem;
-  max-width: 44rem;
-  margin: auto;
-}
-.google-connection-page h1 {
-  font-size: 2rem;
-}
 .attachment-editor > button {
   margin: 0.25rem 0.5rem 0.25rem 0;
+}
+
+.note-external-shortcuts {
+  margin: 0.65rem 0;
+}
+.note-external-shortcuts a {
+  display: inline-flex;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+.note-external-shortcuts a:hover {
+  background: var(--soft);
 }

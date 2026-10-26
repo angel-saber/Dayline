@@ -253,19 +253,17 @@ successful note/session saves. Full/Subtle/Off, reduced motion and visibility
 controls retain their existing behavior. Old/custom session commitments are not
 rewritten to the new suggestions. All modes remain free.
 
-## Optional Google connections
+## External service shortcuts
 
-`features/google/` owns public configuration, linked-note insertion, connection
-Settings and the isolated `google-connect.html` window. Google SDK/OAuth/Picker
-and Meet transport live in `providers/google.js`. No SDK loads while planning.
-The user opens the connection window and explicitly authorizes a single service;
-its short-lived token remains there in memory. Source/origin/request-bound
-messages return only validated Google HTTPS URLs and names. No refresh token,
-Google account identity, credential storage, backend service, or new note schema
-is introduced. Links use existing formatted text across Daily, Monthly/Weekly,
-Focus, account sync, sharing and backups. File uploads retain their existing
-local-byte behavior. The asset builder includes the connection page in the same
-release fingerprint. Activation and public-release gates are in GOOGLE_SETUP.md.
+`features/notes/external-shortcuts.js` supplies Open Google Meet and Open Google
+Drive in the shared editor across Daily, Monthly/Weekly Notes and Focus. These
+are ordinary HTTPS links opening a separate tab with `noopener noreferrer`.
+They pass no note content and require no SDK, OAuth, credentials, callback page,
+server or connection Settings. Users create meetings or copy file links in
+Google, then paste them into notes or use the existing Link formatting tool.
+Existing saved Google hyperlinks remain ordinary note content and keep their
+sync, backup and sharing behavior. Google sign-in and file access remain with
+Google. These shortcuts do not automatically retrieve meeting or file links.
 
 ## Note duplication
 
