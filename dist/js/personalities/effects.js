@@ -1,4 +1,4 @@
-import { getPersonality } from './index.js?v=d1fd759ff193';
+import { getPersonality } from './index.js?v=6558b5ba29d9';
 const KEY = 'dayline.effects.v1';
 const LEVELS = ['full', 'subtle', 'off'];
 export function effectiveEffects(level, reduced, hidden) {

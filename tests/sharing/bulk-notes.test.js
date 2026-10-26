@@ -140,3 +140,124 @@ test('multi-note share excludes all reports until explicitly chosen', () => {
   assert.ok(!shareNotesText(records).includes('Secret'));
   assert.ok(shareNotesText(records, { guidedReports: true }).includes('Secret'));
 });
+
+test('bulk time shifts preserve exact gaps, same-interval notes, contents, occupied notes and undo', () => {
+  const date = '2026-10-26';
+  const original = {
+    [date]: [note('a', 540), note('b', 555), note('c', 630), note('occupied', 660)],
+  };
+  const selection = new Set(['a', 'b', 'c'].map((id) => selectionKey(date, id)));
+  const result = bulkChange(original, selection, {
+    kind: 'move',
+    date,
+    minute: 660,
+    keepSpacing: true,
+  });
+  const byId = new Map(result.days[date].map((entry) => [entry.id, entry]));
+  assert.deepEqual(
+    ['a', 'b', 'c'].map((id) => byId.get(id).minute),
+    [660, 675, 750],
+  );
+  assert.equal(byId.get('occupied').minute, 660);
+  for (const id of ['a', 'b', 'c'])
+    assert.deepEqual(
+      { ...byId.get(id), minute: original[date].find((entry) => entry.id === id).minute },
+      original[date].find((entry) => entry.id === id),
+    );
+  assert.deepEqual({ ...result.days, ...result.previous }, original);
+  assert.deepEqual(
+    original[date].map((entry) => entry.minute),
+    [540, 555, 630, 660],
+  );
+  assert.deepEqual(validState({ version: 1, days: result.days }).days, result.days);
+});
+
+test('bulk time shifts work earlier and across dates, and reject invalid times atomically', () => {
+  const records = {
+    '2026-10-26': [note('a', 600), note('b', 660)],
+    '2026-10-27': [note('c', 720)],
+  };
+  const selection = new Set(
+    Object.entries(records).flatMap(([date, notes]) =>
+      notes.map((entry) => selectionKey(date, entry.id)),
+    ),
+  );
+  const result = bulkChange(records, selection, {
+    kind: 'move',
+    date: '2026-11-01',
+    minute: 540,
+    keepSpacing: true,
+  });
+  assert.deepEqual(
+    result.days['2026-11-01'].map((entry) => entry.minute),
+    [540, 600],
+  );
+  assert.equal(result.days['2026-11-02'][0].minute, 660);
+  const before = structuredClone(records);
+  for (const minute of [-1, 1440, NaN, 1.5])
+    assert.throws(
+      () => bulkChange(records, selection, { kind: 'move', date: '2026-10-26', minute }),
+      /time|midnight/,
+    );
+  const uneven = { '2026-10-26': [note('early', 600)], '2026-10-27': [note('earlier', 100)] };
+  const earlier = bulkChange(
+    uneven,
+    new Set([selectionKey('2026-10-26', 'early'), selectionKey('2026-10-27', 'earlier')]),
+    { kind: 'move', date: '2026-10-26', minute: 0, keepSpacing: true },
+  );
+  assert.deepEqual(
+    earlier.days['2026-10-26'].map((entry) => [entry.id, entry.minute]),
+    [
+      ['early', 0],
+      ['earlier', 940],
+    ],
+  );
+  assert.deepEqual(records, before);
+});
+
+test('bulk moves roll across midnight and year boundaries, preserving occupied notes and full undo snapshots', () => {
+  const date = '2026-12-31';
+  const records = { [date]: [note('a', 540), note('b', 630)], '2027-01-01': [note('stay', 60)] };
+  const before = structuredClone(records);
+  const result = bulkChange(records, new Set([selectionKey(date, 'a'), selectionKey(date, 'b')]), {
+    kind: 'move',
+    date,
+    minute: 1410,
+    keepSpacing: true,
+  });
+  assert.deepEqual(
+    result.days[date].map((entry) => [entry.id, entry.minute]),
+    [['a', 1410]],
+  );
+  assert.deepEqual(
+    result.days['2027-01-01'].map((entry) => [entry.id, entry.minute]),
+    [
+      ['stay', 60],
+      ['b', 60],
+    ],
+  );
+  assert.deepEqual({ ...result.days, ...result.previous }, records);
+  assert.deepEqual(records, before);
+  assert.deepEqual(validState({ version: 1, days: result.days }).days, result.days);
+});
+
+test('bulk moves normalize backward to the previous day and preserve spacing around calendar boundaries', () => {
+  const records = { '2026-03-01': [note('a', 600)], '2026-03-02': [note('b', 30)] };
+  const selected = new Set([selectionKey('2026-03-01', 'a'), selectionKey('2026-03-02', 'b')]);
+  const result = bulkChange(records, selected, {
+    kind: 'move',
+    date: '2026-03-01',
+    minute: 0,
+    keepSpacing: false,
+  });
+  assert.deepEqual(
+    result.days['2026-03-01'].map((entry) => [entry.id, entry.minute]),
+    [['a', 0]],
+  );
+  assert.deepEqual(
+    result.days['2026-02-28'].map((entry) => [entry.id, entry.minute]),
+    [['b', 870]],
+  );
+  assert.deepEqual(result.previous['2026-02-28'], []);
+  assert.deepEqual(validState({ version: 1, days: result.days }).days, result.days);
+});

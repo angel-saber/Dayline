@@ -277,3 +277,13 @@ continue to reference the same local bytes, so backups/shares use their existing
 reference handling. Daily and shared Daily/Focus editors, the expanded Monthly
 day list and Weekly Notes expose the action. Application saves roll back on
 failure and use existing undo and account sync. No storage schema changes.
+
+## Bulk time moves
+
+The bulk move dialog accepts a destination date and the first selected note's
+start time. `features/bulk/model.js` shifts all selected note times by the same
+minute delta, preserving exact gaps and notes sharing an interval. Omitting the
+new optional minute value retains the existing date-only move behavior. Date
+spacing remains independently selectable for multi-day selections. Times crossing midnight normalize into the next or previous calendar day,
+including month/year boundaries; existing destination notes are never displaced. IDs, contents, completion, reports and attachment references
+use existing save/sync/undo paths without a storage migration.
