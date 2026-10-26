@@ -2655,7 +2655,9 @@ main {
   text-decoration: none;
   display: inline-block;
 }
-.entry-tools .share-note {
+.entry-tools .share-note,
+.entry-tools .duplicate-note,
+.entry-tools .move-note {
   font-size: 10px;
 }
 .share-note-options label:has(input:disabled) {
