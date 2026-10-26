@@ -171,8 +171,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.equal(document.querySelector('#monthly-view').hidden, false);
     assert.match(document.querySelector('#monthly-view').textContent, /Weekly direction/);
     document.querySelector('#settings-tab').click();
-    assert.match(document.querySelector('#google-settings').textContent, /need owner setup/);
-    assert.equal(document.querySelectorAll('#google-settings button:disabled').length, 2);
+    assert.equal(document.querySelector('#google-settings'), null);
     assert.equal(document.querySelectorAll('script[src*="google"]').length, 0);
     for (const mode of ['astronaut', 'gamer', 'zen', 'builder', 'founder']) {
       const choice = document.querySelector(`input[name="layout"][value="${mode}"]`);

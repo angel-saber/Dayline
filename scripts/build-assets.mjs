@@ -1,5 +1,5 @@
 // One release key for the whole local module graph, including bare imports.
-import { readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { format } from 'prettier';
@@ -24,8 +24,6 @@ function files(directory) {
 export async function versionedAssets(assetRoot = root) {
   const root = assetRoot;
   const paths = [...files(new URL('js/', root)), new URL('index.html', root)];
-  const googlePage = new URL('google-connect.html', root);
-  if (existsSync(googlePage)) paths.push(googlePage);
   const normalized = [];
   for (const path of paths) {
     const source = readFileSync(path, 'utf8').replace(
