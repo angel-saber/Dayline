@@ -225,6 +225,13 @@ test('the assembled planner starts, switches views/personalities, edits settings
       .click();
     document.querySelector('#launch-focus').click();
     assert.equal(document.querySelector('.focus-window').open, true);
+    document.querySelector('.focus-open-shortcuts').click();
+    assert.equal(document.querySelector('.shortcuts-panel').open, true);
+    assert.equal(document.querySelector('.focus-window').open, true);
+    [...document.querySelectorAll('.shortcuts-panel button')]
+      .find((button) => button.textContent === 'Close shortcuts')
+      .click();
+    assert.equal(document.querySelector('.shortcuts-panel').open, false);
     assert.match(
       document.querySelector('.focus-window').textContent,
       /Choose how you will move through this/,

@@ -1,26 +1,25 @@
-import { externalShortcuts } from './external-shortcuts.js?v=99c68c40b4e2';
-import { node as element } from '../../shared/dom.js?v=99c68c40b4e2';
+import { node as element } from '../../shared/dom.js?v=e2556e318b26';
 import {
   applyIndent,
   editIndents,
   indentLevel,
   MAX_INDENT,
-} from './formatting/indents.js?v=99c68c40b4e2';
+} from './formatting/indents.js?v=e2556e318b26';
 import {
   prepareUploadFiles,
   reviewCompression,
-} from '../attachments/file-compression.js?v=99c68c40b4e2';
-import { addFiles, attachmentList } from '../attachments/attachments.js?v=99c68c40b4e2';
-import { typeChips, noteTags } from './note-types.js?v=99c68c40b4e2';
-import { safeLink } from './formatting/links.js?v=99c68c40b4e2';
-import { toggleBullets, editBullets, selectedLines } from './formatting/bullets.js?v=99c68c40b4e2';
+} from '../attachments/file-compression.js?v=e2556e318b26';
+import { addFiles, attachmentList } from '../attachments/attachments.js?v=e2556e318b26';
+import { typeChips, noteTags } from './note-types.js?v=e2556e318b26';
+import { safeLink } from './formatting/links.js?v=e2556e318b26';
+import { toggleBullets, editBullets, selectedLines } from './formatting/bullets.js?v=e2556e318b26';
 import {
   HIGHLIGHTS,
   renderFormatted,
   editFormat,
   setLink,
-} from './formatting/format.js?v=99c68c40b4e2';
-import { lineRange, noteTasks, editTasks } from './formatting/tasks.js?v=99c68c40b4e2';
+} from './formatting/format.js?v=e2556e318b26';
+import { lineRange, noteTasks, editTasks } from './formatting/tasks.js?v=e2556e318b26';
 import {
   recognizeBullets,
   replaceText,
@@ -29,7 +28,7 @@ import {
   applyCheckbox,
   checkTask,
   selectionStyle,
-} from './editor-state.js?v=99c68c40b4e2';
+} from './editor-state.js?v=e2556e318b26';
 
 const makeButton = (text, label, action) => {
   const el = element('button', '', text);
@@ -516,7 +515,7 @@ export function createNoteEditor({
     attachments.classList.remove('file-drop-active');
     uploadFiles(event.dataTransfer.files);
   });
-  attachments.append(upload, externalShortcuts(), fileInput, fileStatus, filesHost);
+  attachments.append(upload, fileInput, fileStatus, filesHost);
   renderFiles();
   controls.append(
     makeButton('Done', 'Close note editor', () => {

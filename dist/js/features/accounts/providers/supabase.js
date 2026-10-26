@@ -1,12 +1,12 @@
 // Supabase HTTP and session handling stay inside this provider adapter.
-import { CloudError } from '../errors.js?v=99c68c40b4e2';
+import { CloudError } from '../errors.js?v=e2556e318b26';
 import {
   AUTH_METHODS,
   NOTES_METHODS,
   PREFERENCES_METHODS,
   bindMethods,
   publicSession,
-} from '../service-contract.js?v=99c68c40b4e2';
+} from '../service-contract.js?v=e2556e318b26';
 export function validateConfig(config) {
   if (!config.url && !config.publishableKey) return null;
   const url = new URL(config.url);

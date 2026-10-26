@@ -253,17 +253,19 @@ successful note/session saves. Full/Subtle/Off, reduced motion and visibility
 controls retain their existing behavior. Old/custom session commitments are not
 rewritten to the new suggestions. All modes remain free.
 
-## External service shortcuts
+## Shortcuts
 
-`features/notes/external-shortcuts.js` supplies Open Google Meet and Open Google
-Drive in the shared editor across Daily, Monthly/Weekly Notes and Focus. These
-are ordinary HTTPS links opening a separate tab with `noopener noreferrer`.
-They pass no note content and require no SDK, OAuth, credentials, callback page,
-server or connection Settings. Users create meetings or copy file links in
-Google, then paste them into notes or use the existing Link formatting tool.
-Existing saved Google hyperlinks remain ordinary note content and keep their
-sync, backup and sharing behavior. Google sign-in and file access remain with
-Google. These shortcuts do not automatically retrieve meeting or file links.
+`features/shortcuts/` owns the shared panel, custom shortcut validation and the
+separate device-local `dayline.shortcuts.v1` preference. The planner's left-edge
+launcher opens a native modal drawer on desktop or bottom sheet on mobile. Focus
+has a header shortcut to the same panel so it can stack above its native dialog.
+Escape, Close and deliberate backdrop clicks dismiss it and restore focus.
+Default Google Meet/Drive links and validated custom HTTP(S) links open with
+`noopener noreferrer`. Custom links support add, edit and remove; failed saves
+leave the previous list intact. No SDK, credentials, note content, backend or
+account preference schema is involved. Custom shortcuts are browser-local and
+are not part of note backups/account sync. Existing Google hyperlinks in notes
+remain ordinary saved content. No service is opened before a user clicks it.
 
 ## Note duplication
 
