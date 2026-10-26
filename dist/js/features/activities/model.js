@@ -1,6 +1,6 @@
-import { weekStart } from '../monthly/weekly-model.js?v=d1fd759ff193';
-import { activityCatalog, activityFields, lifeDimensions } from './catalog.js?v=d1fd759ff193';
-import { dayKey, bucket, offsetDay } from '../../shared/schedule.js?v=d1fd759ff193';
+import { weekStart } from '../monthly/weekly-model.js?v=3bc29ba06496';
+import { activityCatalog, activityFields, lifeDimensions } from './catalog.js?v=3bc29ba06496';
+import { dayKey, bucket, offsetDay } from '../../shared/schedule.js?v=3bc29ba06496';
 export const dimensions = [
   {
     key: 'work',

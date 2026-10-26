@@ -1,11 +1,11 @@
-import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=d1fd759ff193';
+import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=3bc29ba06496';
 import {
   validNoteType,
   validTags,
   noteTags,
   withTags,
   matchesNoteType,
-} from '../notes/note-types.js?v=d1fd759ff193';
+} from '../notes/note-types.js?v=3bc29ba06496';
 export const selectionKey = (date, id) => JSON.stringify([date, id]);
 export function selectedNotes(days, keys) {
   return Object.entries(days)
@@ -60,6 +60,18 @@ export function bulkChange(days, keys, action, newId = () => crypto.randomUUID()
   }
   if (action.kind === 'move' && !validDate(action.date))
     throw new Error('Choose a valid destination date.');
+  let timeDelta = 0;
+  if (action.kind === 'move' && action.minute !== undefined) {
+    if (!Number.isInteger(action.minute) || action.minute < 0 || action.minute > 1439)
+      throw new Error('Choose a valid destination time.');
+    if (items.some(({ entry }) => entry.weekly))
+      throw new Error('Schedule undated weekly notes before shifting their times.');
+    timeDelta = action.minute - items[0].entry.minute;
+    if (items.some(({ entry }) => entry.minute + timeDelta < 0 || entry.minute + timeDelta > 1439))
+      throw new Error(
+        'These notes would cross midnight. Choose a time that keeps the whole group within each day.',
+      );
+  }
   const next = { ...days },
     previous = {};
   function touch(date) {
@@ -83,7 +95,9 @@ export function bulkChange(days, keys, action, newId = () => crypto.randomUUID()
     for (let i = 0; i < items.length; i++) {
       const date = destinations[i];
       touch(date);
-      let entry = items[i].entry;
+      let entry = timeDelta
+        ? { ...items[i].entry, minute: items[i].entry.minute + timeDelta }
+        : items[i].entry;
       if (next[date].some((e) => e.id === entry.id)) {
         const id = newId();
         if (next[date].some((e) => e.id === id))

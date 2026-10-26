@@ -1,8 +1,8 @@
-import { node } from '../../shared/dom.js?v=d1fd759ff193';
-import { openAvailability } from '../sharing/availability-ui.js?v=d1fd759ff193';
-import { selectionKey, selectedNotes, matchingNotes, scopeRange } from './model.js?v=d1fd759ff193';
-import { categoryOptions, typeChips } from '../notes/note-types.js?v=d1fd759ff193';
-import { openShareNotes } from '../sharing/share-note.js?v=d1fd759ff193';
+import { node } from '../../shared/dom.js?v=3bc29ba06496';
+import { openAvailability } from '../sharing/availability-ui.js?v=3bc29ba06496';
+import { selectionKey, selectedNotes, matchingNotes, scopeRange } from './model.js?v=3bc29ba06496';
+import { categoryOptions, typeChips } from '../notes/note-types.js?v=3bc29ba06496';
+import { openShareNotes } from '../sharing/share-note.js?v=3bc29ba06496';
 
 const button = (text, fn, cls = 'secondary') => {
   const e = node('button', cls, text);
@@ -72,8 +72,19 @@ export function setupBulk(api) {
     date.value = selected[0].date;
     date.setAttribute('aria-label', 'Bulk move destination date');
     label.append(date);
+    const timeLabel = node('label', '', 'First selected note starts at'),
+      time = node('input');
+    time.type = 'time';
+    time.step = '60';
+    time.required = true;
+    time.value = `${String(Math.floor(selected[0].entry.minute / 60)).padStart(2, '0')}:${String(selected[0].entry.minute % 60).padStart(2, '0')}`;
+    time.setAttribute('aria-label', 'Bulk move first note time');
+    timeLabel.append(time);
+    time.addEventListener('input', () => time.setCustomValidity(''));
+    time.addEventListener('change', () => time.setCustomValidity(''));
     let keepSpacing = true;
     const choices = node('fieldset', 'bulk-options');
+    choices.hidden = new Set(selected.map((item) => item.date)).size === 1;
     choices.append(node('legend', '', 'Move dates'));
     for (const [value, text] of [
       [true, 'Keep the spacing between days (start on this date)'],
@@ -90,16 +101,28 @@ export function setupBulk(api) {
     }
     d.append(
       label,
+      timeLabel,
       choices,
       node(
         'p',
         'field-hint',
-        'Each note keeps its exact time and contents. Existing destination notes stay in place.',
+        'Choose the same date to move within the day. Changing the start time shifts every selected note equally, keeping all time gaps. Existing notes stay in place. The group must fit within the day.',
       ),
       button(
         'Move notes',
         () => {
-          if (date.reportValidity()) apply(d, { kind: 'move', date: date.value, keepSpacing });
+          if (!date.reportValidity() || !time.reportValidity()) return;
+          const [hour, minute] = time.value.split(':').map(Number);
+          const destination = hour * 60 + minute;
+          const delta = destination - selected[0].entry.minute;
+          if (
+            selected.some(({ entry }) => entry.minute + delta < 0 || entry.minute + delta > 1439)
+          ) {
+            time.setCustomValidity('Choose a time that keeps every selected note within the day.');
+            time.reportValidity();
+            return;
+          }
+          apply(d, { kind: 'move', date: date.value, minute: destination, keepSpacing });
         },
         'primary',
       ),
