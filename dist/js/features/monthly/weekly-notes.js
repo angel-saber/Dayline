@@ -1,16 +1,16 @@
-import { node } from '../../shared/dom.js?v=525142851605';
-import { bindFileDrop } from '../attachments/attachments.js?v=525142851605';
-import { weeklyNotes, weekStart } from './weekly-model.js?v=525142851605';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=525142851605';
+import { node } from '../../shared/dom.js?v=4c96946d1cdc';
+import { bindFileDrop } from '../attachments/attachments.js?v=4c96946d1cdc';
+import { weeklyNotes, weekStart } from './weekly-model.js?v=4c96946d1cdc';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=4c96946d1cdc';
 import {
   availableHours,
   hourInput,
   inputMinute,
-} from '../settings/available-hours.js?v=525142851605';
-import { createNoteEditor } from '../notes/note-editor.js?v=525142851605';
-import { categoryOptions, tagBadges } from '../notes/note-types.js?v=525142851605';
-import { openShareNote } from '../sharing/share-note.js?v=525142851605';
-import { noteTitle } from './model.js?v=525142851605';
+} from '../settings/available-hours.js?v=4c96946d1cdc';
+import { createNoteEditor } from '../notes/note-editor.js?v=4c96946d1cdc';
+import { categoryOptions, tagBadges } from '../notes/note-types.js?v=4c96946d1cdc';
+import { openShareNote } from '../sharing/share-note.js?v=4c96946d1cdc';
+import { noteTitle } from './model.js?v=4c96946d1cdc';
 
 const button = (text, fn, cls = 'secondary') => {
   const el = node('button', cls, text);
@@ -201,6 +201,11 @@ export function createWeeklySection({ week, getState, apply, onChanged }) {
         button(entry.done ? 'Mark incomplete' : 'Mark complete', () => {
           flush();
           if (apply(week, entry.id, { kind: 'complete' })) render(entry.id);
+        }),
+        button('Duplicate', () => {
+          flush();
+          const result = apply(week, entry.id, { kind: 'duplicate' });
+          if (result) render(result.id);
         }),
         button('Schedule', () => schedule(entry.id)),
         button('Move to week', () => moveWeek(entry.id)),

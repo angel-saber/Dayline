@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=525142851605';
-import { createWeeklySection } from './weekly-notes.js?v=525142851605';
+import { node } from '../../shared/dom.js?v=4c96946d1cdc';
+import { createWeeklySection } from './weekly-notes.js?v=4c96946d1cdc';
 import {
   NOTE_TYPES,
   categoryOptions,
@@ -9,11 +9,11 @@ import {
   typeBadge,
   noteTags,
   categoryLabel,
-} from '../notes/note-types.js?v=525142851605';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=525142851605';
-import { dateActions } from './date-actions.js?v=525142851605';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=525142851605';
-import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=525142851605';
+} from '../notes/note-types.js?v=4c96946d1cdc';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=4c96946d1cdc';
+import { dateActions } from './date-actions.js?v=4c96946d1cdc';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=4c96946d1cdc';
+import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=4c96946d1cdc';
 
 const button = (text, label, action) => {
   const el = node('button', '', text);
@@ -41,6 +41,7 @@ export function setupMonthly({
   root,
   getState,
   onOpen,
+  onDuplicate,
   onMove,
   onAdd,
   announce,
@@ -205,6 +206,12 @@ export function setupMonthly({
           node('span', 'month-expanded-time', timeLabel(entry.minute, getState().settings.clock)),
           open,
         );
+        if (onDuplicate)
+          row.append(
+            button('Duplicate', 'Duplicate note: ' + noteTitle(entry), () => {
+              if (onDuplicate(date, entry.id) !== false) refresh();
+            }),
+          );
         const tags = tagBadges(entry);
         if (tags) row.append(tags);
         list.append(row);

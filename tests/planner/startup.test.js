@@ -158,6 +158,15 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.equal(document.querySelector('#auth-view').hidden, true);
     assert.match(document.querySelector('#timeline').textContent, /Saved plan/);
     assert.equal(document.querySelectorAll('.line-checkbox').length, 1);
+    const duplicate = document.querySelector('[aria-label="Duplicate note"]');
+    assert.ok(duplicate);
+    duplicate.click();
+    let copied = JSON.parse(local.getItem('dayline.v1')).days[today].filter((note) => !note.weekly);
+    assert.equal(copied.length, 2);
+    assert.notEqual(copied[0].id, copied[1].id);
+    assert.equal(copied[1].text, 'Keep this plan');
+    document.querySelector('#undo').click();
+    assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
     document.querySelector('#monthly-tab').click();
     assert.equal(document.querySelector('#monthly-view').hidden, false);
     assert.match(document.querySelector('#monthly-view').textContent, /Weekly direction/);

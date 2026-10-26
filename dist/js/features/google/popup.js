@@ -1,11 +1,11 @@
-import { googleConfig } from './config.js?v=525142851605';
-import { GOOGLE_ACTIONS, googleReady, validGoogleLinks } from './model.js?v=525142851605';
+import { googleConfig } from './config.js?v=4c96946d1cdc';
+import { GOOGLE_ACTIONS, googleReady, validGoogleLinks } from './model.js?v=4c96946d1cdc';
 import {
   prepareGoogle,
   authorizeGoogle,
   chooseDriveFiles,
   createMeetLink,
-} from './providers/google.js?v=525142851605';
+} from './providers/google.js?v=4c96946d1cdc';
 
 const parameters = new URLSearchParams(location.hash.slice(1));
 const action = parameters.get('action'),

@@ -1,5 +1,6 @@
-import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=525142851605';
-import { validDate } from '../bulk/model.js?v=525142851605';
+import { duplicateNote } from '../notes/duplicate.js?v=4c96946d1cdc';
+import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=4c96946d1cdc';
+import { validDate } from '../bulk/model.js?v=4c96946d1cdc';
 export function weekStart(date) {
   if (!validDate(date)) throw new Error('Choose a valid date.');
   return offsetDay(date, -parseDay(date).getDay());
@@ -32,6 +33,10 @@ export function changeWeekly(days, week, id, action, newId = () => crypto.random
   }
   if (!entry) throw new Error('This weekly note is no longer available.');
   let next = list;
+  if (action.kind === 'duplicate') {
+    const result = duplicateNote(list, id, newId);
+    return { days: { ...days, [week]: result.notes }, previous, id: result.id };
+  }
   if (action.kind === 'update') {
     const { minute, weekly, ...values } = action.values;
     next = list.map((note) =>
