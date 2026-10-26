@@ -266,3 +266,14 @@ is introduced. Links use existing formatted text across Daily, Monthly/Weekly,
 Focus, account sync, sharing and backups. File uploads retain their existing
 local-byte behavior. The asset builder includes the connection page in the same
 release fingerprint. Activation and public-release gates are in GOOGLE_SETUP.md.
+
+## Note duplication
+
+`features/notes/duplicate.js` owns the shared pure copy rule. Copies receive a new
+ID immediately after the source in the same date/time or undated week. Text,
+formatting, title, tags and attachment references are deeply copied; completion
+is reset and historical Focus/guided reports are excluded. Existing file IDs
+continue to reference the same local bytes, so backups/shares use their existing
+reference handling. Daily and shared Daily/Focus editors, the expanded Monthly
+day list and Weekly Notes expose the action. Application saves roll back on
+failure and use existing undo and account sync. No storage schema changes.

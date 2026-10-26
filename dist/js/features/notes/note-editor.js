@@ -1,27 +1,27 @@
-import { openGoogleAction } from '../google/connection.js?v=525142851605';
-import { appendGoogleLinks } from '../google/model.js?v=525142851605';
-import { node as element } from '../../shared/dom.js?v=525142851605';
+import { openGoogleAction } from '../google/connection.js?v=4c96946d1cdc';
+import { appendGoogleLinks } from '../google/model.js?v=4c96946d1cdc';
+import { node as element } from '../../shared/dom.js?v=4c96946d1cdc';
 import {
   applyIndent,
   editIndents,
   indentLevel,
   MAX_INDENT,
-} from './formatting/indents.js?v=525142851605';
+} from './formatting/indents.js?v=4c96946d1cdc';
 import {
   prepareUploadFiles,
   reviewCompression,
-} from '../attachments/file-compression.js?v=525142851605';
-import { addFiles, attachmentList } from '../attachments/attachments.js?v=525142851605';
-import { typeChips, noteTags } from './note-types.js?v=525142851605';
-import { safeLink } from './formatting/links.js?v=525142851605';
-import { toggleBullets, editBullets, selectedLines } from './formatting/bullets.js?v=525142851605';
+} from '../attachments/file-compression.js?v=4c96946d1cdc';
+import { addFiles, attachmentList } from '../attachments/attachments.js?v=4c96946d1cdc';
+import { typeChips, noteTags } from './note-types.js?v=4c96946d1cdc';
+import { safeLink } from './formatting/links.js?v=4c96946d1cdc';
+import { toggleBullets, editBullets, selectedLines } from './formatting/bullets.js?v=4c96946d1cdc';
 import {
   HIGHLIGHTS,
   renderFormatted,
   editFormat,
   setLink,
-} from './formatting/format.js?v=525142851605';
-import { lineRange, noteTasks, editTasks } from './formatting/tasks.js?v=525142851605';
+} from './formatting/format.js?v=4c96946d1cdc';
+import { lineRange, noteTasks, editTasks } from './formatting/tasks.js?v=4c96946d1cdc';
 import {
   recognizeBullets,
   replaceText,
@@ -30,7 +30,7 @@ import {
   applyCheckbox,
   checkTask,
   selectionStyle,
-} from './editor-state.js?v=525142851605';
+} from './editor-state.js?v=4c96946d1cdc';
 
 const makeButton = (text, label, action) => {
   const el = element('button', '', text);
@@ -49,6 +49,7 @@ export function createNoteEditor({
   label,
   onChange,
   onDone,
+  onDuplicate,
   undated = false,
   openGoogle = openGoogleAction,
 }) {
@@ -578,6 +579,14 @@ export function createNoteEditor({
     }),
   );
   controls.lastChild.className = 'primary';
+  if (entry?.id && onDuplicate)
+    controls.prepend(
+      makeButton('Duplicate', 'Duplicate note', () => {
+        if (googleBusy || uploading || composing) return;
+        flush();
+        if (onDuplicate() !== false && !destroyed) onDone();
+      }),
+    );
   wrapper.append(
     titleLabel,
     timeLabel,

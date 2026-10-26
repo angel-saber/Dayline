@@ -1,5 +1,5 @@
-import { replaceText } from '../notes/editor-state.js?v=525142851605';
-import { setLink } from '../notes/formatting/format.js?v=525142851605';
+import { replaceText } from '../notes/editor-state.js?v=4c96946d1cdc';
+import { setLink } from '../notes/formatting/format.js?v=4c96946d1cdc';
 
 export const GOOGLE_ACTIONS = Object.freeze(['drive', 'meet', 'connect-drive', 'connect-meet']);
 export function googleReady(config, action) {

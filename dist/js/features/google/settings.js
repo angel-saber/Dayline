@@ -1,7 +1,7 @@
-import { node } from '../../shared/dom.js?v=525142851605';
-import { googleConfig } from './config.js?v=525142851605';
-import { googleReady } from './model.js?v=525142851605';
-import { openGoogleAction } from './connection.js?v=525142851605';
+import { node } from '../../shared/dom.js?v=4c96946d1cdc';
+import { googleConfig } from './config.js?v=4c96946d1cdc';
+import { googleReady } from './model.js?v=4c96946d1cdc';
+import { openGoogleAction } from './connection.js?v=4c96946d1cdc';
 
 export function setupGoogleSettings(root) {
   if (!root) return;

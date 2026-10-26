@@ -1,5 +1,5 @@
-import { googleConfig } from './config.js?v=525142851605';
-import { GOOGLE_ACTIONS, googleReady, validGoogleLinks } from './model.js?v=525142851605';
+import { googleConfig } from './config.js?v=4c96946d1cdc';
+import { GOOGLE_ACTIONS, googleReady, validGoogleLinks } from './model.js?v=4c96946d1cdc';
 
 // Google tokens never enter the planner. A separate same-origin window owns
 // short-lived authorization and sends back only selected names and safe URLs.

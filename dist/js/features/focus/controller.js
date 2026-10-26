@@ -1,9 +1,9 @@
-import { node } from '../../shared/dom.js?v=525142851605';
-import { indentLevel } from '../notes/formatting/indents.js?v=525142851605';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=525142851605';
-import { tagBadges, categoryOptions } from '../notes/note-types.js?v=525142851605';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=525142851605';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=525142851605';
+import { node } from '../../shared/dom.js?v=4c96946d1cdc';
+import { indentLevel } from '../notes/formatting/indents.js?v=4c96946d1cdc';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=4c96946d1cdc';
+import { tagBadges, categoryOptions } from '../notes/note-types.js?v=4c96946d1cdc';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=4c96946d1cdc';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=4c96946d1cdc';
 import {
   focusIntervalNotes,
   newFocus,
@@ -14,10 +14,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=525142851605';
-import { createNoteEditor } from '../notes/note-editor.js?v=525142851605';
-import { renderFormatted } from '../notes/formatting/format.js?v=525142851605';
-import { noteTasks } from '../notes/formatting/tasks.js?v=525142851605';
+} from './model.js?v=4c96946d1cdc';
+import { createNoteEditor } from '../notes/note-editor.js?v=4c96946d1cdc';
+import { renderFormatted } from '../notes/formatting/format.js?v=4c96946d1cdc';
+import { noteTasks } from '../notes/formatting/tasks.js?v=4c96946d1cdc';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {
@@ -171,6 +171,7 @@ export function setupFocus(api) {
       categories: categoryOptions(api.getState().days, api.getState().settings.tags),
       minute: p.minute,
       label: 'Focus interval note',
+      onDuplicate: () => id && api.duplicateNote?.(date, id),
       onChange(values) {
         const result = api.editNote(date, id, p.minute, values);
         if (result) {

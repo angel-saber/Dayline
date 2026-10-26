@@ -1,17 +1,17 @@
-import { validIndents } from '../features/notes/formatting/indents.js?v=525142851605';
-import { validAvailableHours } from '../features/settings/available-hours.js?v=525142851605';
-import { validAttachments } from '../features/attachments/attachments.js?v=525142851605';
+import { validIndents } from '../features/notes/formatting/indents.js?v=4c96946d1cdc';
+import { validAvailableHours } from '../features/settings/available-hours.js?v=4c96946d1cdc';
+import { validAttachments } from '../features/attachments/attachments.js?v=4c96946d1cdc';
 import {
   validNoteType,
   validTags,
   validTagSettings,
-} from '../features/notes/note-types.js?v=525142851605';
-import { validGuidedReports } from '../features/activities/model.js?v=525142851605';
-import { validBullets } from '../features/notes/formatting/bullets.js?v=525142851605';
-import { validFocusReports } from '../features/focus/model.js?v=525142851605';
-import { DEFAULT_SETTINGS } from './schedule.js?v=525142851605';
-import { validFormat } from '../features/notes/formatting/format.js?v=525142851605';
-import { validTasks } from '../features/notes/formatting/tasks.js?v=525142851605';
+} from '../features/notes/note-types.js?v=4c96946d1cdc';
+import { validGuidedReports } from '../features/activities/model.js?v=4c96946d1cdc';
+import { validBullets } from '../features/notes/formatting/bullets.js?v=4c96946d1cdc';
+import { validFocusReports } from '../features/focus/model.js?v=4c96946d1cdc';
+import { DEFAULT_SETTINGS } from './schedule.js?v=4c96946d1cdc';
+import { validFormat } from '../features/notes/formatting/format.js?v=4c96946d1cdc';
+import { validTasks } from '../features/notes/formatting/tasks.js?v=4c96946d1cdc';
 const KEY = 'dayline.v1';
 export function validState(value) {
   if (
