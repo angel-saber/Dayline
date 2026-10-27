@@ -4,8 +4,8 @@ import {
   offsetDay,
   bucket,
   slots,
-} from '../../shared/schedule.js?v=51aed2a1d055';
-import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=51aed2a1d055';
+} from '../../shared/schedule.js?v=ce2cc5d7358f';
+import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=ce2cc5d7358f';
 export const MANTRAS = PERSONALITY_MANTRAS.zen;
 export const INSPIRATION = VOICE_QUOTES.zen;
 export function intervalAt(at, interval) {
