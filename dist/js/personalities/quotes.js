@@ -1,4 +1,4 @@
-import { getPersonality } from './index.js?v=6558b5ba29d9';
+import { getPersonality } from './index.js?v=59dbd0e22808';
 // Original local copy; no API, tracking, or network requests.
 export function dailyQuote(date = new Date(), mode = 'zen') {
   // Use local calendar components, then UTC for day arithmetic. This keeps the

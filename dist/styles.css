@@ -677,15 +677,35 @@ dialog p {
     justify-self: start;
   }
   .entry {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
     padding: 13px 9px;
     gap: 8px;
+  }
+  .entry .note-content {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-width: 0;
+  }
+  .entry-tools {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-self: end;
+    justify-content: flex-end;
     flex-wrap: wrap;
+    max-width: 100%;
+    margin: 0;
+  }
+  .bulk-mode .entry .note-selection {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .bulk-mode .entry .note-content {
+    grid-column: 2;
+    grid-row: 1;
   }
   .note-text {
     font-size: 12px;
-  }
-  .entry-tools {
-    margin-left: auto;
   }
   .entry-tools button {
     font-size: 12px;
