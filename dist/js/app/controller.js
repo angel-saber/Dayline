@@ -1,49 +1,49 @@
-import { canKeepEditor } from '../features/notes/editor-sync.js?v=42c354e72a8f';
-import { setupInspiration } from '../features/inspiration/view.js?v=42c354e72a8f';
-import { storyNote } from '../features/inspiration/model.js?v=42c354e72a8f';
-import { setupShortcuts } from '../features/shortcuts/controller.js?v=42c354e72a8f';
-import { duplicateNote as copyNote } from '../features/notes/duplicate.js?v=42c354e72a8f';
-import { setupFocusAudio } from '../features/focus-audio/controller.js?v=42c354e72a8f';
-import { setupPersonalityEffects } from '../personalities/effects.js?v=42c354e72a8f';
-import { node } from '../shared/dom.js?v=42c354e72a8f';
-import { setupBackups } from '../features/settings/backups.js?v=42c354e72a8f';
-import { setupSettings } from '../features/settings/controller.js?v=42c354e72a8f';
-import { renderNoteLines } from '../features/notes/render.js?v=42c354e72a8f';
-import { rescheduleNote } from '../features/daily/reschedule.js?v=42c354e72a8f';
-import { changeWeekly } from '../features/monthly/weekly-model.js?v=42c354e72a8f';
+import { canKeepEditor } from '../features/notes/editor-sync.js?v=81124f6bd1ef';
+import { setupInspiration } from '../features/inspiration/view.js?v=81124f6bd1ef';
+import { storyNote } from '../features/inspiration/model.js?v=81124f6bd1ef';
+import { setupShortcuts } from '../features/shortcuts/controller.js?v=81124f6bd1ef';
+import { duplicateNote as copyNote } from '../features/notes/duplicate.js?v=81124f6bd1ef';
+import { setupFocusAudio } from '../features/focus-audio/controller.js?v=81124f6bd1ef';
+import { setupPersonalityEffects } from '../personalities/effects.js?v=81124f6bd1ef';
+import { node } from '../shared/dom.js?v=81124f6bd1ef';
+import { setupBackups } from '../features/settings/backups.js?v=81124f6bd1ef';
+import { setupSettings } from '../features/settings/controller.js?v=81124f6bd1ef';
+import { renderNoteLines } from '../features/notes/render.js?v=81124f6bd1ef';
+import { rescheduleNote } from '../features/daily/reschedule.js?v=81124f6bd1ef';
+import { changeWeekly } from '../features/monthly/weekly-model.js?v=81124f6bd1ef';
 import {
   availableHours,
   dailySlotVisible,
-} from '../features/settings/available-hours.js?v=42c354e72a8f';
+} from '../features/settings/available-hours.js?v=81124f6bd1ef';
 import {
   attachmentList,
   bindFileDrop,
-} from '../features/attachments/attachments.js?v=42c354e72a8f';
-import { setupTagSettings } from '../features/notes/tag-settings.js?v=42c354e72a8f';
-import { setupBulk } from '../features/bulk/view.js?v=42c354e72a8f';
-import { bulkChange } from '../features/bulk/model.js?v=42c354e72a8f';
-import { openShareNote } from '../features/sharing/share-note.js?v=42c354e72a8f';
+} from '../features/attachments/attachments.js?v=81124f6bd1ef';
+import { setupTagSettings } from '../features/notes/tag-settings.js?v=81124f6bd1ef';
+import { setupBulk } from '../features/bulk/view.js?v=81124f6bd1ef';
+import { bulkChange } from '../features/bulk/model.js?v=81124f6bd1ef';
+import { openShareNote } from '../features/sharing/share-note.js?v=81124f6bd1ef';
 import {
   tagBadges,
   categoryOptions,
   collectTagSettings,
-} from '../features/notes/note-types.js?v=42c354e72a8f';
+} from '../features/notes/note-types.js?v=81124f6bd1ef';
 import {
   setupActivities,
   renderGuidedReports,
-} from '../features/activities/view.js?v=42c354e72a8f';
-import { attachGuidedPlan } from '../features/activities/model.js?v=42c354e72a8f';
-import { setupWelcome } from '../features/onboarding/welcome.js?v=42c354e72a8f';
-import { voice, personality, applyPersonality } from '../personalities/index.js?v=42c354e72a8f';
-import { setupFocus } from '../features/focus/controller.js?v=42c354e72a8f';
-import { renderFocusReports } from '../features/focus/reports.js?v=42c354e72a8f';
+} from '../features/activities/view.js?v=81124f6bd1ef';
+import { attachGuidedPlan } from '../features/activities/model.js?v=81124f6bd1ef';
+import { setupWelcome } from '../features/onboarding/welcome.js?v=81124f6bd1ef';
+import { voice, personality, applyPersonality } from '../personalities/index.js?v=81124f6bd1ef';
+import { setupFocus } from '../features/focus/controller.js?v=81124f6bd1ef';
+import { renderFocusReports } from '../features/focus/reports.js?v=81124f6bd1ef';
 import {
   findFocusNote,
   extendFocusNote,
   attachFocusReport,
-} from '../features/focus/model.js?v=42c354e72a8f';
-import { setupMonthly } from '../features/monthly/view.js?v=42c354e72a8f';
-import { moveToDay, quickNotes } from '../features/monthly/model.js?v=42c354e72a8f';
+} from '../features/focus/model.js?v=81124f6bd1ef';
+import { setupMonthly } from '../features/monthly/view.js?v=81124f6bd1ef';
+import { moveToDay, quickNotes } from '../features/monthly/model.js?v=81124f6bd1ef';
 import {
   dayKey,
   parseDay,
@@ -51,14 +51,14 @@ import {
   grouped,
   dropEntry,
   timeLabel,
-} from '../shared/schedule.js?v=42c354e72a8f';
-import { load, save } from '../shared/storage.js?v=42c354e72a8f';
-import { attachGestures } from '../features/daily/gestures.js?v=42c354e72a8f';
-import { Reminders, resolveReminder } from '../features/reminders/reminders.js?v=42c354e72a8f';
-import { setupAccounts } from '../features/accounts/accounts.js?v=42c354e72a8f';
-import { dailyQuote } from '../personalities/quotes.js?v=42c354e72a8f';
-import { createNoteEditor } from '../features/notes/note-editor.js?v=42c354e72a8f';
-import { noteTasks } from '../features/notes/formatting/tasks.js?v=42c354e72a8f';
+} from '../shared/schedule.js?v=81124f6bd1ef';
+import { load, save } from '../shared/storage.js?v=81124f6bd1ef';
+import { attachGestures } from '../features/daily/gestures.js?v=81124f6bd1ef';
+import { Reminders, resolveReminder } from '../features/reminders/reminders.js?v=81124f6bd1ef';
+import { setupAccounts } from '../features/accounts/accounts.js?v=81124f6bd1ef';
+import { dailyQuote } from '../personalities/quotes.js?v=81124f6bd1ef';
+import { createNoteEditor } from '../features/notes/note-editor.js?v=81124f6bd1ef';
+import { noteTasks } from '../features/notes/formatting/tasks.js?v=81124f6bd1ef';
 const $ = (s) => document.querySelector(s);
 let monthly = null;
 let expandedDay = null;

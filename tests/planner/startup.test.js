@@ -271,6 +271,50 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.equal(scheduled.weekly, undefined);
     document.querySelector('#undo').click();
     assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
+    // On a phone, a floating focus control can sit over a later day. While
+    // dragging, hit testing must reach that future day underneath the control.
+    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 12);
+    const futureDate = dayKey(tomorrow);
+    let futureDay = document.querySelector(`.month-day[data-date="${futureDate}"]`);
+    if (!futureDay) {
+      futureDay = document.createElement('section');
+      futureDay.className = 'month-day';
+      futureDay.dataset.date = futureDate;
+      document.querySelector('.month-grid').append(futureDay);
+    }
+    weeklyCard = document.querySelector('.weekly-note[data-id="weekly"]');
+    dragHandle = weeklyCard.querySelector('.month-drag');
+    document.elementFromPoint = () =>
+      document.body.classList.contains('month-dragging')
+        ? futureDay
+        : document.querySelector('#launch-focus');
+    dragHandle.dispatchEvent(pointer('pointerdown'));
+    await new Promise((resolve) => setTimeout(resolve, 380));
+    assert.equal(document.body.classList.contains('month-dragging'), true);
+    window.dispatchEvent(pointer('pointerup'));
+    assert.equal(document.body.classList.contains('month-dragging'), false);
+    const futureSchedule = document.querySelector('.weekly-schedule-dialog');
+    assert.ok(futureSchedule);
+    assert.equal(futureSchedule.querySelector('input[type="date"]').value, futureDate);
+    futureSchedule.querySelector('input[type="time"]').value = '10:15';
+    futureSchedule
+      .querySelector('form')
+      .dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+    const futureSaved = JSON.parse(local.getItem('dayline.v1')).days[futureDate].find(
+      (note) => note.id === 'weekly',
+    );
+    assert.equal(futureSaved.text, 'Keep weekly notes too');
+    assert.equal(futureSaved.minute, 615);
+    assert.equal(futureSaved.weekly, undefined);
+    document.querySelector('#undo').click();
+    const afterUndo = JSON.parse(local.getItem('dayline.v1'));
+    assert.deepEqual(afterUndo.days[futureDate], []);
+    delete afterUndo.days[futureDate];
+    assert.deepEqual(afterUndo.days, fixture.days);
+    local.setItem('dayline.v1', JSON.stringify(afterUndo));
+    const restore = new window.Event('storage');
+    Object.defineProperty(restore, 'key', { value: 'dayline.v1' });
+    window.dispatchEvent(restore);
     // A real single tap on the day’s empty notes area opens quick add after the
     // double-tap window, rather than requiring the small date heading.
     const emptyArea = document.querySelector(`.month-day[data-date="${today}"] .month-notes`);
