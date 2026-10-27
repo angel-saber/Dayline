@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=bb7124230ebb';
-import { createWeeklySection } from './weekly-notes.js?v=bb7124230ebb';
+import { node } from '../../shared/dom.js?v=5841dd2bd659';
+import { createWeeklySection } from './weekly-notes.js?v=5841dd2bd659';
 import {
   NOTE_TYPES,
   categoryOptions,
@@ -9,11 +9,11 @@ import {
   typeBadge,
   noteTags,
   categoryLabel,
-} from '../notes/note-types.js?v=bb7124230ebb';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=bb7124230ebb';
-import { dateActions } from './date-actions.js?v=bb7124230ebb';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=bb7124230ebb';
-import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=bb7124230ebb';
+} from '../notes/note-types.js?v=5841dd2bd659';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=5841dd2bd659';
+import { dateActions } from './date-actions.js?v=5841dd2bd659';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=5841dd2bd659';
+import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=5841dd2bd659';
 
 const button = (text, label, action) => {
   const el = node('button', '', text);
@@ -76,57 +76,109 @@ export function setupMonthly({
       month: 'short',
       day: 'numeric',
     });
-    const heading = node('h2', '', `Quick note · ${dateLabel}`);
+    const heading = node('h2', '', `Quick add · ${dateLabel}`);
     heading.id = 'quick-note-heading';
     dialog.setAttribute('aria-labelledby', heading.id);
-    const titleLabel = node('label', '', 'Note title'),
-      title = node('input');
-    title.type = 'text';
-    title.required = true;
-    title.maxLength = 200;
-    title.placeholder = 'What would you like to plan?';
-    title.setAttribute('aria-label', 'Quick note title');
-    titleLabel.append(title);
-    const timeLabel = node('label', '', 'Time'),
-      time = node('input');
-    time.type = 'time';
-    time.required = true;
-    time.step = '60';
-    time.value = '09:00';
-    time.setAttribute('aria-label', 'Quick note time');
-    timeLabel.append(time);
-    const noteType = typeChips(
-      [],
-      'Tags (optional)',
-      () => {},
-      categoryOptions(getState().days, getState().settings.tags),
+    const intro = node(
+      'p',
+      'field-hint',
+      'Add one or more notes for this day, then save them together.',
     );
+    const list = node('div', 'month-quick-list');
+    const error = node('p', 'month-quick-error');
+    error.setAttribute('role', 'alert');
+    const rows = [];
+    function renumber() {
+      rows.forEach((row, index) => {
+        row.heading.textContent = `Note ${index + 1}`;
+        row.remove.hidden = rows.length === 1;
+        row.remove.setAttribute('aria-label', `Remove quick note ${index + 1}`);
+      });
+    }
+    function addRow() {
+      const section = node('section', 'month-quick-note'),
+        rowHeading = node('h3');
+      const titleLabel = node('label', '', 'Note title'),
+        title = node('input');
+      title.type = 'text';
+      title.required = true;
+      title.maxLength = 200;
+      title.placeholder = 'What would you like to plan?';
+      title.setAttribute('aria-label', 'Quick note title');
+      titleLabel.append(title);
+      const timeLabel = node('label', '', 'Time'),
+        time = node('input');
+      time.type = 'time';
+      time.required = true;
+      time.step = '60';
+      time.value = rows.at(-1)?.time.value || '09:00';
+      time.setAttribute('aria-label', 'Quick note time');
+      timeLabel.append(time);
+      const categories = categoryOptions(getState().days, getState().settings.tags);
+      for (const row of rows)
+        for (const tag of row.tags.value) categories[tag] = categoryLabel(tag);
+      const tags = typeChips([], 'Tags (optional)', () => {}, categories);
+      const textLabel = node('label', '', 'Note text (optional)'),
+        text = node('textarea');
+      text.rows = 3;
+      text.placeholder = 'Add details…';
+      text.setAttribute('aria-label', 'Quick note text');
+      textLabel.append(text);
+      const remove = button('Remove note', 'Remove this quick note', () => {
+        const index = rows.findIndex((row) => row.section === section);
+        if (index < 0 || rows.length === 1) return;
+        rows.splice(index, 1);
+        section.remove();
+        renumber();
+        rows[Math.min(index, rows.length - 1)].title.focus();
+      });
+      section.append(rowHeading, titleLabel, timeLabel, tags.element, textLabel, remove);
+      rows.push({ section, heading: rowHeading, title, time, tags, text, remove });
+      list.append(section);
+      renumber();
+      title.addEventListener('input', () => title.setCustomValidity(''));
+      return title;
+    }
     const actions = node('div', 'inline'),
-      add = node('button', 'primary', 'Add note');
-    add.type = 'submit';
+      save = node('button', 'primary', 'Save notes');
+    save.type = 'submit';
+    const addAnother = button('＋ Add another note', 'Add another note', () => addRow().focus());
     actions.append(
-      add,
-      button('Cancel', 'Cancel quick note', () => dialog.close()),
+      save,
+      button('Cancel', 'Cancel quick notes', () => dialog.close()),
       button('Open day', 'Open this date in Daily', () => {
         dialog.close();
         onOpen(date);
       }),
     );
-    form.append(heading, titleLabel, timeLabel, noteType.element, actions);
+    form.append(heading, intro, list, addAnother, error, actions);
     dialog.append(form);
     document.body.append(dialog);
-    title.addEventListener('input', () => title.setCustomValidity(''));
+    const first = addRow();
     form.addEventListener('submit', (event) => {
       event.preventDefault();
-      title.setCustomValidity(title.value.trim() ? '' : 'Enter a note title.');
+      for (const row of rows)
+        row.title.setCustomValidity(row.title.value.trim() ? '' : 'Enter a note title.');
       if (!form.reportValidity()) return;
-      if (onAdd(date, title.value, time.value, noteType.value) !== false) {
-        for (const tag of noteType.value.length ? noteType.value : ['none']) filters.add(tag);
+      const drafts = rows.map((row) => ({
+        title: row.title.value,
+        time: row.time.value,
+        tags: row.tags.value,
+        text: row.text.value,
+      }));
+      if (onAdd(date, drafts) !== false) {
+        for (const draft of drafts)
+          for (const tag of draft.tags.length ? draft.tags : ['none']) filters.add(tag);
         render();
         dialog.close();
-      }
+      } else
+        error.textContent =
+          'Could not save these notes. Your entries are still here; please try again.';
     });
+    const onAccount = () => dialog.close();
+    window.addEventListener('dayline:account', onAccount);
     dialog.addEventListener('close', () => {
+      window.removeEventListener('dayline:account', onAccount);
       dialog.remove();
       if (!root.hidden)
         root
@@ -134,7 +186,7 @@ export function setupMonthly({
           ?.focus({ preventScroll: true });
     });
     dialog.showModal();
-    title.focus();
+    first.focus();
   }
   function shift(delta) {
     month = offsetMonth(month, delta);
@@ -295,7 +347,7 @@ export function setupMonthly({
       node(
         'p',
         'intro',
-        'Click or tap a date to add a title and time. Double-click or double-tap to open its day. Drag titles to reschedule. Note colors show their tags; multiple tags split the colors evenly. Scroll for more notes, or use Expand day for full titles, times, and tags.',
+        'Click or tap a date to add notes with titles, times, tags, and details. Double-click or double-tap to open its day. Drag titles to reschedule. Note colors show their tags; multiple tags split the colors evenly. Scroll for more notes, or use Expand day for full titles, times, and tags.',
       ),
     );
     const selectionControls = selection?.controls();

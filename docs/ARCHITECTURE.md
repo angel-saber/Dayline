@@ -305,3 +305,14 @@ with the original summary, labeled takeaway and source URL; existing notes are
 not overwritten. It uses the existing persistence, account sync and undo paths,
 and rolls back if saving fails. No database schema, report shape, external
 provider, paid resource or automatic sharing is introduced.
+
+## Monthly quick add
+
+The existing single-tap date action opens a multiple-note form with per-note title,
+exact time, multi-tag chips, and optional plain-text body. Rows can be added or
+removed before saving; double-tap still opens Daily. `monthly/model.js` validates
+and constructs the whole batch before planner state changes. The app saves all
+notes together, preserves existing entries and exposes one Undo snapshot; a
+failed save restores the previous day/settings and leaves all form drafts visible
+for retry. An account change closes the unsaved form. New notes use the existing
+schema, reminders, account sync and Daily/Focus editors, without a migration.

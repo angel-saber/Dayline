@@ -1153,7 +1153,8 @@ body:has(#monthly-view:not([hidden])) main {
   margin-bottom: 16px;
   font-size: 12px;
 }
-.month-quick-dialog input {
+.month-quick-dialog input,
+.month-quick-dialog textarea {
   display: block;
   width: 100%;
   margin-top: 7px;
@@ -3806,6 +3807,50 @@ main {
   }
   .inspiration-filters label:last-child {
     grid-column: auto;
+  }
+}
+
+.month-quick-dialog {
+  max-width: 560px;
+  max-height: 88dvh;
+  overflow-y: auto;
+}
+.month-quick-list {
+  display: grid;
+  gap: 14px;
+  margin: 18px 0;
+}
+.month-quick-note {
+  min-width: 0;
+  padding: 16px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.month-quick-note h3 {
+  margin: 0 0 12px;
+}
+.month-quick-note textarea {
+  resize: vertical;
+  font: inherit;
+  color: var(--ink);
+}
+.month-quick-note > button {
+  color: var(--muted);
+  padding: 4px 0;
+}
+.month-quick-error {
+  color: var(--ink);
+}
+.month-quick-dialog > form > .inline {
+  margin-top: 16px;
+}
+@media (max-width: 600px) {
+  .month-quick-dialog {
+    padding: 18px;
+  }
+  .month-quick-note {
+    padding: 12px;
   }
 }
 

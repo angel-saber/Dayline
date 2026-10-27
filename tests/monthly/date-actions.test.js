@@ -93,3 +93,33 @@ test('quick add rejects blank or oversized titles and invalid times', () => {
   for (const time of ['24:00', '12:60', '9:00', 'bad'])
     assert.throws(() => quickNote('Title', time, 'one'));
 });
+
+test('quick note batches keep separate times, tags and multiline text without mutating drafts', async () => {
+  const { quickNotes } = await import('../../dist/js/features/monthly/model.js');
+  const drafts = [
+    { title: '  Planning ', time: '10:15', tags: ['project', 'event'], text: 'Line one\nLine two' },
+    { title: 'Call', time: '10:45', tags: ['custom:Film'], text: 'Ask about locations.' },
+  ];
+  const original = structuredClone(drafts);
+  let count = 0;
+  const notes = quickNotes(drafts, () => `note-${++count}`, ['existing']);
+  assert.deepEqual(
+    notes.map((note) => [note.title, note.minute, note.tags, note.text]),
+    [
+      ['Planning', 615, ['project', 'event'], 'Line one\nLine two'],
+      ['Call', 645, ['custom:Film'], 'Ask about locations.'],
+    ],
+  );
+  assert.deepEqual(drafts, original);
+  assert.deepEqual(
+    validState({ version: 1, days: { '2026-10-23': notes } }).days['2026-10-23'],
+    notes,
+  );
+  assert.throws(() => quickNotes([], () => 'x'));
+  assert.throws(() => quickNotes(drafts, () => 'existing', ['existing']));
+  assert.throws(() => quickNotes(drafts, () => 'same'));
+  assert.throws(() =>
+    quickNotes([drafts[0], { ...drafts[1], time: '24:00' }], () => `valid-${++count}`),
+  );
+  assert.throws(() => quickNotes([{ ...drafts[0], tags: ['project', 'project'] }], () => 'x'));
+});

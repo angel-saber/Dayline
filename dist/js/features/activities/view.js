@@ -1,8 +1,8 @@
-import { node as el } from '../../shared/dom.js?v=bb7124230ebb';
-import { weekStart } from '../monthly/weekly-model.js?v=bb7124230ebb';
-import { dimensions, breathingFrame, compassTitle, compassDates } from './model.js?v=bb7124230ebb';
-import { activityCatalog, activityFields } from './catalog.js?v=bb7124230ebb';
-import { dayKey } from '../../shared/schedule.js?v=bb7124230ebb';
+import { node as el } from '../../shared/dom.js?v=5841dd2bd659';
+import { weekStart } from '../monthly/weekly-model.js?v=5841dd2bd659';
+import { dimensions, breathingFrame, compassTitle, compassDates } from './model.js?v=5841dd2bd659';
+import { activityCatalog, activityFields } from './catalog.js?v=5841dd2bd659';
+import { dayKey } from '../../shared/schedule.js?v=5841dd2bd659';
 
 const button = (text, fn, cls = 'secondary') => {
   const b = el('button', cls, text);
