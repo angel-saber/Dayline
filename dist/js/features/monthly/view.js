@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=5841dd2bd659';
-import { createWeeklySection } from './weekly-notes.js?v=5841dd2bd659';
+import { node } from '../../shared/dom.js?v=6245e2ad6c01';
+import { createWeeklySection } from './weekly-notes.js?v=6245e2ad6c01';
 import {
   NOTE_TYPES,
   categoryOptions,
@@ -9,11 +9,11 @@ import {
   typeBadge,
   noteTags,
   categoryLabel,
-} from '../notes/note-types.js?v=5841dd2bd659';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=5841dd2bd659';
-import { dateActions } from './date-actions.js?v=5841dd2bd659';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=5841dd2bd659';
-import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=5841dd2bd659';
+} from '../notes/note-types.js?v=6245e2ad6c01';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=6245e2ad6c01';
+import { dateActions } from './date-actions.js?v=6245e2ad6c01';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=6245e2ad6c01';
+import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=6245e2ad6c01';
 
 const button = (text, label, action) => {
   const el = node('button', '', text);
@@ -532,6 +532,13 @@ export function setupMonthly({
     requestAnimationFrame(measureOverflow);
   }
   function scheduleWeeklyDrop(item, date) {
+    flushWeekly();
+    const source = weeklySections.find((section) => section.week === item.source);
+    if (source) {
+      source.schedule(item.id, date);
+      return;
+    }
+    // The source can be outside the visible month after hovering over an arrow.
     const temp = createWeeklySection({
       week: item.source,
       getState,
@@ -579,6 +586,7 @@ export function setupMonthly({
   root.addEventListener('dragstart', (event) => {
     const card = event.target.closest('.month-note,.weekly-note');
     if (!card || event.target.closest('.editor')) return;
+    if (card.dataset.weekly === 'true') flushWeekly();
     dates.reset();
     drag = {
       source: card.dataset.source,
@@ -614,9 +622,20 @@ export function setupMonthly({
   root.addEventListener('dragend', clearDrag);
   // Touch devices use a held drag handle, leaving normal page scrolling available.
   root.addEventListener('pointerdown', (event) => {
-    if (event.pointerType === 'mouse' || !event.target.closest('.month-drag')) return;
+    if (touch || event.pointerType === 'mouse' || !event.target.closest('.month-drag')) return;
     const card = event.target.closest('.month-note,.weekly-note');
+    if (!card) return;
+    const handle = event.target.closest('.month-drag');
+    // Use our held-pointer gesture on touch; keep native dragging for a mouse.
+    const wasDraggable = card.draggable,
+      handleWasDraggable = handle.draggable;
+    card.draggable = false;
+    handle.draggable = false;
     touch = {
+      card,
+      handle,
+      wasDraggable,
+      handleWasDraggable,
       pointer: event.pointerId,
       x: event.clientX,
       y: event.clientY,
@@ -628,7 +647,11 @@ export function setupMonthly({
     touch.timer = setTimeout(() => {
       if (!touch) return;
       touch.active = true;
-      root.setPointerCapture(touch.pointer);
+      try {
+        root.setPointerCapture?.(touch.pointer);
+      } catch {
+        /* Continue while the pointer is inside the calendar. */
+      }
       announce('Drag to a day, then release.');
     }, 350);
   });
@@ -637,6 +660,8 @@ export function setupMonthly({
     if (!touch.active) {
       if (Math.hypot(event.clientX - touch.x, event.clientY - touch.y) > 10) {
         clearTimeout(touch.timer);
+        touch.card.draggable = touch.wasDraggable;
+        touch.handle.draggable = touch.handleWasDraggable;
         touch = null;
       }
       return;
@@ -653,6 +678,8 @@ export function setupMonthly({
     if (!touch || event.pointerId !== touch.pointer) return;
     const item = touch;
     clearTimeout(item.timer);
+    item.card.draggable = item.wasDraggable;
+    item.handle.draggable = item.handleWasDraggable;
     touch = null;
     if (item.active) {
       suppressClick = true;
@@ -668,8 +695,8 @@ export function setupMonthly({
       }
     }
   }
-  root.addEventListener('pointerup', release);
-  root.addEventListener('pointercancel', release);
+  window.addEventListener('pointerup', release);
+  window.addEventListener('pointercancel', release);
   root.addEventListener(
     'click',
     (event) => {

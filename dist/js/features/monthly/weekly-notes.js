@@ -1,16 +1,16 @@
-import { node } from '../../shared/dom.js?v=5841dd2bd659';
-import { bindFileDrop } from '../attachments/attachments.js?v=5841dd2bd659';
-import { weeklyNotes, weekStart } from './weekly-model.js?v=5841dd2bd659';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=5841dd2bd659';
+import { node } from '../../shared/dom.js?v=6245e2ad6c01';
+import { bindFileDrop } from '../attachments/attachments.js?v=6245e2ad6c01';
+import { weeklyNotes, weekStart } from './weekly-model.js?v=6245e2ad6c01';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=6245e2ad6c01';
 import {
   availableHours,
   hourInput,
   inputMinute,
-} from '../settings/available-hours.js?v=5841dd2bd659';
-import { createNoteEditor } from '../notes/note-editor.js?v=5841dd2bd659';
-import { categoryOptions, tagBadges } from '../notes/note-types.js?v=5841dd2bd659';
-import { openShareNote } from '../sharing/share-note.js?v=5841dd2bd659';
-import { noteTitle } from './model.js?v=5841dd2bd659';
+} from '../settings/available-hours.js?v=6245e2ad6c01';
+import { createNoteEditor } from '../notes/note-editor.js?v=6245e2ad6c01';
+import { categoryOptions, tagBadges } from '../notes/note-types.js?v=6245e2ad6c01';
+import { openShareNote } from '../sharing/share-note.js?v=6245e2ad6c01';
+import { noteTitle } from './model.js?v=6245e2ad6c01';
 
 const button = (text, fn, cls = 'secondary') => {
   const el = node('button', cls, text);
@@ -185,6 +185,7 @@ export function createWeeklySection({ week, getState, apply, onChanged }) {
       card.dataset.weekly = 'true';
       card.draggable = true;
       const drag = button('⠿', () => schedule(entry.id), 'month-drag');
+      drag.draggable = true;
       drag.title = 'Hold and drag onto a day, or click to schedule';
       drag.setAttribute('aria-label', 'Drag or schedule weekly note: ' + noteTitle(entry));
       drag.onclick = (event) => {
@@ -247,7 +248,6 @@ export function createWeeklySection({ week, getState, apply, onChanged }) {
           },
         });
         editors.push(editor);
-        card.draggable = false;
         body.replaceChildren(tools, editor.element);
       }
       bindFileDrop(card, (files) => {
@@ -274,5 +274,5 @@ export function createWeeklySection({ week, getState, apply, onChanged }) {
     }
   }
   render();
-  return { element: section, flush, destroy, schedule };
+  return { element: section, week, flush, destroy, schedule };
 }
