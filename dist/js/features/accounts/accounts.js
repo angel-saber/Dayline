@@ -1,14 +1,14 @@
-import { cloudConfig } from './config.js?v=3ed5f18227e2';
-import { createAccountServices } from './services.js?v=3ed5f18227e2';
-import { takeSignInReturn } from './sign-in-return.js?v=3ed5f18227e2';
-import { SyncEngine, mergeGuestDays, clearSyncedDrafts } from './sync.js?v=3ed5f18227e2';
-import { load, save, validState } from '../../shared/storage.js?v=3ed5f18227e2';
+import { cloudConfig } from './config.js?v=02773a4d1197';
+import { createAccountServices } from './services.js?v=02773a4d1197';
+import { takeSignInReturn } from './sign-in-return.js?v=02773a4d1197';
+import { SyncEngine, mergeGuestDays, clearSyncedDrafts } from './sync.js?v=02773a4d1197';
+import { load, save, validState } from '../../shared/storage.js?v=02773a4d1197';
 import {
   deviceNotes,
   countDeviceNotes,
   preserveDeviceNotes,
-} from './device-notes.js?v=3ed5f18227e2';
-import { PreferencesSync, sharedPreferences } from './preferences-sync.js?v=3ed5f18227e2';
+} from './device-notes.js?v=02773a4d1197';
+import { PreferencesSync, sharedPreferences } from './preferences-sync.js?v=02773a4d1197';
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -16,6 +16,7 @@ export function setupAccounts({
   getState,
   setState,
   flushEditor,
+  preserveDailyEditor = () => false,
   toast,
   onStatus,
   downloadDeviceBackup,
@@ -50,7 +51,7 @@ export function setupAccounts({
   }
 
   function showLogin(show = true) {
-    flushEditor();
+    if (viewIsLogin !== show) flushEditor();
     viewIsLogin = show;
     $('#auth-view').hidden = !show;
     $('#planner').hidden = show;
@@ -156,7 +157,7 @@ export function setupAccounts({
             if (JSON.stringify(getState().settings) !== JSON.stringify(settings)) {
               applyingPreferences = true;
               try {
-                flushEditor();
+                if (!preserveDailyEditor()) flushEditor();
                 setState({ ...getState(), settings });
               } finally {
                 applyingPreferences = false;
