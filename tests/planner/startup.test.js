@@ -252,10 +252,13 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.equal(scheduled.weekly, undefined);
     document.querySelector('#undo').click();
     assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
-    const dayButton = document.querySelector(`[data-date="${today}"] .month-day-heading`);
+    // A real single tap on the day’s empty notes area opens quick add after the
+    // double-tap window, rather than requiring the small date heading.
+    const emptyArea = document.querySelector(`.month-day[data-date="${today}"] .month-notes`);
     const quickClick = new window.Event('click', { bubbles: true });
-    Object.defineProperty(quickClick, 'detail', { value: 0 });
-    dayButton.dispatchEvent(quickClick);
+    Object.defineProperty(quickClick, 'detail', { value: 1 });
+    emptyArea.dispatchEvent(quickClick);
+    await new Promise((resolve) => setTimeout(resolve, 450));
     const quick = document.querySelector('.month-quick-dialog');
     assert.equal(quick.open, true);
     const firstRow = quick.querySelector('.month-quick-note');

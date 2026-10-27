@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=6245e2ad6c01';
-import { createWeeklySection } from './weekly-notes.js?v=6245e2ad6c01';
+import { node } from '../../shared/dom.js?v=3ed5f18227e2';
+import { createWeeklySection } from './weekly-notes.js?v=3ed5f18227e2';
 import {
   NOTE_TYPES,
   categoryOptions,
@@ -9,11 +9,11 @@ import {
   typeBadge,
   noteTags,
   categoryLabel,
-} from '../notes/note-types.js?v=6245e2ad6c01';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=6245e2ad6c01';
-import { dateActions } from './date-actions.js?v=6245e2ad6c01';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=6245e2ad6c01';
-import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=6245e2ad6c01';
+} from '../notes/note-types.js?v=3ed5f18227e2';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=3ed5f18227e2';
+import { dateActions } from './date-actions.js?v=3ed5f18227e2';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=3ed5f18227e2';
+import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=3ed5f18227e2';
 
 const button = (text, label, action) => {
   const el = node('button', '', text);
@@ -440,7 +440,7 @@ export function setupMonthly({
         dateHeader.append(open, expand);
         day.append(dateHeader);
         day.addEventListener('click', (event) => {
-          if (event.target.closest('button,input,.month-note,.month-notes-wrap')) return;
+          if (event.target.closest('button,input,.month-note')) return;
           dates.click(date, event.detail);
         });
         const list = node('div', 'month-notes'),
