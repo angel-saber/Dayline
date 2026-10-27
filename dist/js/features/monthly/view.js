@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=02773a4d1197';
-import { createWeeklySection } from './weekly-notes.js?v=02773a4d1197';
+import { node } from '../../shared/dom.js?v=42c354e72a8f';
+import { createWeeklySection } from './weekly-notes.js?v=42c354e72a8f';
 import {
   NOTE_TYPES,
   categoryOptions,
@@ -9,11 +9,11 @@ import {
   typeBadge,
   noteTags,
   categoryLabel,
-} from '../notes/note-types.js?v=02773a4d1197';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=02773a4d1197';
-import { dateActions } from './date-actions.js?v=02773a4d1197';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=02773a4d1197';
-import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=02773a4d1197';
+} from '../notes/note-types.js?v=42c354e72a8f';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=42c354e72a8f';
+import { dateActions } from './date-actions.js?v=42c354e72a8f';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=42c354e72a8f';
+import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=42c354e72a8f';
 
 const button = (text, label, action) => {
   const el = node('button', '', text);
@@ -54,7 +54,8 @@ export function setupMonthly({
     drag = null,
     hoverTimer = null,
     touch = null,
-    suppressClick = false;
+    suppressClick = false,
+    syncRefreshPending = false;
   let weeklySections = [],
     overflowUpdates = [];
   function flushWeekly() {
@@ -531,6 +532,17 @@ export function setupMonthly({
     for (const list of root.querySelectorAll('.month-notes')) observer?.observe(list);
     requestAnimationFrame(measureOverflow);
   }
+  // Background sync must not remove the drag source or target mid-gesture.
+  function refreshFromSync() {
+    if (drag || touch) syncRefreshPending = true;
+    else render();
+  }
+  function finishSyncRefresh() {
+    if (syncRefreshPending && !drag && !touch) {
+      syncRefreshPending = false;
+      render();
+    }
+  }
   function scheduleWeeklyDrop(item, date) {
     flushWeekly();
     const source = weeklySections.find((section) => section.week === item.source);
@@ -618,8 +630,12 @@ export function setupMonthly({
       if (item.weekly) scheduleWeeklyDrop(item, day.dataset.date);
       else onMove(item.source, item.id, day.dataset.date);
     }
+    finishSyncRefresh();
   });
-  root.addEventListener('dragend', clearDrag);
+  root.addEventListener('dragend', () => {
+    clearDrag();
+    finishSyncRefresh();
+  });
   // Touch devices use a held drag handle, leaving normal page scrolling available.
   root.addEventListener('pointerdown', (event) => {
     if (touch || event.pointerType === 'mouse' || !event.target.closest('.month-drag')) return;
@@ -663,6 +679,7 @@ export function setupMonthly({
         touch.card.draggable = touch.wasDraggable;
         touch.handle.draggable = touch.handleWasDraggable;
         touch = null;
+        finishSyncRefresh();
       }
       return;
     }
@@ -694,6 +711,7 @@ export function setupMonthly({
         else onMove(item.source, item.id, day.dataset.date);
       }
     }
+    finishSyncRefresh();
   }
   window.addEventListener('pointerup', release);
   window.addEventListener('pointercancel', release);
@@ -709,6 +727,7 @@ export function setupMonthly({
   );
   return {
     render,
+    refreshFromSync,
     flushWeekly,
     getMonth: () => month,
     show(date) {

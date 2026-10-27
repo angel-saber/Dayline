@@ -1,5 +1,5 @@
-import { parseDay } from './dates.js?v=02773a4d1197';
-export { dayKey, parseDay, offsetDay, timeLabel } from './dates.js?v=02773a4d1197';
+import { parseDay } from './dates.js?v=42c354e72a8f';
+export { dayKey, parseDay, offsetDay, timeLabel } from './dates.js?v=42c354e72a8f';
 export const DEFAULT_SETTINGS = { interval: 60, notifications: false, sound: false, clock: '12' };
 export function slots(interval) {
   if (!Number.isInteger(interval) || interval < 1 || interval > 1440)
