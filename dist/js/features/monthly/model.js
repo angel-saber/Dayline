@@ -1,4 +1,5 @@
-import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=bb7124230ebb';
+import { validTags } from '../notes/note-types.js?v=5841dd2bd659';
+import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=5841dd2bd659';
 export function monthWeeks(month) {
   const first = month + '-01',
     start = offsetDay(first, -parseDay(first).getDay()),
@@ -47,7 +48,8 @@ export function moveToDay(days, source, id, target) {
     [target]: [...(days[target] || []), entry].sort((a, b) => a.minute - b.minute),
   };
 }
-export function quickNote(title, time, id) {
+export function quickNote(title, time, id, text = '') {
+  if (typeof text !== 'string') throw new Error('Enter valid note text.');
   title = title.trim();
   if (!title || title.length > 200) throw new Error('Enter a title of 1–200 characters.');
   if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)) throw new Error('Choose a valid time.');
@@ -55,11 +57,25 @@ export function quickNote(title, time, id) {
   return {
     id,
     title,
-    text: '',
+    text,
     minute: hour * 60 + minute,
     done: false,
     task: false,
     format: [],
     tasks: [],
   };
+}
+
+// Build the whole batch before the caller updates planner state.
+export function quickNotes(drafts, newId = () => crypto.randomUUID(), existingIds = []) {
+  if (!Array.isArray(drafts) || !drafts.length) throw new Error('Add at least one note.');
+  const seen = new Set(existingIds);
+  return drafts.map(({ title, time, tags, text }) => {
+    const id = newId();
+    if (typeof id !== 'string' || !id || seen.has(id))
+      throw new Error('Could not create a unique note ID.');
+    seen.add(id);
+    const selected = validTags(tags);
+    return { ...quickNote(title, time, id, text), tags: selected, noteType: selected[0] || '' };
+  });
 }

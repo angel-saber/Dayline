@@ -190,6 +190,60 @@ test('the assembled planner starts, switches views/personalities, edits settings
     document.querySelector('#monthly-tab').click();
     assert.equal(document.querySelector('#monthly-view').hidden, false);
     assert.match(document.querySelector('#monthly-view').textContent, /Weekly direction/);
+    const dayButton = document.querySelector(`[data-date="${today}"] .month-day-heading`);
+    const quickClick = new window.Event('click', { bubbles: true });
+    Object.defineProperty(quickClick, 'detail', { value: 0 });
+    dayButton.dispatchEvent(quickClick);
+    const quick = document.querySelector('.month-quick-dialog');
+    assert.equal(quick.open, true);
+    const firstRow = quick.querySelector('.month-quick-note');
+    firstRow.querySelector('[aria-label="Quick note title"]').value = 'Plan production';
+    firstRow.querySelector('[aria-label="Quick note time"]').value = '10:15';
+    firstRow.querySelector('[aria-label="Quick note text"]').value =
+      'Call the team\nReview the plan';
+    firstRow.querySelector('[data-note-type="project"]').click();
+    firstRow.querySelector('[data-note-type="event"]').click();
+    quick.querySelector('[aria-label="Add another note"]').click();
+    const secondRow = quick.querySelectorAll('.month-quick-note')[1];
+    assert.equal(secondRow.querySelector('[aria-label="Quick note time"]').value, '10:15');
+    secondRow.querySelector('[aria-label="Quick note title"]').value = 'Send email';
+    secondRow.querySelector('[aria-label="Quick note time"]').value = '10:45';
+    secondRow.querySelector('[aria-label="Quick note text"]').value = 'Share the update.';
+    secondRow.querySelector('[data-note-type="admin"]').click();
+    quick.querySelector('[aria-label="Add another note"]').click();
+    assert.equal(quick.querySelectorAll('.month-quick-note').length, 3);
+    quick.querySelector('[aria-label="Remove quick note 3"]').click();
+    assert.equal(quick.querySelectorAll('.month-quick-note').length, 2);
+    const previousSetItem = local.setItem;
+    local.setItem = (key, value) => {
+      if (key === 'dayline.v1') throw new Error('Storage full');
+      previousSetItem(key, value);
+    };
+    quick
+      .querySelector('form')
+      .dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+    assert.equal(quick.open, true);
+    assert.match(quick.textContent, /Could not save these notes/);
+    assert.equal(secondRow.querySelector('[aria-label="Quick note title"]').value, 'Send email');
+    assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
+    local.setItem = previousSetItem;
+    quick
+      .querySelector('form')
+      .dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+    assert.equal(document.querySelector('.month-quick-dialog'), null);
+    const added = JSON.parse(local.getItem('dayline.v1')).days[today].filter((note) =>
+      ['Plan production', 'Send email'].includes(note.title),
+    );
+    assert.equal(added.length, 2);
+    assert.deepEqual(
+      added.map((note) => [note.minute, note.tags, note.text]),
+      [
+        [615, ['project', 'event'], 'Call the team\nReview the plan'],
+        [645, ['admin'], 'Share the update.'],
+      ],
+    );
+    document.querySelector('#undo').click();
+    assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
     document.querySelector('#settings-tab').click();
     assert.equal(document.querySelector('#google-settings'), null);
     assert.equal(document.querySelectorAll('script[src*="google"]').length, 0);

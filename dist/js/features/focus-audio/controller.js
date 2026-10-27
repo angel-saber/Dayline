@@ -1,8 +1,8 @@
-import { node } from '../../shared/dom.js?v=bb7124230ebb';
-import { PERSONALITIES, personality } from '../../personalities/index.js?v=bb7124230ebb';
-import { musicProfile } from './music.js?v=bb7124230ebb';
-import { FocusAudio } from './audio.js?v=bb7124230ebb';
-import { restoreAudioSettings } from './settings.js?v=bb7124230ebb';
+import { node } from '../../shared/dom.js?v=5841dd2bd659';
+import { PERSONALITIES, personality } from '../../personalities/index.js?v=5841dd2bd659';
+import { musicProfile } from './music.js?v=5841dd2bd659';
+import { FocusAudio } from './audio.js?v=5841dd2bd659';
+import { restoreAudioSettings } from './settings.js?v=5841dd2bd659';
 const defaults = {
   binaural: false,
   ambient: true,
