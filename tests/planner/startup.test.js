@@ -25,6 +25,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
     'localStorage',
     'sessionStorage',
     'Event',
+    'Node',
     'CustomEvent',
     'matchMedia',
     'CSS',
@@ -133,6 +134,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
       localStorage: local,
       sessionStorage: memoryStorage(),
       Event: window.Event,
+      Node: window.Node,
       CustomEvent: window.CustomEvent,
       matchMedia: (query) => ({
         matches: query !== '(prefers-reduced-motion: reduce)',
@@ -190,6 +192,66 @@ test('the assembled planner starts, switches views/personalities, edits settings
     document.querySelector('#monthly-tab').click();
     assert.equal(document.querySelector('#monthly-view').hidden, false);
     assert.match(document.querySelector('#monthly-view').textContent, /Weekly direction/);
+    // An open weekly editor must still be draggable, and dropping must preserve its contents.
+    const weeklyCard = document.querySelector('.weekly-note[data-id="weekly"]');
+    weeklyCard.open = true;
+    weeklyCard.dispatchEvent(new window.Event('toggle'));
+    assert.ok(weeklyCard.querySelector('.editor'));
+    assert.equal(weeklyCard.draggable, true);
+    const dragHandle = weeklyCard.querySelector('.month-drag');
+    assert.equal(dragHandle.draggable, true);
+    const targetDay = document.querySelector(`.month-day[data-date="${today}"]`);
+    // A held touch on the handle also opens the scheduler for the dropped day.
+    document.elementFromPoint = () => targetDay;
+    const pointer = (type) => {
+      const event = new window.Event(type, { bubbles: true, cancelable: true });
+      for (const [name, value] of Object.entries({
+        pointerType: 'touch',
+        pointerId: 1,
+        clientX: 100,
+        clientY: 200,
+      }))
+        Object.defineProperty(event, name, { value });
+      return event;
+    };
+    dragHandle.dispatchEvent(pointer('pointerdown'));
+    assert.equal(weeklyCard.draggable, false);
+    await new Promise((resolve) => setTimeout(resolve, 380));
+    window.dispatchEvent(pointer('pointerup'));
+    let touchSchedule = document.querySelector('.weekly-schedule-dialog');
+    assert.ok(touchSchedule);
+    assert.equal(touchSchedule.querySelector('input[type="date"]').value, today);
+    assert.equal(weeklyCard.draggable, true);
+    touchSchedule.close();
+    const dragToToday = () => {
+      const start = new window.Event('dragstart', { bubbles: true, cancelable: true });
+      Object.defineProperty(start, 'dataTransfer', { value: { setData() {} } });
+      dragHandle.dispatchEvent(start);
+      targetDay.dispatchEvent(new window.Event('drop', { bubbles: true, cancelable: true }));
+    };
+    dragToToday();
+    let schedule = document.querySelector('.weekly-schedule-dialog');
+    assert.ok(schedule);
+    assert.equal(schedule.querySelector('input[type="date"]').value, today);
+    [...schedule.querySelectorAll('button')]
+      .find((button) => button.textContent === 'Cancel')
+      .click();
+    assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
+    dragToToday();
+    schedule = document.querySelector('.weekly-schedule-dialog');
+    schedule.querySelector('input[type="time"]').value = '10:15';
+    schedule
+      .querySelector('form')
+      .dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+    const scheduled = JSON.parse(local.getItem('dayline.v1')).days[today].find(
+      (note) => note.id === 'weekly',
+    );
+    assert.equal(scheduled.title, 'Weekly direction');
+    assert.equal(scheduled.text, 'Keep weekly notes too');
+    assert.equal(scheduled.minute, 615);
+    assert.equal(scheduled.weekly, undefined);
+    document.querySelector('#undo').click();
+    assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
     const dayButton = document.querySelector(`[data-date="${today}"] .month-day-heading`);
     const quickClick = new window.Event('click', { bubbles: true });
     Object.defineProperty(quickClick, 'detail', { value: 0 });
