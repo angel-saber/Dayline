@@ -372,6 +372,72 @@ test('the assembled planner starts, switches views/personalities, edits settings
     );
     document.querySelector('#undo').click();
     assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
+    // Expanded Monthly view shows empty intervals and supports mouse, touch,
+    // and a non-drag move while preserving Undo and the weekly note.
+    const openExpanded = () => {
+      document.querySelector(`.month-day[data-date="${today}"] .month-expand-day`).click();
+      return document.querySelector('.month-expanded-day');
+    };
+    let expanded = openExpanded();
+    assert.equal(expanded.querySelectorAll('.month-expanded-slot').length, 24);
+    assert.equal(expanded.textContent.includes('Duplicate'), false);
+    const targetMinute = minute === 60 ? 120 : 60;
+    let card = expanded.querySelector('.month-expanded-note[data-id="saved-note"]');
+    assert.ok(card.querySelector('[aria-label^="Delete note:"]'));
+    let handle = card.querySelector('.month-expanded-handle');
+    let target = expanded.querySelector(`.month-expanded-slot[data-minute="${targetMinute}"]`);
+    const nativeStart = new window.Event('dragstart', { bubbles: true, cancelable: true });
+    Object.defineProperty(nativeStart, 'dataTransfer', { value: { setData() {} } });
+    handle.dispatchEvent(nativeStart);
+    target.dispatchEvent(new window.Event('drop', { bubbles: true, cancelable: true }));
+    assert.equal(
+      JSON.parse(local.getItem('dayline.v1')).days[today].find((n) => n.id === 'saved-note').minute,
+      targetMinute,
+    );
+    expanded.close();
+    document.querySelector('#undo').click();
+    assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
+
+    expanded = openExpanded();
+    card = expanded.querySelector('.month-expanded-note[data-id="saved-note"]');
+    handle = card.querySelector('.month-expanded-handle');
+    target = expanded.querySelector(`.month-expanded-slot[data-minute="${targetMinute}"]`);
+    document.elementFromPoint = () => target;
+    handle.dispatchEvent(pointer('pointerdown'));
+    await new Promise((resolve) => setTimeout(resolve, 380));
+    window.dispatchEvent(pointer('pointerup'));
+    assert.equal(
+      JSON.parse(local.getItem('dayline.v1')).days[today].find((n) => n.id === 'saved-note').minute,
+      targetMinute,
+    );
+    expanded.close();
+    document.querySelector('#undo').click();
+    assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
+
+    expanded = openExpanded();
+    card = expanded.querySelector('.month-expanded-note[data-id="saved-note"]');
+    [...card.querySelectorAll('button')].find((button) => button.textContent === 'Move').click();
+    card.querySelector('.month-expanded-move select').value = String(targetMinute);
+    card
+      .querySelector('.month-expanded-move')
+      .dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+    assert.equal(
+      JSON.parse(local.getItem('dayline.v1')).days[today].find((n) => n.id === 'saved-note').minute,
+      targetMinute,
+    );
+    expanded.close();
+    document.querySelector('#undo').click();
+    assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
+
+    expanded = openExpanded();
+    card = expanded.querySelector('.month-expanded-note[data-id="saved-note"]');
+    card.querySelector('[aria-label^="Delete note:"]').click();
+    assert.ok(
+      !JSON.parse(local.getItem('dayline.v1')).days[today].some((n) => n.id === 'saved-note'),
+    );
+    expanded.close();
+    document.querySelector('#undo').click();
+    assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
     document.querySelector('#settings-tab').click();
     assert.equal(document.querySelector('#google-settings'), null);
     assert.equal(document.querySelectorAll('script[src*="google"]').length, 0);
