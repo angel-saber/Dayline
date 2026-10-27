@@ -1375,6 +1375,13 @@ body:has(#monthly-view:not([hidden])) main {
   color: var(--ink) !important;
   font-family: Georgia, serif;
 }
+/* Keep the reminder and library button on separate, comfortably spaced lines. */
+.focus-inspiration + .field-hint {
+  display: block;
+}
+.focus-inspiration + .field-hint + button {
+  margin-top: 12px;
+}
 .focus-finish {
   display: block;
   margin: 26px auto 8px;
