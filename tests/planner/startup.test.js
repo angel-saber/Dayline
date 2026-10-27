@@ -193,14 +193,14 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.equal(document.querySelector('#monthly-view').hidden, false);
     assert.match(document.querySelector('#monthly-view').textContent, /Weekly direction/);
     // An open weekly editor must still be draggable, and dropping must preserve its contents.
-    const weeklyCard = document.querySelector('.weekly-note[data-id="weekly"]');
+    let weeklyCard = document.querySelector('.weekly-note[data-id="weekly"]');
     weeklyCard.open = true;
     weeklyCard.dispatchEvent(new window.Event('toggle'));
     assert.ok(weeklyCard.querySelector('.editor'));
     assert.equal(weeklyCard.draggable, true);
-    const dragHandle = weeklyCard.querySelector('.month-drag');
+    let dragHandle = weeklyCard.querySelector('.month-drag');
     assert.equal(dragHandle.draggable, true);
-    const targetDay = document.querySelector(`.month-day[data-date="${today}"]`);
+    let targetDay = document.querySelector(`.month-day[data-date="${today}"]`);
     // A held touch on the handle also opens the scheduler for the dropped day.
     document.elementFromPoint = () => targetDay;
     const pointer = (type) => {
@@ -216,6 +216,10 @@ test('the assembled planner starts, switches views/personalities, edits settings
     };
     dragHandle.dispatchEvent(pointer('pointerdown'));
     assert.equal(weeklyCard.draggable, false);
+    const touchUpdate = new window.Event('storage');
+    Object.defineProperty(touchUpdate, 'key', { value: 'dayline.v1' });
+    window.dispatchEvent(touchUpdate);
+    assert.equal(document.querySelector('.weekly-note[data-id="weekly"]'), weeklyCard);
     await new Promise((resolve) => setTimeout(resolve, 380));
     window.dispatchEvent(pointer('pointerup'));
     let touchSchedule = document.querySelector('.weekly-schedule-dialog');
@@ -223,13 +227,24 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.equal(touchSchedule.querySelector('input[type="date"]').value, today);
     assert.equal(weeklyCard.draggable, true);
     touchSchedule.close();
-    const dragToToday = () => {
+    weeklyCard = document.querySelector('.weekly-note[data-id="weekly"]');
+    dragHandle = weeklyCard.querySelector('.month-drag');
+    targetDay = document.querySelector(`.month-day[data-date="${today}"]`);
+    const dragToToday = (duringSync = false) => {
       const start = new window.Event('dragstart', { bubbles: true, cancelable: true });
       Object.defineProperty(start, 'dataTransfer', { value: { setData() {} } });
       dragHandle.dispatchEvent(start);
+      if (duringSync) {
+        const update = new window.Event('storage');
+        Object.defineProperty(update, 'key', { value: 'dayline.v1' });
+        window.dispatchEvent(update);
+        // A cross-tab update must not replace the source or destination mid-drag.
+        assert.equal(document.querySelector('.weekly-note[data-id="weekly"]'), weeklyCard);
+        assert.equal(document.querySelector(`.month-day[data-date="${today}"]`), targetDay);
+      }
       targetDay.dispatchEvent(new window.Event('drop', { bubbles: true, cancelable: true }));
     };
-    dragToToday();
+    dragToToday(true);
     let schedule = document.querySelector('.weekly-schedule-dialog');
     assert.ok(schedule);
     assert.equal(schedule.querySelector('input[type="date"]').value, today);
@@ -237,6 +252,10 @@ test('the assembled planner starts, switches views/personalities, edits settings
       .find((button) => button.textContent === 'Cancel')
       .click();
     assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
+    // The deferred refresh runs after the drop, so acquire the new elements.
+    weeklyCard = document.querySelector('.weekly-note[data-id="weekly"]');
+    dragHandle = weeklyCard.querySelector('.month-drag');
+    targetDay = document.querySelector(`.month-day[data-date="${today}"]`);
     dragToToday();
     schedule = document.querySelector('.weekly-schedule-dialog');
     schedule.querySelector('input[type="time"]').value = '10:15';
