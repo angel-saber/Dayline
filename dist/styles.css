@@ -3854,6 +3854,15 @@ main {
   }
 }
 
+/* Floating shortcuts must not cover a calendar day during a drag. */
+body.month-dragging .focus-launch,
+body.month-dragging .focus-mini,
+body.month-dragging .focus-audio-launch,
+body.month-dragging .shortcuts-launch {
+  pointer-events: none;
+  opacity: 0.25;
+}
+
 
 :root[data-layout='astronaut'] body {
   background-image:

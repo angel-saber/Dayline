@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=42c354e72a8f';
-import { createWeeklySection } from './weekly-notes.js?v=42c354e72a8f';
+import { node } from '../../shared/dom.js?v=81124f6bd1ef';
+import { createWeeklySection } from './weekly-notes.js?v=81124f6bd1ef';
 import {
   NOTE_TYPES,
   categoryOptions,
@@ -9,11 +9,11 @@ import {
   typeBadge,
   noteTags,
   categoryLabel,
-} from '../notes/note-types.js?v=42c354e72a8f';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=42c354e72a8f';
-import { dateActions } from './date-actions.js?v=42c354e72a8f';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=42c354e72a8f';
-import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=42c354e72a8f';
+} from '../notes/note-types.js?v=81124f6bd1ef';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=81124f6bd1ef';
+import { dateActions } from './date-actions.js?v=81124f6bd1ef';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=81124f6bd1ef';
+import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=81124f6bd1ef';
 
 const button = (text, label, action) => {
   const el = node('button', '', text);
@@ -588,6 +588,7 @@ export function setupMonthly({
       };
   }
   function clearDrag() {
+    document.body.classList.remove('month-dragging');
     drag = null;
     if (hoverTimer) clearTimeout(hoverTimer.timer);
     hoverTimer = null;
@@ -605,6 +606,7 @@ export function setupMonthly({
       id: card.dataset.id,
       weekly: card.dataset.weekly === 'true',
     };
+    document.body.classList.add('month-dragging');
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData(
       'text/plain',
@@ -663,6 +665,7 @@ export function setupMonthly({
     touch.timer = setTimeout(() => {
       if (!touch) return;
       touch.active = true;
+      document.body.classList.add('month-dragging');
       try {
         root.setPointerCapture?.(touch.pointer);
       } catch {
