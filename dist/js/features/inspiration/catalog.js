@@ -1142,4 +1142,66 @@ export const STORIES = [
     source:
       'https://blog.parkrun.com/uk/2024/10/02/a-passion-project-that-became-a-global-movement/',
   },
+  {
+    id: 'story-103',
+    person: 'Benjamin Franklin',
+    title: 'Give the day a shape',
+    story:
+      'In his autobiography, Benjamin Franklin sketched a daily schedule with time for work, study, meals, rest, and reflection. He began by considering what good he could do and ended by reviewing the day; he also acknowledged that he did not always follow the plan.',
+    takeaway:
+      'Choose one intention for today, then take a moment tonight to notice what moved forward.',
+    challenge: 'Routines',
+    field: 'History',
+    source: 'https://www.gutenberg.org/files/148/148-h/148-h.htm',
+  },
+  {
+    id: 'story-104',
+    person: 'Maya Angelou',
+    title: 'Make a space for the work',
+    story:
+      'When writing, Maya Angelou rented a hotel room and aimed to arrive early in the morning. She removed distractions and brought a few tools, including a dictionary, a yellow pad, and pens, to help her settle into her work.',
+    takeaway:
+      'Create a small cue that tells you it is time to begin: clear a surface, gather your tools, or silence distractions.',
+    challenge: 'Routines',
+    field: 'Literature',
+    source: 'https://www.smithsonianmag.com/arts-culture/growing-up-maya-angelou-79582387/',
+  },
+  {
+    id: 'story-105',
+    person: 'Toni Morrison',
+    title: 'Find your best working time',
+    story:
+      'Toni Morrison first wrote before dawn because she needed time before her young children woke. Later she found that mornings suited her creative thinking; with a job and family, she also wrote whenever she could find time.',
+    takeaway:
+      'Notice when your mind feels most ready, then protect a little of that time for a meaningful task.',
+    challenge: 'Routines',
+    field: 'Literature',
+    source:
+      'https://www.theparisreview.org/interviews/1888/the-art-of-fiction-no-134-toni-morrison',
+  },
+  {
+    id: 'story-106',
+    person: 'Haruki Murakami',
+    title: 'Repeat a rhythm that supports you',
+    story:
+      'When working on a novel, Haruki Murakami has described a consistent rhythm: writing in the morning, then running or swimming, reading, and listening to music. He uses repetition to help him settle into sustained creative work.',
+    takeaway:
+      'Pair a regular work block with a restorative activity you enjoy. Choose a rhythm that fits your own life.',
+    challenge: 'Routines',
+    field: 'Literature',
+    source: 'https://www.theparisreview.org/interviews/2/the-art-of-fiction-no-182-haruki-murakami',
+  },
+  {
+    id: 'story-107',
+    person: 'Twyla Tharp',
+    title: 'Make the first step a ritual',
+    story:
+      'In The Creative Habit, choreographer Twyla Tharp described beginning her morning by taking a taxi to the gym. She treated getting into the cab as the ritual that committed her to showing up.',
+    takeaway:
+      'Choose one simple first action—put on your shoes, open your notebook, or set a timer—and make it your starting cue.',
+    challenge: 'Routines',
+    field: 'Dance',
+    source:
+      'https://www.everand.com/book/224271955/The-Creative-Habit-Learn-It-and-Use-It-for-Life',
+  },
 ];

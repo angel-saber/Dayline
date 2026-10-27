@@ -14,9 +14,9 @@ import { setupInspiration } from '../../dist/js/features/inspiration/view.js';
 import { validState } from '../../dist/js/shared/storage.js';
 
 test('complete, individually addressable stories have safe sources and actionable takeaways', () => {
-  assert.ok(STORIES.length >= 102);
+  assert.ok(STORIES.length >= 107);
   assert.equal(new Set(STORIES.map((story) => story.id)).size, STORIES.length);
-  assert.equal(CHALLENGES.length, 10);
+  assert.ok(CHALLENGES.includes('Routines'));
   assert.ok(FIELDS.length >= 10);
   for (const story of STORIES) {
     for (const key of ['person', 'title', 'story', 'takeaway', 'challenge', 'field'])
@@ -52,6 +52,25 @@ test('filters combine challenge, field, search and favorite role models', () => 
   );
   assert.deepEqual(validFavorites(['Simone Biles', 'Simone Biles']), ['Simone Biles']);
   assert.throws(() => validFavorites(['unknown']));
+});
+
+test('routine stories are discoverable and preserve source-linked takeaways when saved', () => {
+  const routines = filterStories({ challenge: 'Routines' });
+  assert.deepEqual(
+    routines.map((story) => story.person),
+    ['Benjamin Franklin', 'Maya Angelou', 'Toni Morrison', 'Haruki Murakami', 'Twyla Tharp'],
+  );
+  assert.equal(
+    filterStories({ challenge: 'Routines', search: 'franklin' })[0].person,
+    'Benjamin Franklin',
+  );
+  assert.equal(filterStories({ challenge: 'Routines', field: 'Literature' }).length, 3);
+  assert.deepEqual(validFavorites(['Benjamin Franklin']), ['Benjamin Franklin']);
+  for (const story of routines) {
+    const saved = storyNote(story);
+    assert.ok(saved.text.includes(story.source));
+    assert.ok(saved.text.includes(story.takeaway));
+  }
 });
 
 test('fitness stories can be found, favorited, and saved with their sources', () => {
