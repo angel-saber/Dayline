@@ -1,4 +1,4 @@
-import { lineRange, editTasks, validTasks } from './tasks.js?v=ce2cc5d7358f';
+import { lineRange, editTasks, validTasks } from './tasks.js?v=577f95117f93';
 export function validBullets(value, text) {
   if (
     !Array.isArray(value) ||

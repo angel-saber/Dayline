@@ -1,4 +1,4 @@
-import { PERSONALITIES, getPersonality } from '../../personalities/index.js?v=ce2cc5d7358f';
+import { PERSONALITIES, getPersonality } from '../../personalities/index.js?v=577f95117f93';
 // First-visit setup stays separate from planner data and personality presentation.
 const KEY = 'dayline.welcome.v1';
 export function needsWelcome(storage, entryComplete = false, loginVisible = true) {
@@ -16,21 +16,22 @@ export function setupWelcome(api) {
   dialog.innerHTML = `<div class="eyebrow">WELCOME TO DAYLINE</div><h1 id="welcome-title">A little room for your day.</h1>
     <p class="welcome-intro">A simple place to plan, think, and make steady progress—one time interval at a time.</p>
     <section class="welcome-overview" aria-labelledby="welcome-features-title"><h2 id="welcome-features-title">One place for plans, progress, and perspective</h2>
-    <p class="field-hint">Plan a workday or study session, keep track of errands and events, journal a thought, or turn a personal project into steady weekly steps.</p>
+    <p class="field-hint">Plan a workday, study session, personal project, or a little space for yourself.</p>
     <ul class="welcome-features">
-      <li><h3>Plan your day your way</h3><p>Set your available hours in Settings and optionally hide earlier or later times in Daily. Choose preset or custom intervals, add multiple notes to a slot, and give each note a title and exact time. Navigate any day, check off finished notes, swipe to complete or delete, and drag to reschedule.</p></li>
-      <li><h3>Make notes useful</h3><p>Write plans, journals, checklists, or meeting notes with bold, italic, underline, colored highlights, bullets, checkboxes, and clickable links. Changes save as you write or click away.</p></li>
-      <li><h3>See the bigger picture</h3><p>Browse note titles across the weeks in Monthly. Keep undated ideas and tasks in each week’s Weekly Notes, then schedule them when ready. Tap a date to add a title and time, double-tap to open Daily, or drag notes between dates. Use Share availability to select empty intervals using editable available hours from Settings and share merged time ranges with a time zone, without revealing your notes. Optional reminders with sound notify at a note’s exact time; click one to jump to its interval.</p></li>
-      <li><h3>Organize without extra work</h3><p>Combine Project, Admin, Event, Personal, and custom tags on a note. Select notes individually or by category across a day, week, or month, then move, tag, delete, or share them together. Manage your tags in Settings.</p></li>
-      <li><h3>Protect a little focus</h3><p>Commit to a mantra, work with all notes in your current interval, edit them directly, and capture interruptions. Minimize your session, follow the next interval, or extend unfinished work. Finish with an optional reflection and a saved session report.</p></li>
-      <li><h3>Set the atmosphere</h3><p>Choose Zen, Builder, Founder, Poet, Astronaut, or Gamer for a different look, voice, and default soundtrack, with a fresh quote each day. Choose Full, Subtle, or Off visual effects in Settings; reduced-motion preferences are respected. Launch Focus Audio independently, with or without a Focus session. Minimize the player while listening and pause it separately when ready. Switch between Still Temple, Cyberpunk Mission, Symphonic Horizon, Undertow, Orbital Drift, and Next Level; mix warm ambience, headphone binaural tones, and an independent metronome.</p></li>
-      <li><h3>Find a starting point</h3><p>Open More for Guided Breathing, Guided Planning, Untangle My Thoughts, The Two-Minute Start, and Monthly Compass. Calm or energize, clarify your next action, or plan projects across work, health, learning, relationships, and spirituality.</p></li>
-      <li><h3>Keep and share what matters</h3><p>Upload or drop files onto notes. Click a filename to preview images, PDFs, text, or browser-supported audio/video without downloading; Download stays separate, with a fallback for unsupported formats. Oversized PDFs and JPEG/PNG/WebP images can try optional compression, with a smaller copy to review. Share one note or a collection, preview included content, and organize by date or category. Reports and attachments are off by default; recipients need no Dayline account.</p></li>
+      <li><h3>Plan your day</h3><p>Choose preset or custom intervals and available hours. Add multiple titled notes with exact times; check them off, duplicate, reschedule, or drag them between intervals.</p></li>
+      <li><h3>Make notes your own</h3><p>Write plans, journals, and checklists with formatting, highlights, bullets, checkboxes, indentation, and links. Add tags and attach files; changes save as you write.</p></li>
+      <li><h3>See your month</h3><p>Browse color-coded notes and undated Weekly Notes. Tap a date to add several notes with titles, times, tags, and details. Expand a day to view its intervals, move notes, or delete them.</p></li>
+      <li><h3>Organize and share</h3><p>Select notes across a day, week, or month to move, tag, delete, or share together. Preview a single note or collection, order by date or category, or share open time as availability.</p></li>
+      <li><h3>Make space to focus</h3><p>Start a Focus session with a mantra, interval notes, inspiration, and an interruption log. Minimize it while you work, then finish with an optional reflection and saved summary.</p></li>
+      <li><h3>Choose your atmosphere</h3><p>Explore six personalities, each with its own look, voice, and default soundtrack. Launch Focus Audio independently and mix music, ambience, binaural tones, or a metronome.</p></li>
+      <li><h3>Find your next step</h3><p>Open More for guided breathing, planning, Untangle My Thoughts, The Two-Minute Start, and Monthly Compass. Planning activities can save reports to your notes.</p></li>
+      <li><h3>Find inspiration</h3><p>Explore real stories and role models in the Inspiration Library. Search or filter by need and field, save favorites on this device, or add a story to Daily.</p></li>
+      <li><h3>Stay on track</h3><p>Turn on reminders and sound for planned notes. Use Shortcuts to open Google Meet or Drive, or add links to your own favorite websites.</p></li>
     </ul>
-    <details class="welcome-more"><summary>A little more about guided activities and sharing</summary>
-      <p>Guided Planning records one activity per life dimension for today. Untangle My Thoughts sorts what you can act on, ask about, or leave for later. The Two-Minute Start helps you try one tiny action.</p>
-      <p>Monthly Compass chooses one project per life dimension and one task per project for each of four weeks. Optionally add four undated Weekly Notes in Monthly, starting with the current week. Planning activities save expandable reports into your current note; breathing offers two-minute animated exercises.</p>
-      <p>Use Share… to send text and optional files through supported email or messaging apps. Copy text and Email text only do not attach files; downloads are available when file sharing is unsupported. Attach up to 10 files per note, 10 MB each. Compression keeps the original format and leaves the source file untouched; not every file can shrink enough.</p>
+    <details class="welcome-more"><summary>More about planning, sharing, and storage</summary>
+      <p>In Monthly, double-tap a date to open Daily. Monthly Compass can create four undated Weekly Notes with your weekly project tasks. In Settings, choose whether to hide times outside your available hours.</p>
+      <p>Share notes with anyone without requiring a Dayline account. Reports and attachments are off by default; file sharing depends on your browser and the receiving app. Preview supported attachments, and optionally try compressing large PDFs or JPEG, PNG, and WebP images.</p>
+      <p>Share Availability starts with your available hours, lets you adjust the selection, and excludes intervals that have begun. Reminder permissions and sound activation are set on each device; keep Dayline open for browser reminders.</p>
     </details></section>
     <section class="welcome-step"><h2>Choose your rhythm</h2><label for="welcome-interval">Time intervals</label><select id="welcome-interval"><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60" selected>1 hour</option><option value="120">2 hours</option><option value="240">4 hours</option><option value="custom">Custom</option></select><div id="welcome-custom-wrap" hidden><label for="welcome-custom">Custom interval in minutes</label><input id="welcome-custom" type="number" min="1" max="1440" step="1" value="60" required></div></section>
     <section class="welcome-step"><h2>Choose your atmosphere</h2><p class="field-hint">Preview a personality. The look and voice change together.</p><fieldset class="welcome-personalities"><legend class="sr-only">Dayline personality</legend>
@@ -41,7 +42,7 @@ export function setupWelcome(api) {
       )
       .join('')}</fieldset>
     <p class="welcome-preview" aria-live="polite"></p></section>
-    <p class="field-hint welcome-footnote">You can change these choices anytime in Settings. Notes and attachment files are saved in this browser on this device. Download a backup in Settings to keep a copy or transfer them; attachment files do not automatically sync across devices.</p>
+    <p class="field-hint welcome-footnote">You can change these choices anytime in Settings. Guest notes stay in this browser; invited account users can sync notes and settings across devices. Attachment files stay on this device and do not sync automatically. Download a backup in Settings to keep a copy or transfer files.</p>
     <p class="welcome-error" role="status"></p><div class="inline"><button class="primary welcome-confirm" type="button">Start my day</button><button class="secondary welcome-cancel" type="button" hidden>Cancel</button></div>`;
   document.body.append(dialog);
   const $ = (selector) => dialog.querySelector(selector),
