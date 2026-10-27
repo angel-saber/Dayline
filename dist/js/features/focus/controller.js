@@ -1,9 +1,9 @@
-import { node } from '../../shared/dom.js?v=59dbd0e22808';
-import { indentLevel } from '../notes/formatting/indents.js?v=59dbd0e22808';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=59dbd0e22808';
-import { tagBadges, categoryOptions } from '../notes/note-types.js?v=59dbd0e22808';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=59dbd0e22808';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=59dbd0e22808';
+import { node } from '../../shared/dom.js?v=bb7124230ebb';
+import { indentLevel } from '../notes/formatting/indents.js?v=bb7124230ebb';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=bb7124230ebb';
+import { tagBadges, categoryOptions } from '../notes/note-types.js?v=bb7124230ebb';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=bb7124230ebb';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=bb7124230ebb';
 import {
   focusIntervalNotes,
   newFocus,
@@ -14,10 +14,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=59dbd0e22808';
-import { createNoteEditor } from '../notes/note-editor.js?v=59dbd0e22808';
-import { renderFormatted } from '../notes/formatting/format.js?v=59dbd0e22808';
-import { noteTasks } from '../notes/formatting/tasks.js?v=59dbd0e22808';
+} from './model.js?v=bb7124230ebb';
+import { createNoteEditor } from '../notes/note-editor.js?v=bb7124230ebb';
+import { renderFormatted } from '../notes/formatting/format.js?v=bb7124230ebb';
+import { noteTasks } from '../notes/formatting/tasks.js?v=bb7124230ebb';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {
@@ -496,6 +496,7 @@ export function setupFocus(api) {
       node('h2', '', voice('focus.inspirationHeading')),
       node('p', 'focus-inspiration'),
       node('small', 'field-hint', voice('focus.inspirationHint')),
+      button('Explore real stories', () => api.openInspiration?.()),
     );
     dialog.append(inspiration);
     const interruptions = node('section', 'focus-section');

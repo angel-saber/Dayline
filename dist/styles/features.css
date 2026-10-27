@@ -1724,3 +1724,87 @@ main {
     padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px));
   }
 }
+
+.inspiration-library {
+  width: calc(100% - 30px);
+  max-width: 720px;
+  max-height: 90dvh;
+  overflow-y: auto;
+  padding: 26px;
+}
+.inspiration-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+.inspiration-filters label {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.inspiration-filters label:last-child {
+  grid-column: 1 / -1;
+}
+.inspiration-filters select,
+.inspiration-filters input {
+  width: 100%;
+  min-width: 0;
+}
+.inspiration-favorites-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.inspiration-story {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--white);
+  padding: 18px;
+}
+.inspiration-story .eyebrow {
+  margin: 0 0 8px;
+}
+.inspiration-person {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0 0 4px;
+}
+.inspiration-story h3 {
+  margin: 0 0 12px;
+}
+.inspiration-story-text {
+  line-height: 1.65;
+}
+.inspiration-takeaway {
+  background: var(--soft);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 14px 0;
+}
+.inspiration-takeaway h4 {
+  margin: 0 0 4px;
+}
+.inspiration-takeaway p {
+  margin: 0;
+}
+.inspiration-source {
+  display: inline-block;
+  margin: 0 0 14px;
+  color: var(--ink);
+}
+.inspiration-navigation {
+  margin-top: 16px;
+}
+@media (max-width: 600px) {
+  .inspiration-library {
+    padding: 18px;
+  }
+  .inspiration-filters {
+    grid-template-columns: 1fr;
+  }
+  .inspiration-filters label:last-child {
+    grid-column: auto;
+  }
+}
