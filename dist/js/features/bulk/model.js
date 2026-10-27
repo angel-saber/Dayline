@@ -1,11 +1,11 @@
-import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=59dbd0e22808';
+import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=bb7124230ebb';
 import {
   validNoteType,
   validTags,
   noteTags,
   withTags,
   matchesNoteType,
-} from '../notes/note-types.js?v=59dbd0e22808';
+} from '../notes/note-types.js?v=bb7124230ebb';
 export const selectionKey = (date, id) => JSON.stringify([date, id]);
 export function selectedNotes(days, keys) {
   return Object.entries(days)

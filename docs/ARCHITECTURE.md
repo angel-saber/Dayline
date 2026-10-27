@@ -287,3 +287,21 @@ new optional minute value retains the existing date-only move behavior. Date
 spacing remains independently selectable for multi-day selections. Times crossing midnight normalize into the next or previous calendar day,
 including month/year boundaries; existing destination notes are never displaced. IDs, contents, completion, reports and attachment references
 use existing save/sync/undo paths without a storage migration.
+
+## Inspiration Library
+
+`features/inspiration/catalog.js` contains 100 original short summaries and separate
+Dayline takeaways, each linked to source material. The cards are bundled locally;
+no external service or tracker loads until a user opens a source. `model.js` owns
+filters, favorite validation, and note text; `view.js` owns the accessible More
+launcher, filters, story navigation and source/favorite/save actions. Focus opens
+the same library above the session, leaving audio and the session running.
+
+Favorites are role-model names stored in device-local
+`dayline.inspiration.favorites.v1`, explicitly labeled as such; invalid or failed
+storage writes never overwrite existing favorites. They do not sync or enter note
+backups. Saving a story creates an ordinary new Daily note for the current time,
+with the original summary, labeled takeaway and source URL; existing notes are
+not overwritten. It uses the existing persistence, account sync and undo paths,
+and rolls back if saving fails. No database schema, report shape, external
+provider, paid resource or automatic sharing is introduced.

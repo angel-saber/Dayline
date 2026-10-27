@@ -167,6 +167,26 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.equal(copied[1].text, 'Keep this plan');
     document.querySelector('#undo').click();
     assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
+    document.querySelector('#more-tab').click();
+    [...document.querySelectorAll('#more-view button')]
+      .find((button) => button.textContent === 'Explore the library')
+      .click();
+    assert.equal(document.querySelector('.inspiration-library').open, true);
+    [...document.querySelectorAll('.inspiration-library button')]
+      .find((button) => button.textContent === 'Save to Daily')
+      .click();
+    assert.equal(document.querySelector('.inspiration-library').open, false);
+    assert.equal(document.querySelector('#daily-view').hidden, false);
+    const storyNotes = JSON.parse(local.getItem('dayline.v1')).days[today];
+    assert.ok(
+      storyNotes.some(
+        (note) =>
+          note.title === 'Inspiration · Octavia Butler' &&
+          note.text.includes('Read the source: https://'),
+      ),
+    );
+    document.querySelector('#undo').click();
+    assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
     document.querySelector('#monthly-tab').click();
     assert.equal(document.querySelector('#monthly-view').hidden, false);
     assert.match(document.querySelector('#monthly-view').textContent, /Weekly direction/);
@@ -255,6 +275,15 @@ test('the assembled planner starts, switches views/personalities, edits settings
     await new Promise((resolve) => setTimeout(resolve, 1150));
     assert.equal(document.querySelector('.personality-burst')?.dataset.kind, 'focus-commit');
     assert.equal(document.querySelector('.personality-burst')?.parentNode, document.body);
+    [...document.querySelectorAll('.focus-window button')]
+      .find((button) => button.textContent === 'Explore real stories')
+      .click();
+    assert.equal(document.querySelector('.inspiration-library').open, true);
+    assert.equal(document.querySelector('.focus-window').open, true);
+    [...document.querySelectorAll('.inspiration-library button')]
+      .find((button) => button.textContent === 'Close')
+      .click();
+    assert.equal(document.querySelector('.focus-window').open, true);
     document.querySelector('.focus-open-audio').click();
     assert.equal(document.querySelector('.focus-audio-window').open, true);
     assert.equal(document.querySelector('.focus-window .focus-soundtrack-select'), null);
