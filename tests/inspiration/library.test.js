@@ -13,9 +13,9 @@ import {
 import { setupInspiration } from '../../dist/js/features/inspiration/view.js';
 import { validState } from '../../dist/js/shared/storage.js';
 
-test('100 complete, individually addressable stories have safe sources and actionable takeaways', () => {
-  assert.equal(STORIES.length, 100);
-  assert.equal(new Set(STORIES.map((story) => story.id)).size, 100);
+test('complete, individually addressable stories have safe sources and actionable takeaways', () => {
+  assert.ok(STORIES.length >= 102);
+  assert.equal(new Set(STORIES.map((story) => story.id)).size, STORIES.length);
   assert.equal(CHALLENGES.length, 10);
   assert.ok(FIELDS.length >= 10);
   for (const story of STORIES) {
@@ -52,6 +52,24 @@ test('filters combine challenge, field, search and favorite role models', () => 
   );
   assert.deepEqual(validFavorites(['Simone Biles', 'Simone Biles']), ['Simone Biles']);
   assert.throws(() => validFavorites(['unknown']));
+});
+
+test('fitness stories can be found, favorited, and saved with their sources', () => {
+  const stories = filterStories({ field: 'Fitness' });
+  assert.deepEqual(
+    stories.map((story) => story.person),
+    ['Ernestine Shepherd', 'Paul Sinton-Hewitt'],
+  );
+  assert.equal(filterStories({ search: 'workout', field: 'Fitness' }).length, 2);
+  assert.deepEqual(
+    validFavorites(stories.map((story) => story.person)),
+    stories.map((story) => story.person),
+  );
+  for (const story of stories) {
+    const note = storyNote(story);
+    assert.match(note.text, /Try this:/);
+    assert.ok(note.text.includes(story.source));
+  }
 });
 
 test('library opens from More, browses and saves favorites, protects failed writes, and saves the chosen story', () => {

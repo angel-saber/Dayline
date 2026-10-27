@@ -1118,4 +1118,28 @@ export const STORIES = [
     source:
       'https://playbill.com/article/miss-saigon-then-and-now-watch-auditions-and-more-from-original-star-lea-salonga-and-new-star-eva-noblezada-com-218598',
   },
+  {
+    id: 'story-101',
+    person: 'Ernestine Shepherd',
+    title: 'Start where you are',
+    story:
+      'At 56, Ernestine Shepherd began taking exercise classes with her sister. What started as a shared decision to get moving grew into years of training and, eventually, bodybuilding competitions.',
+    takeaway:
+      'Choose a workout that feels approachable today. A small beginning can become a practice you enjoy.',
+    challenge: 'Starting',
+    field: 'Fitness',
+    source: 'https://time.com/archive/7136034/qa-worlds-oldest-performing-female-bodybuilder/',
+  },
+  {
+    id: 'story-102',
+    person: 'Paul Sinton-Hewitt',
+    title: 'Make movement a meeting place',
+    story:
+      'While an injury kept him from his regular runs, Paul Sinton-Hewitt missed spending time with his running friends. In 2004, he organized a free weekly 5K in a park; that small gathering grew into parkrun.',
+    takeaway: 'Make movement social: invite a friend for a walk or a workout you both enjoy.',
+    challenge: 'Momentum',
+    field: 'Fitness',
+    source:
+      'https://blog.parkrun.com/uk/2024/10/02/a-passion-project-that-became-a-global-movement/',
+  },
 ];

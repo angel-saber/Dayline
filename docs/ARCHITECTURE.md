@@ -290,7 +290,7 @@ use existing save/sync/undo paths without a storage migration.
 
 ## Inspiration Library
 
-`features/inspiration/catalog.js` contains 100 original short summaries and separate
+`features/inspiration/catalog.js` contains original short summaries and separate
 Dayline takeaways, each linked to source material. The cards are bundled locally;
 no external service or tracker loads until a user opens a source. `model.js` owns
 filters, favorite validation, and note text; `view.js` owns the accessible More

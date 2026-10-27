@@ -1,20 +1,20 @@
-import { node } from '../../shared/dom.js?v=81124f6bd1ef';
-import { weekStart } from '../monthly/weekly-model.js?v=81124f6bd1ef';
-import { offsetDay } from '../../shared/schedule.js?v=81124f6bd1ef';
-import { indentLevel } from '../notes/formatting/indents.js?v=81124f6bd1ef';
+import { node } from '../../shared/dom.js?v=e8d70674e895';
+import { weekStart } from '../monthly/weekly-model.js?v=e8d70674e895';
+import { offsetDay } from '../../shared/schedule.js?v=e8d70674e895';
+import { indentLevel } from '../notes/formatting/indents.js?v=e8d70674e895';
 import {
   shareAttachments,
   prepareShareFiles,
   supportsFileShare,
-} from './share-files.js?v=81124f6bd1ef';
-import { attachmentList } from '../attachments/attachments.js?v=81124f6bd1ef';
-import { parseDay, timeLabel } from '../../shared/schedule.js?v=81124f6bd1ef';
-import { noteTasks } from '../notes/formatting/tasks.js?v=81124f6bd1ef';
-import { NOTE_TYPES, categoryLabel, noteTags } from '../notes/note-types.js?v=81124f6bd1ef';
-import { safeLink } from '../notes/formatting/links.js?v=81124f6bd1ef';
-import { durationLabel } from '../focus/model.js?v=81124f6bd1ef';
-import { dimensions, compassTitle, compassDates } from '../activities/model.js?v=81124f6bd1ef';
-import { activityCatalog, activityFields } from '../activities/catalog.js?v=81124f6bd1ef';
+} from './share-files.js?v=e8d70674e895';
+import { attachmentList } from '../attachments/attachments.js?v=e8d70674e895';
+import { parseDay, timeLabel } from '../../shared/schedule.js?v=e8d70674e895';
+import { noteTasks } from '../notes/formatting/tasks.js?v=e8d70674e895';
+import { NOTE_TYPES, categoryLabel, noteTags } from '../notes/note-types.js?v=e8d70674e895';
+import { safeLink } from '../notes/formatting/links.js?v=e8d70674e895';
+import { durationLabel } from '../focus/model.js?v=e8d70674e895';
+import { dimensions, compassTitle, compassDates } from '../activities/model.js?v=e8d70674e895';
+import { activityCatalog, activityFields } from '../activities/catalog.js?v=e8d70674e895';
 export const SHARE_DEFAULTS = {
   dateTime: true,
   type: true,

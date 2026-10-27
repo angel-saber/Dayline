@@ -1,12 +1,12 @@
-import { node } from '../../shared/dom.js?v=81124f6bd1ef';
-import { STORIES } from './catalog.js?v=81124f6bd1ef';
+import { node } from '../../shared/dom.js?v=e8d70674e895';
+import { STORIES } from './catalog.js?v=e8d70674e895';
 import {
   CHALLENGES,
   FIELDS,
   FAVORITES_KEY,
   validFavorites,
   filterStories,
-} from './model.js?v=81124f6bd1ef';
+} from './model.js?v=e8d70674e895';
 const button = (label, action, cls = 'secondary') => {
   const value = node('button', cls, label);
   value.type = 'button';
@@ -26,7 +26,7 @@ export function setupInspiration({
     node(
       'p',
       'field-hint',
-      '100 real stories of creativity, persistence, courage, learning and new beginnings.',
+      `${STORIES.length} real stories of creativity, persistence, movement and new beginnings.`,
     ),
     launch,
   );
