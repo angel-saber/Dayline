@@ -453,6 +453,19 @@ test('the assembled planner starts, switches views/personalities, edits settings
     const welcome = document.querySelector('.welcome-window');
     assert.equal(welcome.open, true);
     assert.equal(welcome.querySelectorAll('input[name="welcome-personality"]').length, 6);
+    // The introduction reflects the current planner without changing setup.
+    for (const feature of [
+      'several notes',
+      'Weekly Notes',
+      'Expand a day',
+      'Inspiration Library',
+      'Shortcuts',
+      'Focus Audio',
+      'Share Availability',
+      'Attachment files stay on this device',
+    ])
+      assert.ok(welcome.textContent.includes(feature), `Missing intro feature: ${feature}`);
+
     for (const input of welcome.querySelectorAll('input[name="welcome-personality"]')) {
       input.checked = input.value === 'builder';
     }
