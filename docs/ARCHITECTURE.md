@@ -316,3 +316,13 @@ notes together, preserves existing entries and exposes one Undo snapshot; a
 failed save restores the previous day/settings and leaves all form drafts visible
 for retry. An account change closes the unsaved form. New notes use the existing
 schema, reminders, account sync and Daily/Focus editors, without a migration.
+
+## Expanded Monthly day
+
+`features/monthly/expanded-day.js` presents every configured interval, including
+empty ones, and keeps the note list in the existing planner state. Mouse and held
+touch drags move a note into an interval; the Move control provides a non-drag
+alternative. Moves use the Daily drop model, preserving the note's minute offset
+and leaving other notes in place. Delete and move use the existing persistence,
+account sync, and Undo paths. Background note refreshes are deferred during a
+drag, and closing the dialog removes its event listeners and pending gesture.

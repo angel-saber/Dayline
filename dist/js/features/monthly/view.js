@@ -1,5 +1,6 @@
-import { node } from '../../shared/dom.js?v=9323481e8eba';
-import { createWeeklySection } from './weekly-notes.js?v=9323481e8eba';
+import { openExpandedDay } from './expanded-day.js?v=51aed2a1d055';
+import { node } from '../../shared/dom.js?v=51aed2a1d055';
+import { createWeeklySection } from './weekly-notes.js?v=51aed2a1d055';
 import {
   NOTE_TYPES,
   categoryOptions,
@@ -9,11 +10,11 @@ import {
   typeBadge,
   noteTags,
   categoryLabel,
-} from '../notes/note-types.js?v=9323481e8eba';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=9323481e8eba';
-import { dateActions } from './date-actions.js?v=9323481e8eba';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=9323481e8eba';
-import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=9323481e8eba';
+} from '../notes/note-types.js?v=51aed2a1d055';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=51aed2a1d055';
+import { dateActions } from './date-actions.js?v=51aed2a1d055';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=51aed2a1d055';
+import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=51aed2a1d055';
 
 const button = (text, label, action) => {
   const el = node('button', '', text);
@@ -41,7 +42,8 @@ export function setupMonthly({
   root,
   getState,
   onOpen,
-  onDuplicate,
+  onDelete,
+  onIntervalMove,
   onMove,
   onAdd,
   announce,
@@ -225,80 +227,20 @@ export function setupMonthly({
   }
   function expandDay(date) {
     dates.reset();
-    const dialog = node('dialog', 'month-expanded-day'),
-      heading = node(
-        'h2',
-        '',
-        parseDay(date).toLocaleDateString(undefined, {
-          weekday: 'long',
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric',
-        }),
-      );
-    heading.id = 'expanded-day-heading';
-    dialog.setAttribute('aria-labelledby', heading.id);
-    const count = node('p', 'field-hint'),
-      list = node('ul', 'month-expanded-list');
-    list.setAttribute('aria-label', 'All notes for this day');
-    function refresh() {
-      const entries = (getState().days[date] || [])
-        .filter((note) => !note.weekly)
-        .slice()
-        .sort((a, b) => a.minute - b.minute);
-      list.replaceChildren();
-      count.textContent = `${entries.length} ${entries.length === 1 ? 'note' : 'notes'} · All tags shown. Select a title to open its note in Daily.`;
-      for (const entry of entries) {
-        const row = node('li', 'month-expanded-note' + (entry.done ? ' completed' : '')),
-          open = button(noteTitle(entry), `Open note: ${noteTitle(entry)}`, () => {
-            dialog.close();
-            onOpen(date, entry.id);
-          });
-        open.className = 'month-expanded-title';
-        row.append(
-          node('span', 'month-expanded-time', timeLabel(entry.minute, getState().settings.clock)),
-          open,
-        );
-        if (onDuplicate)
-          row.append(
-            button('Duplicate', 'Duplicate note: ' + noteTitle(entry), () => {
-              if (onDuplicate(date, entry.id) !== false) refresh();
-            }),
-          );
-        const tags = tagBadges(entry);
-        if (tags) row.append(tags);
-        list.append(row);
-      }
-      if (!entries.length) list.append(node('li', 'field-hint', 'No notes for this day yet.'));
-    }
-    const actions = node('div', 'inline');
-    actions.append(
-      button('Open day', 'Open this date in Daily', () => {
-        dialog.close();
-        onOpen(date);
-      }),
-      button('Close', 'Close expanded day', () => dialog.close()),
-    );
-    dialog.append(heading, count, list, actions);
-    refresh();
-    document.body.append(dialog);
-    const onAccount = () => dialog.close();
-    window.addEventListener('dayline:notes-changed', refresh);
-    window.addEventListener('dayline:account', onAccount);
-    dialog.addEventListener(
-      'close',
-      () => {
-        window.removeEventListener('dayline:notes-changed', refresh);
-        window.removeEventListener('dayline:account', onAccount);
-        dialog.remove();
+    openExpandedDay({
+      date,
+      getState,
+      onOpen,
+      onDelete,
+      onMove: onIntervalMove,
+      announce,
+      onClose() {
         if (!root.hidden)
           root
             .querySelector(`[data-date="${date}"] .month-expand-day`)
             ?.focus({ preventScroll: true });
       },
-      { once: true },
-    );
-    dialog.showModal();
+    });
   }
   function render() {
     dates.reset();
