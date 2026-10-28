@@ -25,7 +25,9 @@ test('tag percentages describe note prevalence, including multiple tags and unta
   for (const key of ['event', 'none', 'custom:Writing'])
     assert.equal(summary.tags.find((tag) => tag.key === key).percentage, 25);
   assert.ok(summaryLine(summary).includes('4 notes'));
-  assert.ok(summaryLine(summary).includes('+2 tags'));
+  for (const label of ['Project 50%', 'Event 25%', 'Writing 25%', 'Untagged 25%'])
+    assert.ok(summaryLine(summary).includes(label));
+  assert.doesNotMatch(summaryLine(summary), /\+\d+ tags/);
   assert.ok(summaryLine(summary).includes('Thanksgiving Day'));
 });
 test('month totals exclude padded dates and include Weekly Notes from overlapping weeks once', () => {

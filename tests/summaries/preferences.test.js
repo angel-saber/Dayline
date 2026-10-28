@@ -83,7 +83,7 @@ test('inline tag toggles persist, synchronize views and Settings, and do not ope
     Object.defineProperty(globalThis, key, { configurable: true, writable: true, value });
   try {
     const data = summarizePeriod(
-      summarySource({ '2026-11-26': [{ tags: ['project'] }] }),
+      summarySource({ '2026-11-26': [{ tags: ['project', 'admin', 'event', 'personal'] }] }),
       '2026-11-26',
       '2026-11-26',
     );
@@ -101,7 +101,38 @@ test('inline tag toggles persist, synchronize views and Settings, and do not ope
       storage,
       toast: (message) => messages.push(message),
     });
+    const scroll = first.element.querySelector('.summary-tags-scroll');
+    assert.equal(scroll.getAttribute('role'), 'region');
+    for (const label of ['Project', 'Admin', 'Event', 'Personal'])
+      assert.match(scroll.textContent, new RegExp(label));
+    assert.doesNotMatch(scroll.textContent, /\+\d+ tags/);
+    scroll.scrollLeft = 0;
+    const arrow = new window.Event('keydown', { bubbles: true, cancelable: true });
+    Object.defineProperty(arrow, 'key', { value: 'ArrowRight' });
+    scroll.dispatchEvent(arrow);
+    assert.equal(scroll.scrollLeft, 100);
+    assert.equal(arrow.defaultPrevented, true);
+    assert.equal(first.element.hasAttribute('open'), false);
+    assert.equal(readSummaryPreferences(storage).tagMode, 'percentage');
+    for (const [type, x] of [
+      ['pointerdown', 10],
+      ['pointermove', 80],
+      ['pointerup', 80],
+    ]) {
+      const event = new window.Event(type, { bubbles: true });
+      Object.defineProperty(event, 'clientX', { value: x });
+      scroll.dispatchEvent(event);
+    }
     first.element.querySelector('.summary-tags-toggle').click();
+    assert.equal(readSummaryPreferences(storage).tagMode, 'percentage');
+    assert.equal(first.element.hasAttribute('open'), false);
+    first.element.querySelector('.summary-tags-toggle').click();
+    assert.equal(first.element.querySelector('.summary-tags-scroll').scrollLeft, 100);
+    for (const label of ['Project', 'Admin', 'Event', 'Personal'])
+      assert.match(
+        first.element.querySelector('.summary-tags-scroll').textContent,
+        new RegExp(`${label} 1 note`),
+      );
     assert.equal(first.element.hasAttribute('open'), false);
     assert.match(first.element.querySelector('.summary-tags-toggle').textContent, /Project 1 note/);
     assert.match(

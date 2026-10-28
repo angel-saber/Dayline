@@ -397,6 +397,10 @@ Clicking the tag figures switches every visible summary between percentages and
 exact note counts without opening its disclosure. Settings independently hide
 note totals, tag figures, Focus time, or holidays from compact lines; disabling all
 four hides the summaries. Expanded Details retain the complete breakdown.
+All tags appear in the compact tag section. It uses native horizontal overflow
+only when the figures exceed available width, with touch, scrollbar and arrow-key
+access. Scrolling does not toggle the figures or expand Details; switching figures
+retains the horizontal position.
 Preference events update summaries and Settings without rebuilding the calendar
 or editing notes, and storage events synchronize display choices across tabs.
 
