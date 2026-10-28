@@ -1,4 +1,4 @@
-import { PERSONALITIES, getPersonality } from '../../personalities/index.js?v=d779713692b6';
+import { PERSONALITIES, getPersonality } from '../../personalities/index.js?v=acdad351dbea';
 // First-visit setup stays separate from planner data and personality presentation.
 const KEY = 'dayline.welcome.v1';
 export function needsWelcome(storage, entryComplete = false, loginVisible = true) {
@@ -18,7 +18,7 @@ export function setupWelcome(api) {
     <section class="welcome-overview" aria-labelledby="welcome-features-title"><h2 id="welcome-features-title">One place for plans, progress, and perspective</h2>
     <p class="field-hint">Plan a workday, study session, personal project, or a little space for yourself.</p>
     <ul class="welcome-features">
-      <li><h3>Plan your day</h3><p>Choose preset or custom intervals and available hours. Add multiple titled notes with exact times; check them off, duplicate, reschedule, or drag them between intervals. Create daily, weekly, monthly, or selected-weekday repeats with a definite end date, then recommit to a new cycle when ready. Review holiday flags and individual exceptions before creating the cycle; later edits or deletions can apply to one note or this and later repeats.</p></li>
+      <li><h3>Plan your day</h3><p>Choose preset or custom intervals and available hours. Click between an interval’s start and end times to place a note at that precise time. Add multiple titled notes with exact times; check them off, duplicate, reschedule, or drag them between intervals. Create daily, weekly, monthly, or selected-weekday repeats with a definite end date, then recommit to a new cycle when ready. Review holiday flags and individual exceptions before creating the cycle; later edits or deletions can apply to one note or this and later repeats.</p></li>
       <li><h3>Make notes your own</h3><p>Write plans, journals, and checklists with formatting, highlights, bullets, checkboxes, indentation, and links. Add tags and attach files; changes save as you write.</p></li>
       <li><h3>See your month</h3><p>Browse color-coded notes and undated Weekly Notes. Scan note counts, tags, Focus time, and holiday summaries for your day, weeks, and month. Tap a date to add several notes with titles, times, tags, and details. Expand a day to view its intervals, move notes, or delete them.</p></li>
       <li><h3>Find direction for your year</h3><p>Open Yearly for flexible intentions, seasonal quarters, and reflections. Reshape, move, or release plans whenever life changes; turn a next step into a Weekly Note, dated note, or Monthly Compass activity. Bring only selected intentions into next year.</p></li>

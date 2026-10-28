@@ -1,4 +1,4 @@
-import { renderScore } from './music.js?v=d779713692b6';
+import { renderScore } from './music.js?v=acdad351dbea';
 // Original copy for creative practice; user writing is never restyled or rewritten.
 export default {
   id: 'poet',

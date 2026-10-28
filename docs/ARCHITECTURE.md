@@ -464,3 +464,18 @@ Reroll never changes the pin. Preference updates refresh controls without replac
 an open action draft. Once-per-local-day invitations, Settings opt-out, optional
 saving and failed-save retention are unchanged. Favorites and pins are browser
 preferences, not synced account content or backup schema changes.
+
+## Position-based Daily note times
+
+`features/daily/precise-time.js` maps a click's vertical position between the time
+gutter's displayed start/end bounds to the nearest minute. Empty interval surfaces
+and gaps between cards use the same bounds; the gutter remains available in busy
+intervals. Labels are anchored at opposite ends, and a pointer-transparent desktop
+hover preview shows the proposed time. Touch uses the same position calculation;
+keyboard activation keeps the interval-start default and editable note time.
+
+The mapper clamps the final partial interval to 23:59 and never silently schedules
+into the next interval. Note cards, editors, selection mode and cancelled gestures
+keep their existing behavior. Explicit Add note keeps its start-time default.
+The resulting minute goes through the shared editor and existing save/reminder
+paths; there are no storage, reminder, or interval-setting changes.
