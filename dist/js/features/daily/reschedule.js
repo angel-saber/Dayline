@@ -1,8 +1,8 @@
-import { moveToDay } from '../monthly/model.js?v=31f307a53cca';
+import { moveToDay } from '../monthly/model.js?v=29ae997dd2e7';
 
 export function rescheduleNote(days, source, id, target, time) {
   if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)) throw new Error('Choose a valid time.');
-  const entry = days[source]?.find((note) => note.id === id && !note.weekly);
+  const entry = days[source]?.find((note) => note.id === id && !note.weekly && !note.yearly);
   if (!entry) throw new Error('This note is no longer on its original day. Please reopen it.');
   const moved = moveToDay(days, source, id, target);
   const [hour, minute] = time.split(':').map(Number);

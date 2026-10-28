@@ -1,18 +1,19 @@
-import { validRepeat } from '../features/repeating/series.js?v=31f307a53cca';
-import { validIndents } from '../features/notes/formatting/indents.js?v=31f307a53cca';
-import { validAvailableHours } from '../features/settings/available-hours.js?v=31f307a53cca';
-import { validAttachments } from '../features/attachments/attachments.js?v=31f307a53cca';
+import { validYearly, validYearlySource } from '../features/yearly/model.js?v=29ae997dd2e7';
+import { validRepeat } from '../features/repeating/series.js?v=29ae997dd2e7';
+import { validIndents } from '../features/notes/formatting/indents.js?v=29ae997dd2e7';
+import { validAvailableHours } from '../features/settings/available-hours.js?v=29ae997dd2e7';
+import { validAttachments } from '../features/attachments/attachments.js?v=29ae997dd2e7';
 import {
   validNoteType,
   validTags,
   validTagSettings,
-} from '../features/notes/note-types.js?v=31f307a53cca';
-import { validGuidedReports } from '../features/activities/model.js?v=31f307a53cca';
-import { validBullets } from '../features/notes/formatting/bullets.js?v=31f307a53cca';
-import { validFocusReports } from '../features/focus/model.js?v=31f307a53cca';
-import { DEFAULT_SETTINGS } from './schedule.js?v=31f307a53cca';
-import { validFormat } from '../features/notes/formatting/format.js?v=31f307a53cca';
-import { validTasks } from '../features/notes/formatting/tasks.js?v=31f307a53cca';
+} from '../features/notes/note-types.js?v=29ae997dd2e7';
+import { validGuidedReports } from '../features/activities/model.js?v=29ae997dd2e7';
+import { validBullets } from '../features/notes/formatting/bullets.js?v=29ae997dd2e7';
+import { validFocusReports } from '../features/focus/model.js?v=29ae997dd2e7';
+import { DEFAULT_SETTINGS } from './schedule.js?v=29ae997dd2e7';
+import { validFormat } from '../features/notes/formatting/format.js?v=29ae997dd2e7';
+import { validTasks } from '../features/notes/formatting/tasks.js?v=29ae997dd2e7';
 const KEY = 'dayline.v1';
 export function validState(value) {
   if (
@@ -50,6 +51,12 @@ export function validState(value) {
           throw new Error('Invalid weekly note.');
         result.weekly = true;
       }
+      if (e.yearly !== undefined) {
+        result.yearly = validYearly(e.yearly);
+        if (key !== `${result.yearly.year}-01-01` || e.weekly || e.repeat || e.yearlySource)
+          throw new Error('Invalid Yearly storage location.');
+      }
+      if (e.yearlySource !== undefined) result.yearlySource = validYearlySource(e.yearlySource);
       if (e.repeat !== undefined) result.repeat = validRepeat(e.repeat);
       if (e.attachments !== undefined) result.attachments = validAttachments(e.attachments);
       if (e.noteType !== undefined) result.noteType = validNoteType(e.noteType);

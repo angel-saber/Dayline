@@ -1,5 +1,5 @@
-import { parseDay, dayKey, offsetDay } from '../../shared/dates.js?v=31f307a53cca';
-import { validDate } from '../bulk/model.js?v=31f307a53cca';
+import { parseDay, dayKey, offsetDay } from '../../shared/dates.js?v=29ae997dd2e7';
+import { validDate } from '../bulk/model.js?v=29ae997dd2e7';
 export const MAX_OCCURRENCES = 1000;
 export function addMonths(date, count) {
   const original = parseDay(date);
@@ -64,7 +64,9 @@ export function repeatDates({ start, end, frequency, weekdays = [] }) {
   return dates;
 }
 export function createRepeatCycle(days, source, id, rule, newId = () => crypto.randomUUID()) {
-  const original = (days[source] || []).find((note) => note.id === id && !note.weekly);
+  const original = (days[source] || []).find(
+    (note) => note.id === id && !note.weekly && !note.yearly,
+  );
   if (!original)
     throw new Error(
       'This note is no longer available. Schedule weekly notes before repeating them.',

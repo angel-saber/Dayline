@@ -8,6 +8,7 @@ Dayline is a browser-based daily planner and focus workspace. Plan in time inter
 - Note titles, bold, italic, underline, colored highlights, and individual checkbox tasks.
 - Swipe to complete or delete, drag to reschedule, and accessible move controls.
 - Monthly overview with quick note creation, date navigation, and cross-day moves.
+- Flexible Yearly planning with an elapsed-time bar, optional annual direction, collapsible quarters, intentions, reflections, linked next steps, and reviewed carry-forward. Reshape, move or set aside intentions without overdue scores.
 - Inspiration Library with 100 source-linked stories, filters, role-model favorites and an option to save a story to Daily.
 - A Shortcuts side panel with Google Meet, Google Drive and editable custom web links saved on this device; accessible during Focus. No API setup required.
 - Standalone Focus Audio with its own launcher, soundtrack/layer controls, tempo presets and background playback independent of Focus sessions.
@@ -34,7 +35,7 @@ Node.js 24 runs the development checks; Python 3 serves the website at http://lo
 
 - `dist/index.html`: page structure; `dist/js/app.js`: small application entry point.
 - `dist/js/app/`: planner coordination and connections between features.
-- `dist/js/features/`: accounts, activities, attachments, bulk actions, Daily, Focus, Monthly/Weekly Notes, note editing, onboarding, reminders, settings/backups, and sharing.
+- `dist/js/features/`: accounts, activities, attachments, bulk actions, Daily, Focus, Monthly/Weekly Notes, Yearly, note editing, onboarding, reminders, settings/backups, and sharing.
 - `dist/js/personalities/zen/`, `builder/`, `founder/`, `poet/`, `astronaut/`, `gamer/`: each personality's authored copy, descriptions, quotes, mantras, onboarding preview, theme, and original soundtrack.
 - `dist/js/shared/`: date/time, scheduling, validated storage, DOM, and download helpers.
 - `dist/styles/index.css`: ordered stylesheet sources; `dist/styles.css`: generated single-file browser bundle.

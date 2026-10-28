@@ -1,5 +1,5 @@
-import { reminderChime } from './reminder-chime.js?v=31f307a53cca';
-import { dayKey, dueEntries, bucket } from '../../shared/schedule.js?v=31f307a53cca';
+import { reminderChime } from './reminder-chime.js?v=29ae997dd2e7';
+import { dayKey, dueEntries, bucket } from '../../shared/schedule.js?v=29ae997dd2e7';
 export class Reminders {
   constructor(getState, onDue, onError, onOpen = () => {}, onAudioState = () => {}) {
     this.getState = getState;
@@ -160,7 +160,9 @@ export class Reminders {
 // Resolve again at click time: a note may have moved or intervals may have changed.
 export function resolveReminder(days, target, interval) {
   for (const date of [target.date, ...Object.keys(days).filter((date) => date !== target.date)]) {
-    const entry = days[date]?.find((entry) => !entry.weekly && entry.id === target.id);
+    const entry = days[date]?.find(
+      (entry) => !entry.weekly && !entry.yearly && entry.id === target.id,
+    );
     if (entry) return { date, id: entry.id, minute: bucket(entry.minute, interval), found: true };
   }
   return { ...target, minute: bucket(target.minute, interval), found: false };

@@ -16,6 +16,7 @@ existing GitHub Actions checks.
 | `dist/js/features/bulk/`        | Selection, categories, multi-note changes, and batch actions.                      |
 | `dist/js/features/daily/`       | Timeline gestures, held drop targets, and rescheduling.                            |
 | `dist/js/features/focus/`       | Session rules, UI, and report rendering.                                           |
+| `dist/js/features/yearly/`      | Flexible annual directions, quarter intentions, reflections and linked next steps. |
 | `dist/js/features/monthly/`     | Month navigation, compact day views, and undated Weekly Notes.                     |
 | `dist/js/features/notes/`       | Shared editor, tags, note rendering, and formatting rules.                         |
 | `dist/js/features/onboarding/`  | First-visit setup and personality previews.                                        |
@@ -393,3 +394,37 @@ note totals, tag figures, Focus time, or holidays from compact lines; disabling 
 four hides the summaries. Expanded Details retain the complete breakdown.
 Preference events update summaries and Settings without rebuilding the calendar
 or editing notes, and storage events synchronize display choices across tabs.
+
+## Flexible Yearly planning
+
+`features/yearly/model.js` owns year positioning, validated intention metadata,
+quarter moves, linked next steps and reviewed carry-forward. `view.js` owns the
+Yearly tab and its draft dialogs. The year bar measures calendar time, never task
+performance. Only the current quarter initially opens; past and future quarters
+have no required fields, overdue states, completion scores or automatic rollover.
+Season labels are optional Northern Hemisphere approximations, saved per browser.
+
+Yearly uses the existing owner-scoped, revision-aware note persistence path.
+Each direction, quarter journal, intention or annual reflection is its own note
+envelope on January 1 with validated `yearly` metadata. The date is a storage
+anchor, not a scheduled item. Daily, Monthly, Focus, reminders, availability,
+bulk selection and summaries exclude these envelopes. Daily replacements retain
+them alongside Weekly Notes. `yearlySource` links ordinary dated/Weekly Notes
+back to their intention; rescheduling them does not move the intention. Backup,
+guest recovery, account drafts and provider-neutral exports retain both fields.
+No new provider, table, SQL migration, runtime dependency or storage key is needed
+for the planning content. Existing older client tabs must reload the new release
+before editing these records; older validators do not understand the metadata.
+
+The existing three-way account merge keeps independent records and preserves
+both concurrent versions. Singleton section conflicts appear under Other saved
+versions, with an explicit choice of which to show. Yearly draft dialogs stay
+mounted during sync, reject stale submissions, and retain drafts on save failure.
+Saving one yearly section does not replace other intentions or dated notes.
+Previous annual directions are optional snapshots, bounded to 100 versions; each
+field is limited to 20,000 characters and the shared day payload stays below the
+existing 1 MB provider limit. Planned next steps remain ordinary notes and never
+automatically complete an intention. Monthly Compass accepts visible Yearly
+context, keeps existing answers, and links its optional Weekly Notes back to the
+intention. Carry-forward requires a reviewed selection and creates new Q1 cards
+while leaving the source year and scheduled steps intact.

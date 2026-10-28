@@ -1,8 +1,8 @@
-import { node as el } from '../../shared/dom.js?v=31f307a53cca';
-import { weekStart } from '../monthly/weekly-model.js?v=31f307a53cca';
-import { dimensions, breathingFrame, compassTitle, compassDates } from './model.js?v=31f307a53cca';
-import { activityCatalog, activityFields } from './catalog.js?v=31f307a53cca';
-import { dayKey } from '../../shared/schedule.js?v=31f307a53cca';
+import { node as el } from '../../shared/dom.js?v=29ae997dd2e7';
+import { weekStart } from '../monthly/weekly-model.js?v=29ae997dd2e7';
+import { dimensions, breathingFrame, compassTitle, compassDates } from './model.js?v=29ae997dd2e7';
+import { activityCatalog, activityFields } from './catalog.js?v=29ae997dd2e7';
+import { dayKey } from '../../shared/schedule.js?v=29ae997dd2e7';
 
 const button = (text, fn, cls = 'secondary') => {
   const b = el('button', cls, text);
@@ -298,7 +298,7 @@ export function setupActivities({ root, savePlan, onSaved }) {
     );
     dialog.append(status, controls);
   }
-  function launchActivity(type) {
+  function launchActivity(type, source = null) {
     if (!drafts.has(type))
       drafts.set(type, {
         answers: {},
@@ -309,6 +309,7 @@ export function setupActivities({ root, savePlan, onSaved }) {
       });
     const draft = drafts.get(type),
       activity = activityCatalog[type];
+    if (source) draft.yearlyContext = source;
     function fieldControls(field, container) {
       const label = el('label', 'planning-question', field.label),
         input = el('textarea', 'planning-answer');
@@ -332,6 +333,14 @@ export function setupActivities({ root, savePlan, onSaved }) {
         return;
       }
       shell(activity.title);
+      if (draft.yearlyContext)
+        dialog.append(
+          el(
+            'p',
+            'yearly-context',
+            `Yearly intention: ${draft.yearlyContext.title}. ${draft.yearlyContext.text || ''} Use this as context; your existing Compass answers are kept.`,
+          ),
+        );
       dialog.append(
         el(
           'p',
@@ -509,6 +518,8 @@ export function setupActivities({ root, savePlan, onSaved }) {
               completedAt: Date.now(),
               answers: { ...draft.answers },
             };
+            if (draft.yearlyContext)
+              report.yearlySource = { year: draft.yearlyContext.year, id: draft.yearlyContext.id };
             if (type === 'compass' && draft.schedule) report.schedule = { mode: 'weekly' };
             if (type === 'two-minute') {
               const elapsed = draft.timer?.elapsed || 0;
@@ -590,4 +601,9 @@ export function setupActivities({ root, savePlan, onSaved }) {
     );
     root.append(card);
   }
+  return {
+    openCompass(source) {
+      launchActivity('compass', source);
+    },
+  };
 }

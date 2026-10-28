@@ -1,7 +1,7 @@
-import { node } from '../../shared/dom.js?v=31f307a53cca';
-import { grouped, timeLabel } from '../../shared/schedule.js?v=31f307a53cca';
-import { noteTitle } from './model.js?v=31f307a53cca';
-import { tagBadges } from '../notes/note-types.js?v=31f307a53cca';
+import { node } from '../../shared/dom.js?v=29ae997dd2e7';
+import { grouped, timeLabel } from '../../shared/schedule.js?v=29ae997dd2e7';
+import { noteTitle } from './model.js?v=29ae997dd2e7';
+import { tagBadges } from '../notes/note-types.js?v=29ae997dd2e7';
 
 const button = (text, label, action, cls = '') => {
   const el = node('button', cls, text);
@@ -37,7 +37,7 @@ export function openExpandedDay({ date, getState, onOpen, onDelete, onMove, anno
   function slots() {
     const state = getState();
     return grouped(
-      (state.days[date] || []).filter((entry) => !entry.weekly),
+      (state.days[date] || []).filter((entry) => !entry.weekly && !entry.yearly),
       state.settings.interval,
     );
   }
