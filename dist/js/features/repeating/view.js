@@ -1,6 +1,8 @@
-import { node } from '../../shared/dom.js?v=e3a1bdfe567b';
-import { offsetDay, parseDay } from '../../shared/dates.js?v=e3a1bdfe567b';
-import { cycleEnd, repeatDates } from './model.js?v=e3a1bdfe567b';
+import { usFederalHolidays, HOLIDAY_SOURCE } from './holidays.js?v=11da2bfc29ac';
+import { hourInput, inputMinute } from '../settings/available-hours.js?v=11da2bfc29ac';
+import { node } from '../../shared/dom.js?v=11da2bfc29ac';
+import { offsetDay, parseDay } from '../../shared/dates.js?v=11da2bfc29ac';
+import { cycleEnd, repeatDates, repeatPlan } from './model.js?v=11da2bfc29ac';
 const button = (text, action, cls = 'secondary') => {
   const el = node('button', cls, text);
   el.type = 'button';
@@ -81,6 +83,20 @@ export function openRepeatCycle({ source, note, apply }) {
     label('How many?', amount),
     label('Custom end date', end),
   );
+  const exceptions = {};
+  let reviewPage = 0;
+  const review = node('section', 'repeat-review');
+  review.setAttribute('aria-label', 'Review individual repeat notes');
+  const holidayHelp = node(
+    'p',
+    'field-hint',
+    'Flags show annual U.S. federal holidays and standard observed dates from 2021 onward, using current rules. State/local holidays, special closures, and Inauguration Day are not included.',
+  );
+  const holidaySource = node('a', '', 'Check the official OPM calendar');
+  holidaySource.href = HOLIDAY_SOURCE;
+  holidaySource.target = '_blank';
+  holidaySource.rel = 'noopener noreferrer';
+  holidayHelp.append(document.createTextNode(' '), holidaySource);
   const preview = node('p', 'repeat-preview');
   preview.setAttribute('aria-live', 'polite');
   const status = node('p', 'field-hint');
@@ -92,12 +108,134 @@ export function openRepeatCycle({ source, note, apply }) {
       start: start.value,
       end: cycleEnd(start.value, duration.value, Number(amount.value), end.value),
       frequency: frequency.value,
+      exceptions,
       weekdays: [...weekdays.querySelectorAll('input')]
         .filter((input) => input.checked)
         .map((input) => Number(input.value)),
     };
   }
-  function update() {
+  function counts() {
+    try {
+      const value = rule(),
+        plan = repeatPlan(value, source);
+      const holidays = plan.filter((item) => usFederalHolidays(item.date).length).length;
+      submit.disabled = !plan.length;
+      preview.textContent = `${plan.length} new ${plan.length === 1 ? 'note' : 'notes'}, ending ${value.end}. ${holidays} on U.S. federal holiday dates. The existing note is kept. Duration includes the start date. Monthly repeats use the last available day when needed.`;
+    } catch (error) {
+      preview.textContent = error.message;
+      submit.disabled = true;
+    }
+  }
+  function reviewRows(value) {
+    review.replaceChildren(node('h3', '', 'Review, adjust, or skip occurrences'));
+    const dates = repeatDates(value).filter((date) => date !== source);
+    if (!dates.length) {
+      review.append(
+        node(
+          'p',
+          'field-hint',
+          'Extend the duration or choose another start date to add new occurrences.',
+        ),
+      );
+      return;
+    }
+    reviewPage = Math.max(0, Math.min(reviewPage, Math.ceil(dates.length / 25) - 1));
+    review.append(
+      node(
+        'p',
+        'field-hint',
+        `Showing ${reviewPage * 25 + 1}–${Math.min(dates.length, (reviewPage + 1) * 25)} of ${dates.length}. Expand a date to edit its note. Body edits reset that occurrence’s text formatting.`,
+      ),
+    );
+    for (const original of dates.slice(reviewPage * 25, (reviewPage + 1) * 25)) {
+      const change = exceptions[original] || {},
+        row = node('details', 'repeat-occurrence'),
+        summary = node('summary');
+      row.dataset.occurrence = original;
+      const heading = node('span');
+      const describe = () => {
+        const date = exceptions[original]?.date || original;
+        heading.textContent =
+          date +
+          (usFederalHolidays(date).length ? ' · ' + usFederalHolidays(date).join(', ') : '') +
+          (exceptions[original]?.skip ? ' · Skipped' : '');
+      };
+      describe();
+      summary.append(heading);
+      row.append(summary);
+      const include = node('input');
+      include.type = 'checkbox';
+      include.checked = !change.skip;
+      include.setAttribute('aria-label', `Include occurrence ${original}`);
+      const includeLabel = node('label', '', ' Include this occurrence');
+      includeLabel.prepend(include);
+      row.append(includeLabel);
+      const edit = (key, input, read = () => input.value) => {
+        input.addEventListener('input', () => {
+          exceptions[original] = { ...exceptions[original], [key]: read() };
+          describe();
+          counts();
+        });
+      };
+      include.addEventListener('change', () => {
+        exceptions[original] = { ...exceptions[original], skip: !include.checked };
+        for (const field of row.querySelectorAll('input:not([type="checkbox"]),textarea'))
+          field.disabled = !include.checked;
+        describe();
+        counts();
+      });
+      const date = node('input');
+      date.type = 'date';
+      date.value = change.date || original;
+      date.min = value.start;
+      date.max = value.end;
+      date.required = true;
+      date.setAttribute('aria-label', `Date for occurrence ${original}`);
+      edit('date', date);
+      const time = node('input');
+      time.type = 'time';
+      time.value = hourInput(change.minute ?? note.minute);
+      time.required = true;
+      time.setAttribute('aria-label', `Time for occurrence ${original}`);
+      edit('minute', time, () => inputMinute(time.value));
+      const title = node('input');
+      title.value = change.title ?? note.title ?? '';
+      title.maxLength = 200;
+      title.setAttribute('aria-label', `Title for occurrence ${original}`);
+      edit('title', title);
+      const text = node('textarea');
+      text.rows = 3;
+      text.value = change.text ?? note.text;
+      text.setAttribute('aria-label', `Text for occurrence ${original}`);
+      edit('text', text);
+      for (const field of [date, time, title, text]) field.disabled = !!change.skip;
+      row.append(
+        label('Date', date),
+        label('Time', time),
+        label('Title', title),
+        label('Note text', text),
+      );
+      review.append(row);
+    }
+    const nav = node('div', 'inline');
+    if (reviewPage > 0)
+      nav.append(
+        button('Previous occurrences', () => {
+          reviewPage--;
+          reviewRows(rule());
+        }),
+      );
+    if ((reviewPage + 1) * 25 < dates.length)
+      nav.append(
+        button('Next occurrences', () => {
+          reviewPage++;
+          reviewRows(rule());
+        }),
+      );
+    review.append(nav);
+  }
+  function update(event) {
+    if (event && review.contains(event.target)) return;
     weekdays.hidden = frequency.value !== 'weekdays';
     amount.parentElement.hidden = duration.value === 'date';
     amount.required = duration.value !== 'date';
@@ -105,15 +243,11 @@ export function openRepeatCycle({ source, note, apply }) {
     end.hidden = duration.value !== 'date';
     end.required = duration.value === 'date';
     end.min = start.value;
+    counts();
     try {
-      const value = rule(),
-        dates = repeatDates(value),
-        added = dates.filter((date) => date !== source).length;
-      submit.disabled = !added;
-      preview.textContent = `${added} new ${added === 1 ? 'note' : 'notes'}, ending ${value.end}. The existing note is kept. Duration includes the start date. Monthly repeats use the last available day when needed.`;
-    } catch (error) {
-      preview.textContent = error.message;
-      submit.disabled = true;
+      reviewRows(rule());
+    } catch {
+      review.replaceChildren();
     }
   }
   form.addEventListener('input', update);
@@ -144,10 +278,12 @@ export function openRepeatCycle({ source, note, apply }) {
     fields,
     weekdays,
     preview,
+    holidayHelp,
+    review,
     node(
       'p',
       'field-hint',
-      'Each occurrence is an independent note at the same time, with the same formatting, tags, and attachment references. Completion and reports start fresh. Editing or deleting one occurrence does not change the others.',
+      'Occurrences remain linked to this finite cycle. Later edits and deletions offer Only this note or This and later repeats. Individual adjustments here apply only to that occurrence. Completion and reports start fresh.',
     ),
     status,
     actions,

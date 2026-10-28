@@ -92,7 +92,11 @@ test('repeat creation preserves source and occupied days, resets completion/hist
   assert.equal(copy.guidedActivities, undefined);
   assert.deepEqual(copy.attachments, note.attachments);
   assert.deepEqual(copy.tags, note.tags);
-  assert.deepEqual(result.previous, { '2026-10-29': days['2026-10-29'], '2026-10-30': [] });
+  assert.deepEqual(result.previous, {
+    '2026-10-28': days['2026-10-28'],
+    '2026-10-29': days['2026-10-29'],
+    '2026-10-30': [],
+  });
   assert.ok(validState({ version: 1, days: { '2026-10-30': [copy] } }));
   assert.throws(() =>
     createRepeatCycle(

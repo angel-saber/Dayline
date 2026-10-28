@@ -1,17 +1,18 @@
-import { validIndents } from '../features/notes/formatting/indents.js?v=e3a1bdfe567b';
-import { validAvailableHours } from '../features/settings/available-hours.js?v=e3a1bdfe567b';
-import { validAttachments } from '../features/attachments/attachments.js?v=e3a1bdfe567b';
+import { validRepeat } from '../features/repeating/series.js?v=11da2bfc29ac';
+import { validIndents } from '../features/notes/formatting/indents.js?v=11da2bfc29ac';
+import { validAvailableHours } from '../features/settings/available-hours.js?v=11da2bfc29ac';
+import { validAttachments } from '../features/attachments/attachments.js?v=11da2bfc29ac';
 import {
   validNoteType,
   validTags,
   validTagSettings,
-} from '../features/notes/note-types.js?v=e3a1bdfe567b';
-import { validGuidedReports } from '../features/activities/model.js?v=e3a1bdfe567b';
-import { validBullets } from '../features/notes/formatting/bullets.js?v=e3a1bdfe567b';
-import { validFocusReports } from '../features/focus/model.js?v=e3a1bdfe567b';
-import { DEFAULT_SETTINGS } from './schedule.js?v=e3a1bdfe567b';
-import { validFormat } from '../features/notes/formatting/format.js?v=e3a1bdfe567b';
-import { validTasks } from '../features/notes/formatting/tasks.js?v=e3a1bdfe567b';
+} from '../features/notes/note-types.js?v=11da2bfc29ac';
+import { validGuidedReports } from '../features/activities/model.js?v=11da2bfc29ac';
+import { validBullets } from '../features/notes/formatting/bullets.js?v=11da2bfc29ac';
+import { validFocusReports } from '../features/focus/model.js?v=11da2bfc29ac';
+import { DEFAULT_SETTINGS } from './schedule.js?v=11da2bfc29ac';
+import { validFormat } from '../features/notes/formatting/format.js?v=11da2bfc29ac';
+import { validTasks } from '../features/notes/formatting/tasks.js?v=11da2bfc29ac';
 const KEY = 'dayline.v1';
 export function validState(value) {
   if (
@@ -49,6 +50,7 @@ export function validState(value) {
           throw new Error('Invalid weekly note.');
         result.weekly = true;
       }
+      if (e.repeat !== undefined) result.repeat = validRepeat(e.repeat);
       if (e.attachments !== undefined) result.attachments = validAttachments(e.attachments);
       if (e.noteType !== undefined) result.noteType = validNoteType(e.noteType);
       if (e.tags !== undefined) result.tags = validTags(e.tags);

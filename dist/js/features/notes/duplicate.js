@@ -6,6 +6,7 @@ export function duplicateNote(notes, id, newId = () => crypto.randomUUID()) {
   copy.id = newId();
   if (!copy.id || notes.some((note) => note.id === copy.id))
     throw new Error('Could not create a unique note.');
+  delete copy.repeat;
   copy.done = false;
   if (copy.tasks) copy.tasks = copy.tasks.map((task) => ({ ...task, done: false }));
   delete copy.focusReports;

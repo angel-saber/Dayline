@@ -1,5 +1,5 @@
-import { parseDay, dayKey, offsetDay } from '../../shared/dates.js?v=e3a1bdfe567b';
-import { validDate } from '../bulk/model.js?v=e3a1bdfe567b';
+import { parseDay, dayKey, offsetDay } from '../../shared/dates.js?v=11da2bfc29ac';
+import { validDate } from '../bulk/model.js?v=11da2bfc29ac';
 export const MAX_OCCURRENCES = 1000;
 export function addMonths(date, count) {
   const original = parseDay(date);
@@ -69,7 +69,7 @@ export function createRepeatCycle(days, source, id, rule, newId = () => crypto.r
     throw new Error(
       'This note is no longer available. Schedule weekly notes before repeating them.',
     );
-  const dates = repeatDates(rule).filter((date) => date !== source);
+  const dates = repeatPlan(rule, source);
   if (!dates.length)
     throw new Error('This cycle adds no new notes. Choose another date or a longer duration.');
   const next = { ...days },
@@ -79,18 +79,79 @@ export function createRepeatCycle(days, source, id, rule, newId = () => crypto.r
       .flat()
       .map((note) => note.id),
   );
-  for (const date of dates) {
+  const cycleId = newId();
+  if (typeof cycleId !== 'string' || !cycleId || seen.has(cycleId))
+    throw new Error('Could not create a unique cycle.');
+  seen.add(cycleId);
+  if (repeatDates(rule).includes(source)) {
+    previous[source] = structuredClone(days[source]);
+    next[source] = days[source].map((note) =>
+      note.id === id
+        ? { ...note, repeat: { id: cycleId, start: rule.start, end: rule.end, occurrence: source } }
+        : note,
+    );
+  }
+  for (const occurrence of dates) {
+    const { date } = occurrence;
     const copy = structuredClone(original);
     copy.id = newId();
     if (typeof copy.id !== 'string' || !copy.id || seen.has(copy.id))
       throw new Error('Could not create unique notes. Please try again.');
     seen.add(copy.id);
+    copy.repeat = {
+      id: cycleId,
+      start: rule.start,
+      end: rule.end,
+      occurrence: occurrence.original,
+    };
+    if (occurrence.title !== undefined) copy.title = occurrence.title;
+    if (occurrence.minute !== undefined) copy.minute = occurrence.minute;
+    if (occurrence.text !== undefined && occurrence.text !== copy.text) {
+      copy.text = occurrence.text;
+      copy.format = [];
+      copy.tasks = [];
+      copy.bullets = [];
+      copy.indents = [];
+    }
     copy.done = false;
     if (copy.tasks) copy.tasks = copy.tasks.map((task) => ({ ...task, done: false }));
     delete copy.focusReports;
     delete copy.guidedActivities;
-    previous[date] = structuredClone(days[date] || []);
-    next[date] = [...(days[date] || []), copy].sort((a, b) => a.minute - b.minute);
+    previous[date] ??= structuredClone(days[date] || []);
+    next[date] = [...(next[date] || []), copy].sort((a, b) => a.minute - b.minute);
   }
   return { days: next, previous, count: dates.length, end: rule.end };
+}
+
+export function repeatPlan(rule, source) {
+  return repeatDates(rule)
+    .filter((date) => date !== source)
+    .flatMap((original) => {
+      const change = rule.exceptions?.[original] || {};
+      if (change.skip === true) return [];
+      const date = change.date || original;
+      if (!validDate(date) || date < rule.start || date > rule.end)
+        throw new Error('Adjusted dates must stay within the cycle’s start and end dates.');
+      if (
+        change.title !== undefined &&
+        (typeof change.title !== 'string' || change.title.length > 200)
+      )
+        throw new Error('Use titles of up to 200 characters.');
+      if (change.text !== undefined && typeof change.text !== 'string')
+        throw new Error('Enter valid note text.');
+      if (
+        change.minute !== undefined &&
+        (!Number.isInteger(change.minute) || change.minute < 0 || change.minute >= 1440)
+      )
+        throw new Error('Choose a valid occurrence time.');
+      return [
+        {
+          original,
+          date,
+          ...(change.title !== undefined ? { title: change.title } : {}),
+          ...(change.text !== undefined ? { text: change.text } : {}),
+          ...(change.minute !== undefined ? { minute: change.minute } : {}),
+        },
+      ];
+    });
 }

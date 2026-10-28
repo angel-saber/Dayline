@@ -26,6 +26,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
     'sessionStorage',
     'Event',
     'Node',
+    'NodeFilter',
     'CustomEvent',
     'matchMedia',
     'CSS',
@@ -127,6 +128,13 @@ test('the assembled planner starts, switches views/personalities, edits settings
   };
   window.history = { replaceState() {} };
   window.scrollTo = () => {};
+  window.getSelection = () => ({ rangeCount: 0, removeAllRanges() {}, addRange() {} });
+  document.createRange = () => ({
+    setStart() {},
+    setEnd() {},
+    selectNodeContents() {},
+    toString: () => '',
+  });
   const network = [];
   try {
     const values = {
@@ -136,6 +144,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
       sessionStorage: memoryStorage(),
       Event: window.Event,
       Node: window.Node,
+      NodeFilter: { SHOW_TEXT: 4 },
       CustomEvent: window.CustomEvent,
       matchMedia: (query) => ({
         matches: query !== '(prefers-reduced-motion: reduce)',
@@ -227,6 +236,47 @@ test('the assembled planner starts, switches views/personalities, edits settings
     local.setItem('dayline.v1', JSON.stringify(undoneRepeats));
     const repeatRestore = new window.Event('storage');
     Object.defineProperty(repeatRestore, 'key', { value: 'dayline.v1' });
+    window.dispatchEvent(repeatRestore);
+    // Restore the linked cycle to exercise real editor/delete scope choices.
+    local.setItem('dayline.v1', JSON.stringify({ ...fixture, days: repeatedDays }));
+    window.dispatchEvent(repeatRestore);
+    const chooseScope = (text) =>
+      [...document.querySelector('.repeat-scope-dialog').querySelectorAll('button')]
+        .find((button) => button.textContent === text)
+        .click();
+    document.querySelector('[data-id="saved-note"] .daily-note-title').click();
+    assert.ok(document.querySelector('.repeat-scope-dialog'));
+    chooseScope('This and later repeats');
+    const seriesTitle = document.querySelector('#timeline .note-title-input');
+    seriesTitle.value = 'Updated series title';
+    seriesTitle.dispatchEvent(new window.Event('input'));
+    document.querySelector('#timeline [aria-label="Close note editor"]').click();
+    let changedSeries = JSON.parse(local.getItem('dayline.v1')).days;
+    assert.equal(
+      changedSeries[today].find((note) => note.id === 'saved-note').title,
+      'Updated series title',
+    );
+    for (const date of repeatDates)
+      assert.equal(changedSeries[date][0].title, 'Updated series title');
+    document.querySelector('#undo').click();
+    assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, repeatedDays);
+    document.querySelector('[data-id="saved-note"] [aria-label="Delete note"]').click();
+    chooseScope('Only this note');
+    changedSeries = JSON.parse(local.getItem('dayline.v1')).days;
+    assert.ok(!changedSeries[today].some((note) => note.id === 'saved-note'));
+    assert.ok(changedSeries[repeatDates[0]].length);
+    document.querySelector('#undo').click();
+    document.querySelector('[data-id="saved-note"] [aria-label="Delete note"]').click();
+    chooseScope('This and later repeats');
+    changedSeries = JSON.parse(local.getItem('dayline.v1')).days;
+    assert.ok(
+      !Object.values(changedSeries)
+        .flat()
+        .some((note) => note.repeat),
+    );
+    document.querySelector('#undo').click();
+    assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, repeatedDays);
+    local.setItem('dayline.v1', JSON.stringify(undoneRepeats));
     window.dispatchEvent(repeatRestore);
     const duplicate = document.querySelector('[aria-label="Duplicate note"]');
     assert.ok(duplicate);
