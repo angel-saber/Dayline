@@ -161,6 +161,73 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.equal(document.querySelector('#auth-view').hidden, true);
     assert.match(document.querySelector('#timeline').textContent, /Saved plan/);
     assert.equal(document.querySelectorAll('.line-checkbox').length, 1);
+    document.querySelector('[aria-label="Repeat note"]').click();
+    const repeat = document.querySelector('.repeat-dialog');
+    assert.equal(repeat.open, true);
+    assert.match(repeat.textContent, /doesn’t repeat notes forever/);
+    assert.match(repeat.textContent, /recommit/);
+    repeat.querySelector('[aria-label="Repeat duration"]').value = 'days';
+    repeat.querySelector('[aria-label="Repeat duration amount"]').value = '3';
+    repeat
+      .querySelector('[aria-label="Repeat duration"]')
+      .dispatchEvent(new window.Event('change', { bubbles: true }));
+    assert.match(repeat.querySelector('.repeat-preview').textContent, /2 new notes/);
+    const frequency = repeat.querySelector('[aria-label="Repeat frequency"]');
+    frequency.value = 'weekdays';
+    for (const input of repeat.querySelectorAll('.repeat-weekdays input')) input.checked = false;
+    frequency.dispatchEvent(new window.Event('change', { bubbles: true }));
+    assert.match(
+      repeat.querySelector('.repeat-preview').textContent,
+      /Choose at least one weekday/,
+    );
+    assert.equal(repeat.querySelector('button[type="submit"]').disabled, true);
+    frequency.value = 'daily';
+    repeat.querySelector('[aria-label="Repeat duration"]').value = 'date';
+    repeat.querySelector('[aria-label="Repeat end date"]').value = dayKey(
+      new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 12),
+    );
+    frequency.dispatchEvent(new window.Event('change', { bubbles: true }));
+    assert.match(repeat.querySelector('.repeat-preview').textContent, /1 new note/);
+    repeat.querySelector('[aria-label="Repeat duration"]').value = 'days';
+    frequency.dispatchEvent(new window.Event('change', { bubbles: true }));
+
+    const repeatStorage = local.setItem;
+    local.setItem = (key, value) => {
+      if (key === 'dayline.v1') throw new Error('Storage full');
+      repeatStorage(key, value);
+    };
+    repeat
+      .querySelector('form')
+      .dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+    assert.equal(repeat.open, true);
+    assert.match(repeat.textContent, /No notes were added/);
+    assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
+    local.setItem = repeatStorage;
+    repeat
+      .querySelector('form')
+      .dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+    assert.ok(!document.querySelector('.repeat-dialog'));
+    const repeatedDays = JSON.parse(local.getItem('dayline.v1')).days;
+    const repeatDates = [1, 2].map((offset) =>
+      dayKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset, 12)),
+    );
+    for (const date of repeatDates) {
+      assert.equal(repeatedDays[date][0].text, 'Keep this plan');
+      assert.equal(repeatedDays[date][0].minute, minute);
+      assert.equal(repeatedDays[date][0].done, false);
+      assert.notEqual(repeatedDays[date][0].id, 'saved-note');
+    }
+    document.querySelector('#undo').click();
+    const undoneRepeats = JSON.parse(local.getItem('dayline.v1'));
+    for (const date of repeatDates) {
+      assert.deepEqual(undoneRepeats.days[date], []);
+      delete undoneRepeats.days[date];
+    }
+    assert.deepEqual(undoneRepeats.days, fixture.days);
+    local.setItem('dayline.v1', JSON.stringify(undoneRepeats));
+    const repeatRestore = new window.Event('storage');
+    Object.defineProperty(repeatRestore, 'key', { value: 'dayline.v1' });
+    window.dispatchEvent(repeatRestore);
     const duplicate = document.querySelector('[aria-label="Duplicate note"]');
     assert.ok(duplicate);
     duplicate.click();

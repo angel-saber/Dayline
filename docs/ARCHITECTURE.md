@@ -338,3 +338,18 @@ Settings toggle are device-local keys; they do not alter account preferences or
 require a schema migration. The notice directs users to Settings to disable the
 daily invitation; More remains available. Responses are saved only when the user
 chooses Save action to Daily, using existing note persistence, sync, and Undo.
+
+## Finite repeat cycles
+
+`features/repeating/model.js` expands an explicitly bounded daily, weekly,
+monthly, or selected-weekday rule into ordinary independent dated notes.
+`view.js` provides start, duration/end date, live count, recommitment explanation,
+and confirmation. Duration counts the start date; month arithmetic clamps to the
+last available day, and monthly dates are anchored to the original day rather
+than drifting after February. At most 1000 occurrences are accepted per cycle;
+large rules fail without truncation or partial writes. The source is retained,
+completion/tasks reset in new copies, and historical reports are not copied.
+Attachment references and formatting remain intact. Creating a cycle persists
+once, rolls back on failure, and has a single Undo snapshot covering all target
+days. No scheduler, automatic renewal, new note fields, or database migration is
+introduced; existing reminders, Monthly, sync, and backups see normal notes.
