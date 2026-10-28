@@ -1,9 +1,9 @@
-import { SUMMARY_PREFERENCES_EVENT } from '../summaries/preferences.js?v=ac12573d358a';
-import { summarySource, summarizePeriod } from '../summaries/model.js?v=ac12573d358a';
-import { createPeriodSummary } from '../summaries/view.js?v=ac12573d358a';
-import { openExpandedDay } from './expanded-day.js?v=ac12573d358a';
-import { node } from '../../shared/dom.js?v=ac12573d358a';
-import { createWeeklySection } from './weekly-notes.js?v=ac12573d358a';
+import { SUMMARY_PREFERENCES_EVENT } from '../summaries/preferences.js?v=dc42e2a6f2c9';
+import { summarySource, summarizePeriod } from '../summaries/model.js?v=dc42e2a6f2c9';
+import { createPeriodSummary } from '../summaries/view.js?v=dc42e2a6f2c9';
+import { openExpandedDay } from './expanded-day.js?v=dc42e2a6f2c9';
+import { node } from '../../shared/dom.js?v=dc42e2a6f2c9';
+import { createWeeklySection } from './weekly-notes.js?v=dc42e2a6f2c9';
 import {
   NOTE_TYPES,
   categoryOptions,
@@ -13,11 +13,11 @@ import {
   typeBadge,
   noteTags,
   categoryLabel,
-} from '../notes/note-types.js?v=ac12573d358a';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=ac12573d358a';
-import { dateActions } from './date-actions.js?v=ac12573d358a';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=ac12573d358a';
-import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=ac12573d358a';
+} from '../notes/note-types.js?v=dc42e2a6f2c9';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=dc42e2a6f2c9';
+import { dateActions } from './date-actions.js?v=dc42e2a6f2c9';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=dc42e2a6f2c9';
+import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=dc42e2a6f2c9';
 
 const button = (text, label, action) => {
   const el = node('button', '', text);
@@ -523,6 +523,26 @@ export function setupMonthly({
     temp.schedule(item.id, date);
     temp.destroy();
   }
+  function dropNote(item, target) {
+    const weekly = target?.closest('.weekly-notes[data-week]');
+    if (weekly && applyWeekly) {
+      flushWeekly();
+      const result = applyWeekly(
+        item.weekly ? item.source : weekly.dataset.week,
+        item.id,
+        item.weekly
+          ? { kind: 'move', date: weekly.dataset.week }
+          : { kind: 'unschedule', date: item.source },
+      );
+      if (result) render();
+      return;
+    }
+    const day = target?.closest('.month-day');
+    if (day) {
+      if (item.weekly) scheduleWeeklyDrop(item, day.dataset.date);
+      else onMove(item.source, item.id, day.dataset.date);
+    }
+  }
   function scrollNoteList(target, y) {
     const list = target?.closest('.month-notes');
     if (!list) return;
@@ -534,7 +554,7 @@ export function setupMonthly({
     root
       .querySelectorAll('.month-drop-target')
       .forEach((el) => el.classList.remove('month-drop-target'));
-    target?.closest('.month-day')?.classList.add('month-drop-target');
+    target?.closest('.weekly-notes[data-week],.month-day')?.classList.add('month-drop-target');
   }
   function hoverMonth(target) {
     const step = target?.closest('[data-month-step]');
@@ -575,7 +595,7 @@ export function setupMonthly({
       'text/plain',
       card.querySelector('.month-note-title,.weekly-note-title').textContent,
     );
-    announce('Drop the note on a day. Hover over a month arrow to change months.');
+    announce('Drop the note on a day or Weekly Notes. Hover over a month arrow to change months.');
   });
   root.addEventListener('dragover', (event) => {
     if (!drag) return;
@@ -588,13 +608,9 @@ export function setupMonthly({
   root.addEventListener('drop', (event) => {
     if (!drag) return;
     event.preventDefault();
-    const day = event.target.closest('.month-day'),
-      item = drag;
+    const item = drag;
     clearDrag();
-    if (day) {
-      if (item.weekly) scheduleWeeklyDrop(item, day.dataset.date);
-      else onMove(item.source, item.id, day.dataset.date);
-    }
+    dropNote(item, event.target);
     finishSyncRefresh();
   });
   root.addEventListener('dragend', () => {
@@ -634,7 +650,7 @@ export function setupMonthly({
       } catch {
         /* Continue while the pointer is inside the calendar. */
       }
-      announce('Drag to a day, then release.');
+      announce('Drag to a day or Weekly Notes, then release.');
     }, 350);
   });
   root.addEventListener('pointermove', (event) => {
@@ -670,12 +686,9 @@ export function setupMonthly({
         suppressClick = false;
       }, 500);
       event.preventDefault();
-      const day = document.elementFromPoint(event.clientX, event.clientY)?.closest('.month-day');
+      const target = document.elementFromPoint(event.clientX, event.clientY);
       clearDrag();
-      if (event.type === 'pointerup' && day) {
-        if (item.weekly) scheduleWeeklyDrop(item, day.dataset.date);
-        else onMove(item.source, item.id, day.dataset.date);
-      }
+      if (event.type === 'pointerup') dropNote(item, target);
     }
     finishSyncRefresh();
   }

@@ -487,6 +487,44 @@ test('the assembled planner starts, switches views/personalities, edits settings
     const restore = new window.Event('storage');
     Object.defineProperty(restore, 'key', { value: 'dayline.v1' });
     window.dispatchEvent(restore);
+    // Both native and held-touch Daily drops into Weekly Notes persist and undo.
+    const savedPlan = structuredClone(fixture.days[today].find((note) => note.id === 'saved-note'));
+    const weeklyTarget = () => document.querySelector(`.weekly-notes[data-week="${anchor}"]`);
+    const dailyHandle = () =>
+      document.querySelector('.month-note[data-id="saved-note"] .month-drag');
+    const nativeDailyStart = new window.Event('dragstart', { bubbles: true, cancelable: true });
+    Object.defineProperty(nativeDailyStart, 'dataTransfer', { value: { setData() {} } });
+    dailyHandle().dispatchEvent(nativeDailyStart);
+    const over = new window.Event('dragover', { bubbles: true, cancelable: true });
+    Object.defineProperty(over, 'dataTransfer', { value: { types: ['text/plain'], files: [] } });
+    weeklyTarget().querySelector('h3').dispatchEvent(over);
+    assert.equal(weeklyTarget().classList.contains('month-drop-target'), true);
+    const dailyDrop = new window.Event('drop', { bubbles: true, cancelable: true });
+    Object.defineProperty(dailyDrop, 'dataTransfer', { value: { files: [] } });
+    weeklyTarget().querySelector('.weekly-note-title').dispatchEvent(dailyDrop);
+    let undated = JSON.parse(local.getItem('dayline.v1')).days[anchor].find(
+      (note) => note.id === 'saved-note',
+    );
+    assert.deepEqual(undated, { ...savedPlan, weekly: true, minute: 0 });
+    assert.ok(document.querySelector('.weekly-note[data-id="saved-note"]'));
+    assert.equal(document.querySelector('.month-note[data-id="saved-note"]'), null);
+    document.querySelector('#undo').click();
+    assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
+    document.elementFromPoint = () => weeklyTarget().querySelector('h3');
+    dailyHandle().dispatchEvent(pointer('pointerdown'));
+    await new Promise((resolve) => setTimeout(resolve, 380));
+    window.dispatchEvent(pointer('pointercancel'));
+    assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
+    dailyHandle().dispatchEvent(pointer('pointerdown'));
+    await new Promise((resolve) => setTimeout(resolve, 380));
+    window.dispatchEvent(pointer('pointerup'));
+    undated = JSON.parse(local.getItem('dayline.v1')).days[anchor].find(
+      (note) => note.id === 'saved-note',
+    );
+    assert.deepEqual(undated, { ...savedPlan, weekly: true, minute: 0 });
+    assert.equal(document.body.classList.contains('month-dragging'), false);
+    document.querySelector('#undo').click();
+    assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
     // A real single tap on the day’s empty notes area opens quick add after the
     // double-tap window, rather than requiring the small date heading.
     const emptyArea = document.querySelector(`.month-day[data-date="${today}"] .month-notes`);

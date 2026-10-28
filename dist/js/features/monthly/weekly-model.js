@@ -1,6 +1,6 @@
-import { duplicateNote } from '../notes/duplicate.js?v=ac12573d358a';
-import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=ac12573d358a';
-import { validDate } from '../bulk/model.js?v=ac12573d358a';
+import { duplicateNote } from '../notes/duplicate.js?v=dc42e2a6f2c9';
+import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=dc42e2a6f2c9';
+import { validDate } from '../bulk/model.js?v=dc42e2a6f2c9';
 export function weekStart(date) {
   if (!validDate(date)) throw new Error('Choose a valid date.');
   return offsetDay(date, -parseDay(date).getDay());
@@ -10,6 +10,31 @@ export function weeklyNotes(days, week) {
 }
 export function changeWeekly(days, week, id, action, newId = () => crypto.randomUUID()) {
   week = weekStart(week);
+  if (action.kind === 'unschedule') {
+    if (!validDate(action.date)) throw new Error('Choose a valid source date.');
+    const source = days[action.date] || [],
+      entry = source.find((note) => note.id === id && !note.weekly && !note.yearly);
+    if (!entry) throw new Error('This Daily note is no longer available.');
+    const destination = (days[week] || []).filter((note) => action.date !== week || note !== entry),
+      copy = { ...entry, weekly: true, minute: 0 };
+    // Only this occurrence becomes undated; its repeat cycle continues unchanged.
+    delete copy.repeat;
+    if (destination.some((note) => note.id === copy.id)) copy.id = newId();
+    if (!copy.id || destination.some((note) => note.id === copy.id))
+      throw new Error('Could not create a unique note.');
+    return {
+      days: {
+        ...days,
+        [action.date]: source.filter((note) => note !== entry),
+        [week]: [...destination, copy],
+      },
+      previous: Object.fromEntries(
+        [...new Set([action.date, week])].map((date) => [date, structuredClone(days[date] || [])]),
+      ),
+      id: copy.id,
+      date: week,
+    };
+  }
   const list = days[week] || [],
     entry = list.find((note) => note.id === id && note.weekly === true),
     previous = { [week]: structuredClone(list) };

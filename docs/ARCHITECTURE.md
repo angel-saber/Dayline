@@ -495,3 +495,12 @@ HTML is accepted. Bulk ordering and report inclusion remain shared with text exp
 reports stay excluded by default. Native Share and mailto remain plain text because
 receiving apps control formatting. Rich clipboard failure falls back to text; formatted
 HTML does not embed note attachments, which retain their separate sharing controls.
+
+Monthly's shared desktop/touch drop routing accepts Weekly Notes sections as well
+as day cells. A Daily drop invokes `changeWeekly`'s `unschedule` action through the
+existing persistence and Undo boundary: it moves the whole note to the target
+Sunday anchor, sets `weekly: true`/`minute: 0`, and preserves content and file
+references. A repeated occurrence detaches from its cycle; other occurrences stay
+unchanged. Same-Sunday moves and destination ID collisions preserve neighbors.
+Weekly-to-Weekly drops use the existing week move. Cancelled/invalid drops do
+nothing, and background sync remains deferred until the gesture finishes.

@@ -1,16 +1,16 @@
-import { node } from '../../shared/dom.js?v=ac12573d358a';
-import { bindFileDrop } from '../attachments/attachments.js?v=ac12573d358a';
-import { weeklyNotes, weekStart } from './weekly-model.js?v=ac12573d358a';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=ac12573d358a';
+import { node } from '../../shared/dom.js?v=dc42e2a6f2c9';
+import { bindFileDrop } from '../attachments/attachments.js?v=dc42e2a6f2c9';
+import { weeklyNotes, weekStart } from './weekly-model.js?v=dc42e2a6f2c9';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=dc42e2a6f2c9';
 import {
   availableHours,
   hourInput,
   inputMinute,
-} from '../settings/available-hours.js?v=ac12573d358a';
-import { createNoteEditor } from '../notes/note-editor.js?v=ac12573d358a';
-import { categoryOptions, tagBadges } from '../notes/note-types.js?v=ac12573d358a';
-import { openShareNote } from '../sharing/share-note.js?v=ac12573d358a';
-import { noteTitle } from './model.js?v=ac12573d358a';
+} from '../settings/available-hours.js?v=dc42e2a6f2c9';
+import { createNoteEditor } from '../notes/note-editor.js?v=dc42e2a6f2c9';
+import { categoryOptions, tagBadges } from '../notes/note-types.js?v=dc42e2a6f2c9';
+import { openShareNote } from '../sharing/share-note.js?v=dc42e2a6f2c9';
+import { noteTitle } from './model.js?v=dc42e2a6f2c9';
 
 const button = (text, fn, cls = 'secondary') => {
   const el = node('button', cls, text);
@@ -22,6 +22,7 @@ export function createWeeklySection({ week, getState, apply, onChanged }) {
   const section = node('section', 'weekly-notes'),
     header = node('div', 'weekly-notes-header'),
     list = node('div', 'weekly-notes-list');
+  section.dataset.week = week;
   let editors = [];
   header.append(
     node('h3', '', 'Weekly Notes'),
@@ -36,7 +37,7 @@ export function createWeeklySection({ week, getState, apply, onChanged }) {
     node(
       'p',
       'field-hint',
-      'Ideas, tasks, and reminders for this week, without a date or time. Schedule when you’re ready.',
+      'Ideas, tasks, and reminders for this week, without a date or time. Drag a Daily note here to unschedule it, or drag a weekly note onto a day when you’re ready.',
     ),
     list,
   );

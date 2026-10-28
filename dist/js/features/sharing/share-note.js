@@ -1,21 +1,21 @@
-import { richBody, escapeHtml, copyFormatted } from './share-format.js?v=ac12573d358a';
-import { node } from '../../shared/dom.js?v=ac12573d358a';
-import { weekStart } from '../monthly/weekly-model.js?v=ac12573d358a';
-import { offsetDay } from '../../shared/schedule.js?v=ac12573d358a';
-import { indentLevel } from '../notes/formatting/indents.js?v=ac12573d358a';
+import { richBody, escapeHtml, copyFormatted } from './share-format.js?v=dc42e2a6f2c9';
+import { node } from '../../shared/dom.js?v=dc42e2a6f2c9';
+import { weekStart } from '../monthly/weekly-model.js?v=dc42e2a6f2c9';
+import { offsetDay } from '../../shared/schedule.js?v=dc42e2a6f2c9';
+import { indentLevel } from '../notes/formatting/indents.js?v=dc42e2a6f2c9';
 import {
   shareAttachments,
   prepareShareFiles,
   supportsFileShare,
-} from './share-files.js?v=ac12573d358a';
-import { attachmentList } from '../attachments/attachments.js?v=ac12573d358a';
-import { parseDay, timeLabel } from '../../shared/schedule.js?v=ac12573d358a';
-import { noteTasks } from '../notes/formatting/tasks.js?v=ac12573d358a';
-import { NOTE_TYPES, categoryLabel, noteTags } from '../notes/note-types.js?v=ac12573d358a';
-import { safeLink } from '../notes/formatting/links.js?v=ac12573d358a';
-import { durationLabel } from '../focus/model.js?v=ac12573d358a';
-import { dimensions, compassTitle, compassDates } from '../activities/model.js?v=ac12573d358a';
-import { activityCatalog, activityFields } from '../activities/catalog.js?v=ac12573d358a';
+} from './share-files.js?v=dc42e2a6f2c9';
+import { attachmentList } from '../attachments/attachments.js?v=dc42e2a6f2c9';
+import { parseDay, timeLabel } from '../../shared/schedule.js?v=dc42e2a6f2c9';
+import { noteTasks } from '../notes/formatting/tasks.js?v=dc42e2a6f2c9';
+import { NOTE_TYPES, categoryLabel, noteTags } from '../notes/note-types.js?v=dc42e2a6f2c9';
+import { safeLink } from '../notes/formatting/links.js?v=dc42e2a6f2c9';
+import { durationLabel } from '../focus/model.js?v=dc42e2a6f2c9';
+import { dimensions, compassTitle, compassDates } from '../activities/model.js?v=dc42e2a6f2c9';
+import { activityCatalog, activityFields } from '../activities/catalog.js?v=dc42e2a6f2c9';
 export const SHARE_DEFAULTS = {
   dateTime: true,
   type: true,
