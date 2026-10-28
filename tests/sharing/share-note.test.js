@@ -86,3 +86,94 @@ test('email drafts encode title and exact preview contents without adding recipi
   assert.equal(query.size, 2);
   assert.ok(url.startsWith('mailto:?'));
 });
+
+test('formatted shares preserve overlapping styles, colors, lists, links and indentation without executable HTML', async () => {
+  const { shareNotesHtml } = await import('../../dist/js/features/sharing/share-note.js');
+  const note = {
+    ...entry,
+    title: '<img src=x onerror=alert(1)>',
+    text: 'Bold & safe\nDone\nBullet',
+    tasks: [{ start: 12, done: true }],
+    bullets: [{ start: 17 }],
+    indents: [{ start: 17, level: 2 }],
+    format: [
+      {
+        start: 0,
+        end: 4,
+        bold: true,
+        italic: true,
+        underline: true,
+        highlight: 'blue',
+        href: 'https://example.com/?a=1&b=2',
+      },
+    ],
+  };
+  const before = structuredClone(note);
+  const html = shareNotesHtml([{ entry: note, date: '2026-10-23' }]);
+  assert.ok(html.includes('<strong>Bold</strong>'));
+  assert.ok(html.includes('<em>'));
+  assert.ok(html.includes('<u>'));
+  assert.ok(html.includes('background-color:#cde7ff'));
+  assert.ok(html.includes('href="https://example.com/?a=1&amp;b=2"'));
+  assert.ok(html.includes('☑ <s>Done</s>'));
+  assert.ok(html.includes('    • Bullet'));
+  assert.ok(html.includes('&lt;img'));
+  assert.ok(!html.includes('<img'));
+  assert.ok(!html.includes('Private interruption'));
+  assert.deepEqual(note, before);
+  const bulk = shareNotesHtml(
+    [
+      { entry: note, date: '2026-10-23' },
+      { entry, date: '2026-10-24' },
+    ],
+    { organize: 'category' },
+    '12',
+    '<Plan>',
+  );
+  assert.ok(bulk.includes('&lt;Plan&gt;'));
+  assert.ok(bulk.includes('<strong>Bold</strong>'));
+  assert.equal((bulk.match(/Planned with Dayline/g) || []).length, 1);
+});
+
+test('formatted clipboard includes HTML and text and falls back cleanly', async () => {
+  const { copyFormatted } = await import('../../dist/js/features/sharing/share-format.js');
+  let written;
+  class Item {
+    constructor(data) {
+      this.data = data;
+    }
+  }
+  assert.equal(
+    await copyFormatted(
+      '<b>Hello</b>',
+      'Hello',
+      {
+        write: async (items) => {
+          written = items[0].data;
+        },
+      },
+      Item,
+    ),
+    true,
+  );
+  assert.equal(await written['text/html'].text(), '<b>Hello</b>');
+  assert.equal(await written['text/plain'].text(), 'Hello');
+  let plain;
+  assert.equal(
+    await copyFormatted(
+      '<b>Hello</b>',
+      'Hello',
+      {
+        write: async () => {
+          throw Error('unsupported');
+        },
+        writeText: async (text) => {
+          plain = text;
+        },
+      },
+      Item,
+    ),
+    false,
+  );
+  assert.equal(plain, 'Hello');
+});

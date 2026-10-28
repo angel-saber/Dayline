@@ -1,19 +1,19 @@
-import { validYearly, validYearlySource } from '../features/yearly/model.js?v=45ea95c7642d';
-import { validRepeat } from '../features/repeating/series.js?v=45ea95c7642d';
-import { validIndents } from '../features/notes/formatting/indents.js?v=45ea95c7642d';
-import { validAvailableHours } from '../features/settings/available-hours.js?v=45ea95c7642d';
-import { validAttachments } from '../features/attachments/attachments.js?v=45ea95c7642d';
+import { validYearly, validYearlySource } from '../features/yearly/model.js?v=ac12573d358a';
+import { validRepeat } from '../features/repeating/series.js?v=ac12573d358a';
+import { validIndents } from '../features/notes/formatting/indents.js?v=ac12573d358a';
+import { validAvailableHours } from '../features/settings/available-hours.js?v=ac12573d358a';
+import { validAttachments } from '../features/attachments/attachments.js?v=ac12573d358a';
 import {
   validNoteType,
   validTags,
   validTagSettings,
-} from '../features/notes/note-types.js?v=45ea95c7642d';
-import { validGuidedReports } from '../features/activities/model.js?v=45ea95c7642d';
-import { validBullets } from '../features/notes/formatting/bullets.js?v=45ea95c7642d';
-import { validFocusReports } from '../features/focus/model.js?v=45ea95c7642d';
-import { DEFAULT_SETTINGS } from './schedule.js?v=45ea95c7642d';
-import { validFormat } from '../features/notes/formatting/format.js?v=45ea95c7642d';
-import { validTasks } from '../features/notes/formatting/tasks.js?v=45ea95c7642d';
+} from '../features/notes/note-types.js?v=ac12573d358a';
+import { validGuidedReports } from '../features/activities/model.js?v=ac12573d358a';
+import { validBullets } from '../features/notes/formatting/bullets.js?v=ac12573d358a';
+import { validFocusReports } from '../features/focus/model.js?v=ac12573d358a';
+import { DEFAULT_SETTINGS } from './schedule.js?v=ac12573d358a';
+import { validFormat } from '../features/notes/formatting/format.js?v=ac12573d358a';
+import { validTasks } from '../features/notes/formatting/tasks.js?v=ac12573d358a';
 const KEY = 'dayline.v1';
 export function validState(value) {
   if (

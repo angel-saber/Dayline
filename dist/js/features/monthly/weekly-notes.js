@@ -1,16 +1,16 @@
-import { node } from '../../shared/dom.js?v=45ea95c7642d';
-import { bindFileDrop } from '../attachments/attachments.js?v=45ea95c7642d';
-import { weeklyNotes, weekStart } from './weekly-model.js?v=45ea95c7642d';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=45ea95c7642d';
+import { node } from '../../shared/dom.js?v=ac12573d358a';
+import { bindFileDrop } from '../attachments/attachments.js?v=ac12573d358a';
+import { weeklyNotes, weekStart } from './weekly-model.js?v=ac12573d358a';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=ac12573d358a';
 import {
   availableHours,
   hourInput,
   inputMinute,
-} from '../settings/available-hours.js?v=45ea95c7642d';
-import { createNoteEditor } from '../notes/note-editor.js?v=45ea95c7642d';
-import { categoryOptions, tagBadges } from '../notes/note-types.js?v=45ea95c7642d';
-import { openShareNote } from '../sharing/share-note.js?v=45ea95c7642d';
-import { noteTitle } from './model.js?v=45ea95c7642d';
+} from '../settings/available-hours.js?v=ac12573d358a';
+import { createNoteEditor } from '../notes/note-editor.js?v=ac12573d358a';
+import { categoryOptions, tagBadges } from '../notes/note-types.js?v=ac12573d358a';
+import { openShareNote } from '../sharing/share-note.js?v=ac12573d358a';
+import { noteTitle } from './model.js?v=ac12573d358a';
 
 const button = (text, fn, cls = 'secondary') => {
   const el = node('button', cls, text);

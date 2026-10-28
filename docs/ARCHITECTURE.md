@@ -487,3 +487,11 @@ card width beneath that header. Narrow layouts keep a single content row (with
 the existing selection column in bulk mode); toolbar wrapping never overlays or
 narrows the body. These are layout changes only, preserving saved note content
 and formatting.
+
+Sharing offers rich clipboard HTML alongside its plain-text alternative and a standalone
+formatted HTML download. `features/sharing/share-format.js` renders only escaped text,
+validated links and allowed inline styles from the existing note ranges. No saved note
+HTML is accepted. Bulk ordering and report inclusion remain shared with text export;
+reports stay excluded by default. Native Share and mailto remain plain text because
+receiving apps control formatting. Rich clipboard failure falls back to text; formatted
+HTML does not embed note attachments, which retain their separate sharing controls.
