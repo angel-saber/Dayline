@@ -4521,6 +4521,12 @@ button.slot-time .now-badge {
   min-width: 0;
 }
 
+.weekly-notes.month-drop-target {
+  background: color-mix(in srgb, var(--green) 12%, var(--white));
+  outline: 2px solid var(--green);
+  outline-offset: -2px;
+}
+
 
 :root[data-layout='astronaut'] body {
   background-image:

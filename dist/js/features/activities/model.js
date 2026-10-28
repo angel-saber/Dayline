@@ -1,7 +1,7 @@
-import { validYearlySource } from '../yearly/model.js?v=ac12573d358a';
-import { weekStart } from '../monthly/weekly-model.js?v=ac12573d358a';
-import { activityCatalog, activityFields, lifeDimensions } from './catalog.js?v=ac12573d358a';
-import { dayKey, bucket, offsetDay } from '../../shared/schedule.js?v=ac12573d358a';
+import { validYearlySource } from '../yearly/model.js?v=dc42e2a6f2c9';
+import { weekStart } from '../monthly/weekly-model.js?v=dc42e2a6f2c9';
+import { activityCatalog, activityFields, lifeDimensions } from './catalog.js?v=dc42e2a6f2c9';
+import { dayKey, bucket, offsetDay } from '../../shared/schedule.js?v=dc42e2a6f2c9';
 export const dimensions = [
   {
     key: 'work',

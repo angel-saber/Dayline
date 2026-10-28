@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=ac12573d358a';
-import { dayKey } from '../../shared/dates.js?v=ac12573d358a';
+import { node } from '../../shared/dom.js?v=dc42e2a6f2c9';
+import { dayKey } from '../../shared/dates.js?v=dc42e2a6f2c9';
 import {
   validYearly,
   DIMENSIONS,
@@ -7,7 +7,7 @@ import {
   yearPosition,
   yearRecords,
   linkedNotes,
-} from './model.js?v=ac12573d358a';
+} from './model.js?v=dc42e2a6f2c9';
 
 const button = (text, action, className = 'secondary') => {
   const item = node('button', className, text);

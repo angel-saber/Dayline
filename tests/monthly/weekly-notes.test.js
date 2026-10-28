@@ -184,3 +184,65 @@ test('attachment backups include files referenced by Weekly Notes', async () => 
   assert.equal(restored.state.days[sunday][0].weekly, true);
   assert.equal(await restored.files[0].blob.text(), 'x');
 });
+
+test('Daily notes move into any week intact, become undated, detach only their repeat occurrence, and support undo', () => {
+  const daily = {
+    ...create({}).days[sunday][0],
+    id: 'daily',
+    weekly: undefined,
+    minute: 615,
+    title: 'Keep me',
+    text: 'Task',
+    format: [{ start: 0, end: 4, bold: true }],
+    tags: ['project', 'event'],
+    tasks: [{ start: 0, done: true }],
+    attachments: [{ id: 'file', name: 'a.txt', type: 'text/plain', size: 1 }],
+    repeat: { id: 'cycle', start: friday, end: '2026-10-30', occurrence: friday },
+  };
+  delete daily.weekly;
+  const neighbor = { ...daily, id: 'next', repeat: { ...daily.repeat, occurrence: '2026-10-30' } };
+  const days = { [friday]: [daily], '2026-10-30': [neighbor] };
+  const before = structuredClone(days);
+  const result = changeWeekly(days, '2027-01-05', daily.id, { kind: 'unschedule', date: friday });
+  const note = weeklyNotes(result.days, '2027-01-05')[0];
+  const expected = { ...daily, weekly: true, minute: 0 };
+  delete expected.repeat;
+  assert.deepEqual(note, expected);
+  assert.deepEqual(result.days[friday], []);
+  assert.deepEqual(result.days['2026-10-30'], [neighbor]);
+  assert.deepEqual(days, before);
+  const undone = { ...result.days, ...result.previous };
+  delete undone['2027-01-03'];
+  assert.deepEqual(undone, days);
+  assert.deepEqual(validState({ version: 1, days: result.days }).days['2027-01-03'][0], expected);
+});
+
+test('Daily to Weekly handles the same Sunday, ID collisions and stale or invalid sources without overwriting', () => {
+  const daily = { id: 'daily', text: 'Keep', minute: 615, done: false };
+  const same = changeWeekly({ [sunday]: [daily] }, sunday, 'daily', {
+    kind: 'unschedule',
+    date: sunday,
+  });
+  assert.equal(same.days[sunday].length, 1);
+  assert.equal(same.days[sunday][0].weekly, true);
+  assert.deepEqual(same.previous[sunday], [daily]);
+  const other = { ...daily, text: 'Existing', weekly: true, minute: 0 };
+  const days = { [sunday]: [other], [friday]: [daily] };
+  const result = changeWeekly(
+    days,
+    sunday,
+    'daily',
+    { kind: 'unschedule', date: friday },
+    () => 'unique',
+  );
+  assert.deepEqual(
+    result.days[sunday].map((n) => n.id),
+    ['daily', 'unique'],
+  );
+  assert.deepEqual(result.days[sunday][0], other);
+  assert.throws(() =>
+    changeWeekly(days, sunday, 'daily', { kind: 'unschedule', date: friday }, () => 'daily'),
+  );
+  for (const date of ['bad', '2026-02-30', '2026-10-24', sunday])
+    assert.throws(() => changeWeekly(days, sunday, 'daily', { kind: 'unschedule', date }));
+});
