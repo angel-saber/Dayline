@@ -1,7 +1,7 @@
-import { node } from '../../shared/dom.js?v=fa258cf0d863';
-import { grouped, timeLabel } from '../../shared/schedule.js?v=fa258cf0d863';
-import { noteTitle } from './model.js?v=fa258cf0d863';
-import { tagBadges } from '../notes/note-types.js?v=fa258cf0d863';
+import { node } from '../../shared/dom.js?v=a49de864b933';
+import { grouped, timeLabel } from '../../shared/schedule.js?v=a49de864b933';
+import { noteTitle } from './model.js?v=a49de864b933';
+import { tagBadges } from '../notes/note-types.js?v=a49de864b933';
 
 const button = (text, label, action, cls = '') => {
   const el = node('button', cls, text);
@@ -54,15 +54,16 @@ export function openExpandedDay({ date, getState, onOpen, onDelete, onMove, anno
     list.replaceChildren();
     for (const slot of intervals) {
       const row = node('section', 'month-expanded-slot');
-      row.dataset.minute = String(slot.minute);
-      const label = timeLabel(slot.minute, state.settings.clock);
+      row.dataset.minute = String(slot.allDay ? -1 : slot.minute);
+      const label = slot.allDay ? 'All day' : timeLabel(slot.minute, state.settings.clock);
       const end = timeLabel(
         Math.min(1440, slot.minute + state.settings.interval),
         state.settings.clock,
       );
-      row.setAttribute('aria-label', `${label} to ${end} interval`);
+      row.setAttribute('aria-label', slot.allDay ? 'All-day notes' : `${label} to ${end} interval`);
       const range = node('span', 'month-expanded-time');
-      range.append(node('span', '', label), node('span', 'month-expanded-end', `– ${end}`));
+      range.append(node('span', '', label));
+      if (!slot.allDay) range.append(node('span', 'month-expanded-end', `– ${end}`));
       row.append(range);
       const notes = node('div', 'month-expanded-slot-notes');
       for (const entry of slot.entries) {
@@ -84,7 +85,11 @@ export function openExpandedDay({ date, getState, onOpen, onDelete, onMove, anno
         );
         const details = node('div', 'month-expanded-details');
         details.append(
-          node('span', 'month-expanded-exact', timeLabel(entry.minute, state.settings.clock)),
+          node(
+            'span',
+            'month-expanded-exact',
+            entry.allDay ? 'All day' : timeLabel(entry.minute, state.settings.clock),
+          ),
         );
         const tags = tagBadges(entry);
         if (tags) details.append(tags);
@@ -100,9 +105,13 @@ export function openExpandedDay({ date, getState, onOpen, onDelete, onMove, anno
           const select = node('select');
           select.setAttribute('aria-label', `Move ${title} to interval`);
           for (const target of intervals) {
-            const option = node('option', '', timeLabel(target.minute, state.settings.clock));
-            option.value = String(target.minute);
-            if (target.minute === slot.minute) option.selected = true;
+            const option = node(
+              'option',
+              '',
+              target.allDay ? 'All day' : timeLabel(target.minute, state.settings.clock),
+            );
+            option.value = String(target.allDay ? -1 : target.minute);
+            if (target === slot) option.selected = true;
             select.append(option);
           }
           label.append(select);

@@ -1,5 +1,5 @@
-import { reminderChime } from './reminder-chime.js?v=fa258cf0d863';
-import { dayKey, dueEntries, bucket } from '../../shared/schedule.js?v=fa258cf0d863';
+import { reminderChime } from './reminder-chime.js?v=a49de864b933';
+import { dayKey, dueEntries, bucket } from '../../shared/schedule.js?v=a49de864b933';
 export class Reminders {
   constructor(getState, onDue, onError, onOpen = () => {}, onAudioState = () => {}) {
     this.getState = getState;
@@ -163,7 +163,13 @@ export function resolveReminder(days, target, interval) {
     const entry = days[date]?.find(
       (entry) => !entry.weekly && !entry.yearly && entry.id === target.id,
     );
-    if (entry) return { date, id: entry.id, minute: bucket(entry.minute, interval), found: true };
+    if (entry)
+      return {
+        date,
+        id: entry.id,
+        minute: entry.allDay ? -1 : bucket(entry.minute, interval),
+        found: true,
+      };
   }
   return { ...target, minute: bucket(target.minute, interval), found: false };
 }

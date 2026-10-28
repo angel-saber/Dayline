@@ -1,4 +1,4 @@
-import { moveToDay } from '../monthly/model.js?v=fa258cf0d863';
+import { moveToDay } from '../monthly/model.js?v=a49de864b933';
 
 export function rescheduleNote(days, source, id, target, time) {
   if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)) throw new Error('Choose a valid time.');
@@ -10,7 +10,11 @@ export function rescheduleNote(days, source, id, target, time) {
     ...moved,
     [target]: [
       ...moved[target].filter((note) => note.id !== id),
-      { ...entry, minute: hour * 60 + minute },
+      {
+        ...entry,
+        minute: hour * 60 + minute,
+        ...(entry.allDay ? { allDay: false, remind: false } : {}),
+      },
     ].sort((a, b) => a.minute - b.minute),
   };
 }

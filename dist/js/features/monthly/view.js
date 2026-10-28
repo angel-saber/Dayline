@@ -1,9 +1,9 @@
-import { SUMMARY_PREFERENCES_EVENT } from '../summaries/preferences.js?v=fa258cf0d863';
-import { summarySource, summarizePeriod } from '../summaries/model.js?v=fa258cf0d863';
-import { createPeriodSummary } from '../summaries/view.js?v=fa258cf0d863';
-import { openExpandedDay } from './expanded-day.js?v=fa258cf0d863';
-import { node } from '../../shared/dom.js?v=fa258cf0d863';
-import { createWeeklySection } from './weekly-notes.js?v=fa258cf0d863';
+import { SUMMARY_PREFERENCES_EVENT } from '../summaries/preferences.js?v=a49de864b933';
+import { summarySource, summarizePeriod } from '../summaries/model.js?v=a49de864b933';
+import { createPeriodSummary } from '../summaries/view.js?v=a49de864b933';
+import { openExpandedDay } from './expanded-day.js?v=a49de864b933';
+import { node } from '../../shared/dom.js?v=a49de864b933';
+import { createWeeklySection } from './weekly-notes.js?v=a49de864b933';
 import {
   NOTE_TYPES,
   categoryOptions,
@@ -13,11 +13,11 @@ import {
   typeBadge,
   noteTags,
   categoryLabel,
-} from '../notes/note-types.js?v=fa258cf0d863';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=fa258cf0d863';
-import { dateActions } from './date-actions.js?v=fa258cf0d863';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=fa258cf0d863';
-import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=fa258cf0d863';
+} from '../notes/note-types.js?v=a49de864b933';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=a49de864b933';
+import { dateActions } from './date-actions.js?v=a49de864b933';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=a49de864b933';
+import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=a49de864b933';
 
 const button = (text, label, action) => {
   const el = node('button', '', text);
@@ -434,7 +434,7 @@ export function setupMonthly({
           card.classList.toggle('bulk-selected', !!selection?.isSelected(date, entry.id));
           const title = noteTitle(entry),
             tags = noteTags(entry),
-            details = `${title} · ${timeLabel(entry.minute, getState().settings.clock)} · ${tags.length ? tags.map(categoryLabel).join(' + ') : 'No tags'}`,
+            details = `${title} · ${entry.allDay ? 'All day' : timeLabel(entry.minute, getState().settings.clock)} · ${tags.length ? tags.map(categoryLabel).join(' + ') : 'No tags'}`,
             edit = button(title, `Open note: ${details}`, () => onOpen(date, entry.id));
           edit.className = 'month-note-title';
           edit.title = details;

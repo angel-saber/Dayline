@@ -1,19 +1,20 @@
-import { validYearly, validYearlySource } from '../features/yearly/model.js?v=fa258cf0d863';
-import { validRepeat } from '../features/repeating/series.js?v=fa258cf0d863';
-import { validIndents } from '../features/notes/formatting/indents.js?v=fa258cf0d863';
-import { validAvailableHours } from '../features/settings/available-hours.js?v=fa258cf0d863';
-import { validAttachments } from '../features/attachments/attachments.js?v=fa258cf0d863';
+import { validLifeData } from '../features/yearly/life/model.js?v=a49de864b933';
+import { validYearly, validYearlySource } from '../features/yearly/model.js?v=a49de864b933';
+import { validRepeat } from '../features/repeating/series.js?v=a49de864b933';
+import { validIndents } from '../features/notes/formatting/indents.js?v=a49de864b933';
+import { validAvailableHours } from '../features/settings/available-hours.js?v=a49de864b933';
+import { validAttachments } from '../features/attachments/attachments.js?v=a49de864b933';
 import {
   validNoteType,
   validTags,
   validTagSettings,
-} from '../features/notes/note-types.js?v=fa258cf0d863';
-import { validGuidedReports } from '../features/activities/model.js?v=fa258cf0d863';
-import { validBullets } from '../features/notes/formatting/bullets.js?v=fa258cf0d863';
-import { validFocusReports } from '../features/focus/model.js?v=fa258cf0d863';
-import { DEFAULT_SETTINGS } from './schedule.js?v=fa258cf0d863';
-import { validFormat } from '../features/notes/formatting/format.js?v=fa258cf0d863';
-import { validTasks } from '../features/notes/formatting/tasks.js?v=fa258cf0d863';
+} from '../features/notes/note-types.js?v=a49de864b933';
+import { validGuidedReports } from '../features/activities/model.js?v=a49de864b933';
+import { validBullets } from '../features/notes/formatting/bullets.js?v=a49de864b933';
+import { validFocusReports } from '../features/focus/model.js?v=a49de864b933';
+import { DEFAULT_SETTINGS } from './schedule.js?v=a49de864b933';
+import { validFormat } from '../features/notes/formatting/format.js?v=a49de864b933';
+import { validTasks } from '../features/notes/formatting/tasks.js?v=a49de864b933';
 const KEY = 'dayline.v1';
 export function validState(value) {
   if (
@@ -53,11 +54,20 @@ export function validState(value) {
       }
       if (e.yearly !== undefined) {
         result.yearly = validYearly(e.yearly);
+        if (result.yearly.kind === 'life') {
+          if (e.text.length > 200000) throw new Error('Life planner data is too large.');
+          validLifeData(JSON.parse(e.text));
+        }
         if (key !== `${result.yearly.year}-01-01` || e.weekly || e.repeat || e.yearlySource)
           throw new Error('Invalid Yearly storage location.');
       }
       if (e.yearlySource !== undefined) result.yearlySource = validYearlySource(e.yearlySource);
       if (e.repeat !== undefined) result.repeat = validRepeat(e.repeat);
+      for (const field of ['allDay', 'remind'])
+        if (e[field] !== undefined) {
+          if (typeof e[field] !== 'boolean') throw new Error('Invalid all-day reminder.');
+          result[field] = e[field];
+        }
       if (e.attachments !== undefined) result.attachments = validAttachments(e.attachments);
       if (e.noteType !== undefined) result.noteType = validNoteType(e.noteType);
       if (e.tags !== undefined) result.tags = validTags(e.tags);

@@ -514,3 +514,25 @@ history. Arbitrary pasted HTML is never installed. Unsupported/malformed payload
 use the existing plain-text path. Partial selections clip ranges; inline paste
 keeps destination line tools, while imported new lines retain their own tools.
 Titles, times, tags, attachments, reports and IDs are not part of body copying.
+
+### Yearly life foundations
+
+`features/yearly/life/model.js` owns validated drafts, date resolution, finite batch
+expansion and atomic note creation; its view provides inline multi-row entry,
+pasted-list review, shared defaults, per-row overrides and life-support statuses.
+Both Yearly sections start collapsed. Lists and support references are year-independent:
+a validated `yearly.kind: life` envelope is anchored to 1900-01-01, outside visible
+annual plans, through the existing note port. Account sync, conflict retention and
+backups include it without a new provider or table. Stale autosaves are rejected;
+failed drafts remain in the view and can be downloaded before explicitly reloading.
+Successful scheduling clears only the scheduled group and records links in the same
+write as the notes. Undo snapshots restore all affected dates and the list draft.
+Editing another draft clears that Undo so it cannot overwrite newer work.
+
+Optional `allDay` and `remind` booleans extend dated notes. Their integer `minute`
+is the reminder time when enabled. Date-only notes appear in a separate Daily and
+expanded-Monthly rail, have All day labels when sharing, and remain outside timed
+availability and automatic Focus interval selection. They notify only when opted
+in and still honor global reminder settings. Explicit timed rescheduling converts
+them to timed notes. Existing notes keep their previous timed behavior. Older tabs
+should reload before editing these new fields or the new life envelope.

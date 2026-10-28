@@ -1,5 +1,6 @@
-import { node } from '../../shared/dom.js?v=fa258cf0d863';
-import { dayKey } from '../../shared/dates.js?v=fa258cf0d863';
+import { createLifePlanner } from './life/view.js?v=a49de864b933';
+import { node } from '../../shared/dom.js?v=a49de864b933';
+import { dayKey } from '../../shared/dates.js?v=a49de864b933';
 import {
   validYearly,
   DIMENSIONS,
@@ -7,7 +8,7 @@ import {
   yearPosition,
   yearRecords,
   linkedNotes,
-} from './model.js?v=fa258cf0d863';
+} from './model.js?v=a49de864b933';
 
 const button = (text, action, className = 'secondary') => {
   const item = node('button', className, text);
@@ -20,6 +21,8 @@ export function setupYearly({
   root,
   getState,
   saveRecord,
+  saveLife,
+  planLife,
   planStep,
   carry,
   openNote,
@@ -30,6 +33,10 @@ export function setupYearly({
   let year = now().getFullYear(),
     renderedYear = null,
     context = null;
+  const life =
+    saveLife && planLife
+      ? createLifePlanner({ getState, saveLife, planLife, openNote, now })
+      : null;
   const dialog = node('dialog', 'activity-dialog yearly-dialog');
   dialog.setAttribute('aria-labelledby', 'yearly-dialog-heading');
   document.body.append(dialog);
@@ -449,7 +456,7 @@ export function setupYearly({
     container.append(versions);
   }
   function render() {
-    if (dialog.open) return;
+    if (dialog.open || life?.busy || life?.active) return;
     const open =
       renderedYear === year
         ? new Set(
@@ -461,7 +468,7 @@ export function setupYearly({
     const reflectionOpen = renderedYear === year && root.querySelector('.yearly-reflection')?.open;
     renderedYear = year;
     const position = yearPosition(year, now()),
-      records = yearRecords(getState().days, year),
+      records = yearRecords(getState().days, year).filter((n) => n.yearly.kind !== 'life'),
       direction = records.find((note) => note.yearly.kind === 'direction');
     root.replaceChildren();
     const header = node('div', 'yearly-header'),
@@ -497,6 +504,10 @@ export function setupYearly({
             : 'A year to revisit, without anything to catch up on.',
       ),
     );
+    if (life) {
+      life.refresh();
+      root.append(life.element);
+    }
     const welcome =
       position.currentQuarter === 1
         ? 'What would you like to make room for?'
@@ -653,6 +664,7 @@ export function setupYearly({
   });
   window.addEventListener('dayline:account', () => {
     dialog.close();
+    life?.reset();
     renderedYear = null;
     year = now().getFullYear();
     root.replaceChildren();

@@ -1,5 +1,5 @@
-import { parseDay } from './dates.js?v=fa258cf0d863';
-export { dayKey, parseDay, offsetDay, timeLabel } from './dates.js?v=fa258cf0d863';
+import { parseDay } from './dates.js?v=a49de864b933';
+export { dayKey, parseDay, offsetDay, timeLabel } from './dates.js?v=a49de864b933';
 export const DEFAULT_SETTINGS = { interval: 60, notifications: false, sound: false, clock: '12' };
 export function slots(interval) {
   if (!Number.isInteger(interval) || interval < 1 || interval > 1440)
@@ -12,7 +12,10 @@ export function bucket(minute, interval) {
 export function grouped(entries, interval) {
   const result = slots(interval).map((minute) => ({ minute, entries: [] }));
   const byMinute = new Map(result.map((slot) => [slot.minute, slot]));
-  for (const entry of entries) byMinute.get(bucket(entry.minute, interval))?.entries.push(entry);
+  for (const entry of entries.filter((e) => !e.allDay))
+    byMinute.get(bucket(entry.minute, interval))?.entries.push(entry);
+  const allDay = entries.filter((e) => e.allDay);
+  if (allDay.length) result.unshift({ minute: 0, allDay: true, entries: allDay });
   return result;
 }
 // Stable insertion: occupied slots shift toward the space left by the source.
@@ -38,7 +41,14 @@ export function moveEntry(entries, id, targetMinute, interval) {
 // A normal drop joins a slot. A deliberately held target swaps just those notes.
 export function dropEntry(entries, id, targetMinute, interval, targetId = null) {
   const moved = entries.find((e) => e.id === id);
-  if (!moved || !slots(interval).includes(targetMinute)) return entries;
+  if (!moved) return entries;
+  if (targetMinute === -1)
+    return entries.map((e) => (e.id === id ? { ...e, allDay: true, remind: false } : e));
+  if (!slots(interval).includes(targetMinute)) return entries;
+  if (moved.allDay)
+    return entries
+      .map((e) => (e.id === id ? { ...e, allDay: false, remind: false, minute: targetMinute } : e))
+      .sort((a, b) => a.minute - b.minute);
   const target =
     targetId && targetId !== id
       ? entries.find((e) => e.id === targetId && bucket(e.minute, interval) === targetMinute)
@@ -62,7 +72,14 @@ export function dropEntry(entries, id, targetMinute, interval, targetId = null) 
 }
 export function dueEntries(entries, key, interval, from, now) {
   return entries.filter((e) => {
-    if (e.weekly || e.yearly || e.done || !(e.title?.trim() || e.text).trim()) return false;
+    if (
+      e.weekly ||
+      e.yearly ||
+      (e.allDay && !e.remind) ||
+      e.done ||
+      !(e.title?.trim() || e.text).trim()
+    )
+      return false;
     const date = parseDay(key);
     date.setHours(0, 0, 0, 0);
     date.setMinutes(e.minute);

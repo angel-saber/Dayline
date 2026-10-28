@@ -1,21 +1,21 @@
-import { richBody, escapeHtml, copyFormatted } from './share-format.js?v=fa258cf0d863';
-import { node } from '../../shared/dom.js?v=fa258cf0d863';
-import { weekStart } from '../monthly/weekly-model.js?v=fa258cf0d863';
-import { offsetDay } from '../../shared/schedule.js?v=fa258cf0d863';
-import { indentLevel } from '../notes/formatting/indents.js?v=fa258cf0d863';
+import { richBody, escapeHtml, copyFormatted } from './share-format.js?v=a49de864b933';
+import { node } from '../../shared/dom.js?v=a49de864b933';
+import { weekStart } from '../monthly/weekly-model.js?v=a49de864b933';
+import { offsetDay } from '../../shared/schedule.js?v=a49de864b933';
+import { indentLevel } from '../notes/formatting/indents.js?v=a49de864b933';
 import {
   shareAttachments,
   prepareShareFiles,
   supportsFileShare,
-} from './share-files.js?v=fa258cf0d863';
-import { attachmentList } from '../attachments/attachments.js?v=fa258cf0d863';
-import { parseDay, timeLabel } from '../../shared/schedule.js?v=fa258cf0d863';
-import { noteTasks } from '../notes/formatting/tasks.js?v=fa258cf0d863';
-import { NOTE_TYPES, categoryLabel, noteTags } from '../notes/note-types.js?v=fa258cf0d863';
-import { safeLink } from '../notes/formatting/links.js?v=fa258cf0d863';
-import { durationLabel } from '../focus/model.js?v=fa258cf0d863';
-import { dimensions, compassTitle, compassDates } from '../activities/model.js?v=fa258cf0d863';
-import { activityCatalog, activityFields } from '../activities/catalog.js?v=fa258cf0d863';
+} from './share-files.js?v=a49de864b933';
+import { attachmentList } from '../attachments/attachments.js?v=a49de864b933';
+import { parseDay, timeLabel } from '../../shared/schedule.js?v=a49de864b933';
+import { noteTasks } from '../notes/formatting/tasks.js?v=a49de864b933';
+import { NOTE_TYPES, categoryLabel, noteTags } from '../notes/note-types.js?v=a49de864b933';
+import { safeLink } from '../notes/formatting/links.js?v=a49de864b933';
+import { durationLabel } from '../focus/model.js?v=a49de864b933';
+import { dimensions, compassTitle, compassDates } from '../activities/model.js?v=a49de864b933';
+import { activityCatalog, activityFields } from '../activities/catalog.js?v=a49de864b933';
 export const SHARE_DEFAULTS = {
   dateTime: true,
   type: true,
@@ -56,7 +56,7 @@ export function shareNoteText(entry, date, options = {}, clock = '12', html = fa
     parts.push(
       entry.weekly
         ? `Weekly note · ${parseDay(date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })} – ${parseDay(offsetDay(date, 6)).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}`
-        : `${parseDay(date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} · ${timeLabel(entry.minute, clock)}`,
+        : `${parseDay(date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} · ${entry.allDay ? 'All day' : timeLabel(entry.minute, clock)}`,
     );
   if (settings.type && noteTags(entry).length)
     parts.push(noteTags(entry).map(categoryLabel).join(' · '));
@@ -193,7 +193,7 @@ export function shareNotesText(
       .join('\n');
     parts.push(
       '',
-      `${settings.dateTime ? timeLabel(entry.minute, clock) + ' — ' : ''}${entry.title?.trim() || 'Dayline note'}`,
+      `${settings.dateTime ? (entry.allDay ? 'All day' : timeLabel(entry.minute, clock)) + ' — ' : ''}${entry.title?.trim() || 'Dayline note'}`,
     );
     if (text.trim()) parts.push({ html: text });
   }
