@@ -4,8 +4,8 @@ import {
   offsetDay,
   bucket,
   slots,
-} from '../../shared/schedule.js?v=31f307a53cca';
-import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=31f307a53cca';
+} from '../../shared/schedule.js?v=29ae997dd2e7';
+import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=29ae997dd2e7';
 export const MANTRAS = PERSONALITY_MANTRAS.zen;
 export const INSPIRATION = VOICE_QUOTES.zen;
 export function intervalAt(at, interval) {
@@ -15,10 +15,10 @@ export function intervalAt(at, interval) {
 }
 export function findFocusNote(days, id, date) {
   if (!id) return null;
-  if (days[date]?.some((e) => !e.weekly && e.id === id))
-    return { date, entry: days[date].find((e) => !e.weekly && e.id === id) };
+  if (days[date]?.some((e) => !e.weekly && !e.yearly && e.id === id))
+    return { date, entry: days[date].find((e) => !e.weekly && !e.yearly && e.id === id) };
   for (const [key, list] of Object.entries(days)) {
-    const entry = list.find((e) => !e.weekly && e.id === id);
+    const entry = list.find((e) => !e.weekly && !e.yearly && e.id === id);
     if (entry) return { date: key, entry };
   }
   return null;
@@ -28,6 +28,7 @@ export function focusIntervalNotes(state, page) {
     .filter(
       (entry) =>
         !entry.weekly &&
+        !entry.yearly &&
         bucket(entry.minute, page.interval || state.settings.interval) === page.minute,
     )
     .slice()
@@ -113,7 +114,7 @@ export function extendFocusNote(days, id, sourceDate, targetDate, targetMinute, 
   if (found.date === targetDate && bucket(found.entry.minute, interval) === targetMinute)
     return days;
   const displaced = (days[targetDate] || []).filter(
-    (e) => !e.weekly && bucket(e.minute, interval) === targetMinute && e.id !== id,
+    (e) => !e.weekly && !e.yearly && bucket(e.minute, interval) === targetMinute && e.id !== id,
   );
   let emptyDay = targetDate,
     emptyMinute = targetMinute;
@@ -128,7 +129,9 @@ export function extendFocusNote(days, id, sourceDate, targetDate, targetMinute, 
       }
       emptyMinute = starts[index];
       if (
-        !(days[emptyDay] || []).some((e) => !e.weekly && bucket(e.minute, interval) === emptyMinute)
+        !(days[emptyDay] || []).some(
+          (e) => !e.weekly && !e.yearly && bucket(e.minute, interval) === emptyMinute,
+        )
       ) {
         foundEmpty = true;
         break;
@@ -145,7 +148,7 @@ export function extendFocusNote(days, id, sourceDate, targetDate, targetMinute, 
     next[targetDate] = next[targetDate].filter((e) => !ids.has(e.id));
     next[emptyDay].push(...displaced.map((e) => ({ ...e, minute: emptyMinute })));
   }
-  if (next[targetDate].some((e) => !e.weekly && e.id === id))
+  if (next[targetDate].some((e) => !e.weekly && !e.yearly && e.id === id))
     throw new Error('That interval contains a conflicting note ID.');
   next[targetDate].push({ ...found.entry, minute: targetMinute });
   for (const date of touched) next[date].sort((a, b) => a.minute - b.minute);

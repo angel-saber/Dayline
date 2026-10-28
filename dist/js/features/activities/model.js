@@ -1,6 +1,7 @@
-import { weekStart } from '../monthly/weekly-model.js?v=31f307a53cca';
-import { activityCatalog, activityFields, lifeDimensions } from './catalog.js?v=31f307a53cca';
-import { dayKey, bucket, offsetDay } from '../../shared/schedule.js?v=31f307a53cca';
+import { validYearlySource } from '../yearly/model.js?v=29ae997dd2e7';
+import { weekStart } from '../monthly/weekly-model.js?v=29ae997dd2e7';
+import { activityCatalog, activityFields, lifeDimensions } from './catalog.js?v=29ae997dd2e7';
+import { dayKey, bucket, offsetDay } from '../../shared/schedule.js?v=29ae997dd2e7';
 export const dimensions = [
   {
     key: 'work',
@@ -70,6 +71,7 @@ export function validGuidedReports(reports) {
       answers: Object.fromEntries(fields.map((f) => [f.key, r.answers[f.key]])),
     };
     if (r.activity) result.activity = r.activity;
+    if (r.yearlySource !== undefined) result.yearlySource = validYearlySource(r.yearlySource);
     if (r.timer !== undefined) {
       if (
         r.activity !== 'two-minute' ||
@@ -113,7 +115,9 @@ export function attachGuidedPlan(days, interval, report) {
     list = days[date] || [];
   if (list.some((e) => e.guidedActivities?.some((r) => r.id === report.id)))
     return { days, date, minute };
-  const existing = list.find((e) => !e.weekly && bucket(e.minute, interval) === minute),
+  const existing = list.find(
+      (e) => !e.weekly && !e.yearly && bucket(e.minute, interval) === minute,
+    ),
     entry = existing || {
       id: `guided-${report.id}`,
       title: report.activity ? activityCatalog[report.activity].title : 'Guided Planning',
@@ -161,6 +165,7 @@ export function attachGuidedPlan(days, interval, report) {
         format: [],
         tasks,
         ...(report.schedule.mode === 'weekly' ? { weekly: true } : {}),
+        ...(report.yearlySource ? { yearlySource: report.yearlySource } : {}),
       };
       next[target] = [...(next[target] || []), note].sort((a, b) => a.minute - b.minute);
     }

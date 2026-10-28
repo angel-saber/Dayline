@@ -1,17 +1,17 @@
-import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=31f307a53cca';
+import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=29ae997dd2e7';
 import {
   validNoteType,
   validTags,
   noteTags,
   withTags,
   matchesNoteType,
-} from '../notes/note-types.js?v=31f307a53cca';
+} from '../notes/note-types.js?v=29ae997dd2e7';
 export const selectionKey = (date, id) => JSON.stringify([date, id]);
 export function selectedNotes(days, keys) {
   return Object.entries(days)
     .flatMap(([date, list]) =>
       list
-        .filter((entry) => keys.has(selectionKey(date, entry.id)))
+        .filter((entry) => !entry.yearly && keys.has(selectionKey(date, entry.id)))
         .map((entry) => ({ date, entry })),
     )
     .sort((a, b) => a.date.localeCompare(b.date) || a.entry.minute - b.entry.minute);
@@ -43,7 +43,7 @@ export function matchingNotes(days, anchor, scope, categories) {
     .filter(([date]) => date >= start && date <= end)
     .flatMap(([date, list]) =>
       list
-        .filter((e) => !e.weekly && matchesNoteType(e, categories))
+        .filter((e) => !e.weekly && !e.yearly && matchesNoteType(e, categories))
         .map((entry) => ({ date, entry })),
     );
 }

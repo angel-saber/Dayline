@@ -1,12 +1,13 @@
-import { parseDay, offsetDay } from '../../shared/dates.js?v=31f307a53cca';
-import { usFederalHolidays } from '../../shared/holidays.js?v=31f307a53cca';
-import { noteTags, categoryLabel } from '../notes/note-types.js?v=31f307a53cca';
+import { parseDay, offsetDay } from '../../shared/dates.js?v=29ae997dd2e7';
+import { usFederalHolidays } from '../../shared/holidays.js?v=29ae997dd2e7';
+import { noteTags, categoryLabel } from '../notes/note-types.js?v=29ae997dd2e7';
 
 export function summarySource(days) {
   const notes = [],
     reports = new Map();
   for (const [date, entries] of Object.entries(days))
     for (const note of entries) {
+      if (note.yearly) continue;
       notes.push({ date, note });
       for (const report of note.focusReports || [])
         if (!reports.has(report.id)) reports.set(report.id, report);

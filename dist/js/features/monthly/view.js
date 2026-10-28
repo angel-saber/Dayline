@@ -1,9 +1,9 @@
-import { SUMMARY_PREFERENCES_EVENT } from '../summaries/preferences.js?v=31f307a53cca';
-import { summarySource, summarizePeriod } from '../summaries/model.js?v=31f307a53cca';
-import { createPeriodSummary } from '../summaries/view.js?v=31f307a53cca';
-import { openExpandedDay } from './expanded-day.js?v=31f307a53cca';
-import { node } from '../../shared/dom.js?v=31f307a53cca';
-import { createWeeklySection } from './weekly-notes.js?v=31f307a53cca';
+import { SUMMARY_PREFERENCES_EVENT } from '../summaries/preferences.js?v=29ae997dd2e7';
+import { summarySource, summarizePeriod } from '../summaries/model.js?v=29ae997dd2e7';
+import { createPeriodSummary } from '../summaries/view.js?v=29ae997dd2e7';
+import { openExpandedDay } from './expanded-day.js?v=29ae997dd2e7';
+import { node } from '../../shared/dom.js?v=29ae997dd2e7';
+import { createWeeklySection } from './weekly-notes.js?v=29ae997dd2e7';
 import {
   NOTE_TYPES,
   categoryOptions,
@@ -13,11 +13,11 @@ import {
   typeBadge,
   noteTags,
   categoryLabel,
-} from '../notes/note-types.js?v=31f307a53cca';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=31f307a53cca';
-import { dateActions } from './date-actions.js?v=31f307a53cca';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=31f307a53cca';
-import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=31f307a53cca';
+} from '../notes/note-types.js?v=29ae997dd2e7';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=29ae997dd2e7';
+import { dateActions } from './date-actions.js?v=29ae997dd2e7';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=29ae997dd2e7';
+import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=29ae997dd2e7';
 
 const button = (text, label, action) => {
   const el = node('button', '', text);
@@ -423,7 +423,7 @@ export function setupMonthly({
         list.setAttribute('role', 'region');
         list.setAttribute('aria-label', `Notes for ${dateLabel}. Scroll to read all titles.`);
         for (const entry of (getState().days[date] || []).filter(
-          (entry) => !entry.weekly && matchesNoteType(entry, filters),
+          (entry) => !entry.weekly && !entry.yearly && matchesNoteType(entry, filters),
         )) {
           const card = node('div', `month-note${entry.done ? ' completed' : ''}`);
           card.draggable = !selection?.active;
@@ -457,7 +457,7 @@ export function setupMonthly({
             node(
               'span',
               'month-empty',
-              (getState().days[date] || []).some((note) => !note.weekly)
+              (getState().days[date] || []).some((note) => !note.weekly && !note.yearly)
                 ? 'No matching notes'
                 : '—',
             ),

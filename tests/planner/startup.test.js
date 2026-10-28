@@ -768,6 +768,52 @@ test('the assembled planner starts, switches views/personalities, edits settings
     await new Promise((resolve) => setTimeout(resolve, 850));
     assert.equal(document.querySelector('#launch-focus-audio').textContent, 'Launch Focus Audio');
 
+    document.querySelector('#yearly-tab').click();
+    assert.equal(document.querySelector('#yearly-view').hidden, false);
+    assert.equal(document.querySelector('#monthly-view').hidden, true);
+    assert.equal(document.querySelectorAll('#yearly-view [data-quarter]').length, 4);
+    const currentQuarter = Math.floor(now.getMonth() / 3) + 1;
+    const quarter = document.querySelector(`#yearly-view [data-quarter="${currentQuarter}"]`);
+    [...quarter.querySelectorAll('button')]
+      .find((button) => button.textContent === 'Add an intention')
+      .click();
+    const yearlyDialog = document.querySelector('.yearly-dialog');
+    yearlyDialog.querySelector('[aria-label="Intention"]').value = 'A flexible year';
+    yearlyDialog
+      .querySelector('form')
+      .dispatchEvent(new window.Event('submit', { cancelable: true }));
+    assert.equal(yearlyDialog.open, false);
+    const yearKey = `${now.getFullYear()}-01-01`;
+    const annualId = JSON.parse(local.getItem('dayline.v1')).days[yearKey].find(
+      (note) => note.yearly,
+    ).id;
+    document.querySelector('#daily-tab').click();
+    assert.doesNotMatch(document.querySelector('#timeline').textContent, /A flexible year/);
+    document.querySelector('#yearly-tab').click();
+    [...document.querySelectorAll('#yearly-view button')]
+      .find((button) => button.textContent === 'Continue / plan a next step')
+      .click();
+    yearlyDialog.querySelector('[aria-label="Destination"]').value = 'daily';
+    yearlyDialog.querySelector('[aria-label="Date / week containing"]').value = today;
+    yearlyDialog.querySelector('[aria-label="Time"]').value = '10:15';
+    yearlyDialog.querySelector('[aria-label="Next-step title"]').value = 'One deliberate step';
+    yearlyDialog
+      .querySelector('form')
+      .dispatchEvent(new window.Event('submit', { cancelable: true }));
+    assert.equal(yearlyDialog.open, false);
+    document.querySelector('#daily-tab').click();
+    assert.match(document.querySelector('#timeline').textContent, /One deliberate step/);
+    const link = document.querySelector('.note-yearly-link');
+    assert.ok(link);
+    link.click();
+    assert.equal(document.querySelector('#yearly-view').hidden, false);
+    assert.ok(document.querySelector(`#yearly-view [data-intention-id="${annualId}"]`));
+    assert.equal(
+      JSON.parse(local.getItem('dayline.v1')).days[yearKey].find((note) => note.id === annualId)
+        .title,
+      'A flexible year',
+    );
+
     assert.deepEqual(network, []);
   } finally {
     for (const [name, descriptor] of previous) {

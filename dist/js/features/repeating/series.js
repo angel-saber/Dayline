@@ -1,7 +1,7 @@
-import { offsetDay } from '../../shared/dates.js?v=31f307a53cca';
-import { noteTasks } from '../notes/formatting/tasks.js?v=31f307a53cca';
-import { noteTags } from '../notes/note-types.js?v=31f307a53cca';
-import { validDate } from '../bulk/model.js?v=31f307a53cca';
+import { offsetDay } from '../../shared/dates.js?v=29ae997dd2e7';
+import { noteTasks } from '../notes/formatting/tasks.js?v=29ae997dd2e7';
+import { noteTags } from '../notes/note-types.js?v=29ae997dd2e7';
+import { validDate } from '../bulk/model.js?v=29ae997dd2e7';
 export function validRepeat(value) {
   if (
     !value ||
@@ -19,7 +19,7 @@ export function validRepeat(value) {
   return { id: value.id, start: value.start, end: value.end, occurrence: value.occurrence };
 }
 export function changeRepeatNotes(days, date, id, action, scope = 'one') {
-  const source = (days[date] || []).find((note) => note.id === id && !note.weekly);
+  const source = (days[date] || []).find((note) => note.id === id && !note.weekly && !note.yearly);
   if (!source) throw new Error('This note is no longer available.');
   if (!['one', 'following'].includes(scope)) throw new Error('Choose which notes to change.');
   const current = source.repeat && validRepeat(source.repeat);

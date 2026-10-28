@@ -1,63 +1,69 @@
+import { setupYearly } from '../features/yearly/view.js?v=29ae997dd2e7';
+import {
+  writeYearly,
+  planNextStep,
+  carryIntentions,
+} from '../features/yearly/model.js?v=29ae997dd2e7';
 import {
   setupSummarySettings,
   SUMMARY_PREFERENCES_EVENT,
-} from '../features/summaries/preferences.js?v=31f307a53cca';
-import { summarySource, summarizePeriod } from '../features/summaries/model.js?v=31f307a53cca';
-import { createPeriodSummary } from '../features/summaries/view.js?v=31f307a53cca';
+} from '../features/summaries/preferences.js?v=29ae997dd2e7';
+import { summarySource, summarizePeriod } from '../features/summaries/model.js?v=29ae997dd2e7';
+import { createPeriodSummary } from '../features/summaries/view.js?v=29ae997dd2e7';
 import {
   changeRepeatNotes,
   rescheduleRepeatNotes,
-} from '../features/repeating/series.js?v=31f307a53cca';
-import { chooseRepeatScope } from '../features/repeating/scope.js?v=31f307a53cca';
-import { createRepeatCycle } from '../features/repeating/model.js?v=31f307a53cca';
-import { openRepeatCycle } from '../features/repeating/view.js?v=31f307a53cca';
-import { setupVisualizations } from '../features/visualization/controller.js?v=31f307a53cca';
-import { canKeepEditor } from '../features/notes/editor-sync.js?v=31f307a53cca';
-import { setupInspiration } from '../features/inspiration/view.js?v=31f307a53cca';
-import { storyNote } from '../features/inspiration/model.js?v=31f307a53cca';
-import { setupShortcuts } from '../features/shortcuts/controller.js?v=31f307a53cca';
-import { duplicateNote as copyNote } from '../features/notes/duplicate.js?v=31f307a53cca';
-import { setupFocusAudio } from '../features/focus-audio/controller.js?v=31f307a53cca';
-import { setupPersonalityEffects } from '../personalities/effects.js?v=31f307a53cca';
-import { node } from '../shared/dom.js?v=31f307a53cca';
-import { setupBackups } from '../features/settings/backups.js?v=31f307a53cca';
-import { setupSettings } from '../features/settings/controller.js?v=31f307a53cca';
-import { renderNoteLines } from '../features/notes/render.js?v=31f307a53cca';
-import { rescheduleNote } from '../features/daily/reschedule.js?v=31f307a53cca';
-import { changeWeekly } from '../features/monthly/weekly-model.js?v=31f307a53cca';
+} from '../features/repeating/series.js?v=29ae997dd2e7';
+import { chooseRepeatScope } from '../features/repeating/scope.js?v=29ae997dd2e7';
+import { createRepeatCycle } from '../features/repeating/model.js?v=29ae997dd2e7';
+import { openRepeatCycle } from '../features/repeating/view.js?v=29ae997dd2e7';
+import { setupVisualizations } from '../features/visualization/controller.js?v=29ae997dd2e7';
+import { canKeepEditor } from '../features/notes/editor-sync.js?v=29ae997dd2e7';
+import { setupInspiration } from '../features/inspiration/view.js?v=29ae997dd2e7';
+import { storyNote } from '../features/inspiration/model.js?v=29ae997dd2e7';
+import { setupShortcuts } from '../features/shortcuts/controller.js?v=29ae997dd2e7';
+import { duplicateNote as copyNote } from '../features/notes/duplicate.js?v=29ae997dd2e7';
+import { setupFocusAudio } from '../features/focus-audio/controller.js?v=29ae997dd2e7';
+import { setupPersonalityEffects } from '../personalities/effects.js?v=29ae997dd2e7';
+import { node } from '../shared/dom.js?v=29ae997dd2e7';
+import { setupBackups } from '../features/settings/backups.js?v=29ae997dd2e7';
+import { setupSettings } from '../features/settings/controller.js?v=29ae997dd2e7';
+import { renderNoteLines } from '../features/notes/render.js?v=29ae997dd2e7';
+import { rescheduleNote } from '../features/daily/reschedule.js?v=29ae997dd2e7';
+import { changeWeekly } from '../features/monthly/weekly-model.js?v=29ae997dd2e7';
 import {
   availableHours,
   dailySlotVisible,
-} from '../features/settings/available-hours.js?v=31f307a53cca';
+} from '../features/settings/available-hours.js?v=29ae997dd2e7';
 import {
   attachmentList,
   bindFileDrop,
-} from '../features/attachments/attachments.js?v=31f307a53cca';
-import { setupTagSettings } from '../features/notes/tag-settings.js?v=31f307a53cca';
-import { setupBulk } from '../features/bulk/view.js?v=31f307a53cca';
-import { bulkChange } from '../features/bulk/model.js?v=31f307a53cca';
-import { openShareNote } from '../features/sharing/share-note.js?v=31f307a53cca';
+} from '../features/attachments/attachments.js?v=29ae997dd2e7';
+import { setupTagSettings } from '../features/notes/tag-settings.js?v=29ae997dd2e7';
+import { setupBulk } from '../features/bulk/view.js?v=29ae997dd2e7';
+import { bulkChange } from '../features/bulk/model.js?v=29ae997dd2e7';
+import { openShareNote } from '../features/sharing/share-note.js?v=29ae997dd2e7';
 import {
   tagBadges,
   categoryOptions,
   collectTagSettings,
-} from '../features/notes/note-types.js?v=31f307a53cca';
+} from '../features/notes/note-types.js?v=29ae997dd2e7';
 import {
   setupActivities,
   renderGuidedReports,
-} from '../features/activities/view.js?v=31f307a53cca';
-import { attachGuidedPlan } from '../features/activities/model.js?v=31f307a53cca';
-import { setupWelcome } from '../features/onboarding/welcome.js?v=31f307a53cca';
-import { voice, personality, applyPersonality } from '../personalities/index.js?v=31f307a53cca';
-import { setupFocus } from '../features/focus/controller.js?v=31f307a53cca';
-import { renderFocusReports } from '../features/focus/reports.js?v=31f307a53cca';
+} from '../features/activities/view.js?v=29ae997dd2e7';
+import { attachGuidedPlan } from '../features/activities/model.js?v=29ae997dd2e7';
+import { setupWelcome } from '../features/onboarding/welcome.js?v=29ae997dd2e7';
+import { voice, personality, applyPersonality } from '../personalities/index.js?v=29ae997dd2e7';
+import { setupFocus } from '../features/focus/controller.js?v=29ae997dd2e7';
+import { renderFocusReports } from '../features/focus/reports.js?v=29ae997dd2e7';
 import {
   findFocusNote,
   extendFocusNote,
   attachFocusReport,
-} from '../features/focus/model.js?v=31f307a53cca';
-import { setupMonthly } from '../features/monthly/view.js?v=31f307a53cca';
-import { moveToDay, quickNotes } from '../features/monthly/model.js?v=31f307a53cca';
+} from '../features/focus/model.js?v=29ae997dd2e7';
+import { setupMonthly } from '../features/monthly/view.js?v=29ae997dd2e7';
+import { moveToDay, quickNotes } from '../features/monthly/model.js?v=29ae997dd2e7';
 import {
   dayKey,
   parseDay,
@@ -65,16 +71,17 @@ import {
   grouped,
   dropEntry,
   timeLabel,
-} from '../shared/schedule.js?v=31f307a53cca';
-import { load, save } from '../shared/storage.js?v=31f307a53cca';
-import { attachGestures } from '../features/daily/gestures.js?v=31f307a53cca';
-import { Reminders, resolveReminder } from '../features/reminders/reminders.js?v=31f307a53cca';
-import { setupAccounts } from '../features/accounts/accounts.js?v=31f307a53cca';
-import { dailyQuote } from '../personalities/quotes.js?v=31f307a53cca';
-import { createNoteEditor } from '../features/notes/note-editor.js?v=31f307a53cca';
-import { noteTasks } from '../features/notes/formatting/tasks.js?v=31f307a53cca';
+} from '../shared/schedule.js?v=29ae997dd2e7';
+import { load, save } from '../shared/storage.js?v=29ae997dd2e7';
+import { attachGestures } from '../features/daily/gestures.js?v=29ae997dd2e7';
+import { Reminders, resolveReminder } from '../features/reminders/reminders.js?v=29ae997dd2e7';
+import { setupAccounts } from '../features/accounts/accounts.js?v=29ae997dd2e7';
+import { dailyQuote } from '../personalities/quotes.js?v=29ae997dd2e7';
+import { createNoteEditor } from '../features/notes/note-editor.js?v=29ae997dd2e7';
+import { noteTasks } from '../features/notes/formatting/tasks.js?v=29ae997dd2e7';
 const $ = (s) => document.querySelector(s);
 let monthly = null;
+let yearly = null;
 let dailyPeriodSummary = null;
 let expandedDay = null;
 let state,
@@ -133,11 +140,14 @@ function persist() {
 }
 setupPersonalityEffects();
 function entries() {
-  return (state.days[selected] || []).filter((note) => !note.weekly);
+  return (state.days[selected] || []).filter((note) => !note.weekly && !note.yearly);
 }
 function commit(next, message) {
   undo = { date: selected, entries: structuredClone(state.days[selected] || []) };
-  state.days[selected] = [...(state.days[selected] || []).filter((note) => note.weekly), ...next];
+  state.days[selected] = [
+    ...(state.days[selected] || []).filter((note) => note.weekly || note.yearly),
+    ...next,
+  ];
   const saved = persist();
   renderTimeline();
   toast(message, true);
@@ -196,13 +206,13 @@ function deleteNoteAt(date, id, scope = null) {
 }
 function moveWithinDay(date, id, minute, targetId = null, scope = null) {
   const previous = state.days[date] || [];
-  const entry = previous.find((note) => note.id === id && !note.weekly);
+  const entry = previous.find((note) => note.id === id && !note.weekly && !note.yearly);
   if (!entry) return false;
   if (entry.repeat && !scope) {
     chooseRepeatScope('Reschedule', (choice) => moveWithinDay(date, id, minute, targetId, choice));
     return true;
   }
-  const daily = previous.filter((note) => !note.weekly);
+  const daily = previous.filter((note) => !note.weekly && !note.yearly);
   const moved = dropEntry(
     daily,
     id,
@@ -224,7 +234,7 @@ function moveWithinDay(date, id, minute, targetId = null, scope = null) {
       : null;
   state.days = series?.days || {
     ...before,
-    [date]: [...previous.filter((note) => note.weekly), ...moved],
+    [date]: [...previous.filter((note) => note.weekly || note.yearly), ...moved],
   };
   if (!persist()) {
     state.days = before;
@@ -412,6 +422,18 @@ function renderTimeline() {
             'daily-note-title',
           ),
         );
+      if (e.yearlySource)
+        content.append(
+          button(
+            'Yearly intention',
+            'Return to the Yearly intention',
+            () => {
+              switchView('yearly');
+              yearly.show(e.yearlySource);
+            },
+            'note-yearly-link',
+          ),
+        );
       content.append(body);
       renderNoteLines(
         body,
@@ -501,7 +523,9 @@ function renderTimeline() {
 function beginRepeat(source, id) {
   flushEditor();
   renderTimeline();
-  const note = (state.days[source] || []).find((entry) => entry.id === id && !entry.weekly);
+  const note = (state.days[source] || []).find(
+    (entry) => entry.id === id && !entry.weekly && !entry.yearly,
+  );
   if (!note) {
     toast('Write and save a note before creating a repeat cycle.');
     return;
@@ -834,7 +858,7 @@ $('#jump-now').onclick = jumpNow;
 function switchView(next) {
   flushEditor();
   view = next;
-  for (const v of ['daily', 'monthly', 'more', 'settings']) {
+  for (const v of ['daily', 'monthly', 'yearly', 'more', 'settings']) {
     $(`#${v}-view`).hidden = v !== next;
     $(`#${v}-tab`).classList.toggle('active', v === next);
     $(`#${v}-tab`).setAttribute('aria-selected', String(v === next));
@@ -842,6 +866,7 @@ function switchView(next) {
   if (next === 'settings') renderSettings();
   else if (next === 'monthly') monthly.show(selected);
   else if (next === 'daily') renderTimeline();
+  else if (next === 'yearly') yearly.show();
   accounts?.refreshView();
   bulk?.updateBar();
   $('#date-footer').hidden = next !== 'daily' || accounts?.isLoginVisible();
@@ -979,7 +1004,7 @@ monthly = setupMonthly({
     }
   },
 });
-setupActivities({
+const activities = setupActivities({
   root: $('#more-view'),
   savePlan(report) {
     flushEditor();
@@ -1038,6 +1063,66 @@ const inspirationLibrary = setupInspiration({
     return true;
   },
 });
+yearly = setupYearly({
+  root: $('#yearly-view'),
+  getState: () => state,
+  toast,
+  saveRecord(record) {
+    const before = state.days;
+    const result = writeYearly(before, record);
+    state.days = result.days;
+    if (!persist()) {
+      state.days = before;
+      return false;
+    }
+    undo = null;
+    $('#undo').hidden = true;
+    return result;
+  },
+  planStep(record, draft) {
+    const before = state.days,
+      result = planNextStep(before, record, draft);
+    state.days = result.days;
+    if (!persist()) {
+      state.days = before;
+      return false;
+    }
+    undo = { days: { [result.date]: structuredClone(before[result.date] || []) } };
+    toast('Next step added. Its date is yours to change.', true);
+    return result;
+  },
+  carry(year, ids) {
+    const before = state.days;
+    state.days = carryIntentions(before, year, ids);
+    if (!persist()) {
+      state.days = before;
+      return false;
+    }
+    undo = null;
+    $('#undo').hidden = true;
+    return true;
+  },
+  openNote(date, entry) {
+    selected = date;
+    if (entry.weekly) {
+      switchView('monthly');
+      return;
+    }
+    expandedDay = date;
+    switchView('daily');
+    const minute = Math.floor(entry.minute / state.settings.interval) * state.settings.interval;
+    const slot = $(`#timeline .slot[data-minute="${minute}"] .slot-notes`);
+    if (slot) {
+      openEditor(slot, minute, entry);
+      slot.scrollIntoView({ block: 'center' });
+    }
+  },
+  openCompass(source) {
+    switchView('more');
+    activities.openCompass(source);
+  },
+});
+$('#yearly-tab').onclick = () => switchView('yearly');
 $('#more-tab').onclick = () => switchView('more');
 $('#daily-tab').onclick = () => switchView('daily');
 $('#monthly-tab').onclick = () => switchView('monthly');
