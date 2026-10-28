@@ -342,14 +342,28 @@ chooses Save action to Daily, using existing note persistence, sync, and Undo.
 ## Finite repeat cycles
 
 `features/repeating/model.js` expands an explicitly bounded daily, weekly,
-monthly, or selected-weekday rule into ordinary independent dated notes.
-`view.js` provides start, duration/end date, live count, recommitment explanation,
-and confirmation. Duration counts the start date; month arithmetic clamps to the
-last available day, and monthly dates are anchored to the original day rather
-than drifting after February. At most 1000 occurrences are accepted per cycle;
-large rules fail without truncation or partial writes. The source is retained,
-completion/tasks reset in new copies, and historical reports are not copied.
-Attachment references and formatting remain intact. Creating a cycle persists
-once, rolls back on failure, and has a single Undo snapshot covering all target
-days. No scheduler, automatic renewal, new note fields, or database migration is
-introduced; existing reminders, Monthly, sync, and backups see normal notes.
+monthly, or selected-weekday rule into ordinary dated notes. `view.js` previews
+25 occurrences per page, flags annual U.S. federal holidays using the local OPM
+rule model, and supports skipping or individually adjusting dates, times, titles,
+and text. Adjusted dates remain within the explicit cycle bounds. Holiday scope
+and limitations are visible in the dialog; there is no external holiday request.
+
+A validated optional `repeat` object links each new occurrence to its finite
+cycle and original planned position. Metadata survives backups and account sync;
+it is not an authorization mechanism. Old independent copies are not inferred
+from similar text. Duplicating a note detaches its cycle identity. No database
+migration or automatic renewal is required.
+
+Daily and Focus editors, deletion, and schedule moves offer Only this note or
+This and later repeats. `series.js` applies the choice only within that cycle,
+retains earlier notes and per-occurrence completion/history, and provides batch
+Undo snapshots. Content edits propagate text and formatting together. Individual
+exception titles and times survive unrelated edits. Moving all remaining repeats
+cannot extend the original bounds; moving only one outside the cycle detaches it.
+
+Duration counts the start date; monthly dates clamp without drifting after
+February. At most 1000 planned occurrences are accepted; larger rules fail
+without truncation. Creation preserves the source contents, resets completion in
+new copies, and excludes historical reports. Attachment references are retained.
+All writes use existing persistence and rollback on failure, with one creation
+Undo snapshot covering the source metadata and target days.

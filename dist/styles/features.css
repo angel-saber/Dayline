@@ -2050,3 +2050,44 @@ body.month-dragging .shortcuts-launch {
     flex-wrap: wrap;
   }
 }
+
+.repeat-scope-dialog {
+  max-width: 500px;
+}
+.repeat-scope-dialog .inline {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.repeat-review {
+  margin: 20px 0;
+}
+.repeat-occurrence {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 12px;
+  margin: 10px 0;
+}
+.repeat-occurrence summary {
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.repeat-occurrence > label {
+  display: grid;
+  gap: 5px;
+  margin-top: 12px;
+}
+.repeat-occurrence > label:has(input[type='checkbox']) {
+  display: flex;
+  align-items: center;
+}
+.repeat-occurrence input:not([type='checkbox']),
+.repeat-occurrence textarea {
+  width: 100%;
+  padding: 8px;
+  color: var(--ink);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+}

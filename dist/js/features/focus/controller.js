@@ -1,9 +1,10 @@
-import { node } from '../../shared/dom.js?v=e3a1bdfe567b';
-import { indentLevel } from '../notes/formatting/indents.js?v=e3a1bdfe567b';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=e3a1bdfe567b';
-import { tagBadges, categoryOptions } from '../notes/note-types.js?v=e3a1bdfe567b';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=e3a1bdfe567b';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=e3a1bdfe567b';
+import { chooseRepeatScope } from '../repeating/scope.js?v=11da2bfc29ac';
+import { node } from '../../shared/dom.js?v=11da2bfc29ac';
+import { indentLevel } from '../notes/formatting/indents.js?v=11da2bfc29ac';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=11da2bfc29ac';
+import { tagBadges, categoryOptions } from '../notes/note-types.js?v=11da2bfc29ac';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=11da2bfc29ac';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=11da2bfc29ac';
 import {
   focusIntervalNotes,
   newFocus,
@@ -14,10 +15,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=e3a1bdfe567b';
-import { createNoteEditor } from '../notes/note-editor.js?v=e3a1bdfe567b';
-import { renderFormatted } from '../notes/formatting/format.js?v=e3a1bdfe567b';
-import { noteTasks } from '../notes/formatting/tasks.js?v=e3a1bdfe567b';
+} from './model.js?v=11da2bfc29ac';
+import { createNoteEditor } from '../notes/note-editor.js?v=11da2bfc29ac';
+import { renderFormatted } from '../notes/formatting/format.js?v=11da2bfc29ac';
+import { noteTasks } from '../notes/formatting/tasks.js?v=11da2bfc29ac';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {
@@ -144,7 +145,11 @@ export function setupFocus(api) {
       }
     }
   }
-  function editNote(host, entry = null) {
+  function editNote(host, entry = null, repeatScope = null) {
+    if (entry?.repeat && !repeatScope) {
+      chooseRepeatScope('Edit', (choice) => editNote(host, entry, choice));
+      return;
+    }
     const switching = !!noteEditor;
     flushNote();
     if (switching) {
@@ -165,6 +170,12 @@ export function setupFocus(api) {
       return;
     }
     entry = found?.entry || null;
+    if (!host.isConnected) {
+      host = entry
+        ? dialog.querySelector(`[data-note-id="${CSS.escape(entry.id)}"] .focus-note`)
+        : dialog.querySelector('.focus-add-note');
+      if (!host) return;
+    }
     const date = found?.date || p.date;
     let id = entry?.id || null;
     noteEditor = createNoteEditor({
@@ -174,7 +185,7 @@ export function setupFocus(api) {
       label: 'Focus interval note',
       onDuplicate: () => id && api.duplicateNote?.(date, id),
       onChange(values) {
-        const result = api.editNote(date, id, p.minute, values);
+        const result = api.editNote(date, id, p.minute, values, repeatScope || 'one');
         if (result) {
           id = result.id;
           p.noteId = id;
