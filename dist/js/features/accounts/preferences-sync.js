@@ -1,7 +1,7 @@
-import { PERSONALITY_IDS } from '../../personalities/ids.js?v=5c319d31303c';
-import { validState } from '../../shared/storage.js?v=5c319d31303c';
-import { availableHours } from '../settings/available-hours.js?v=5c319d31303c';
-import { validTagSettings } from '../notes/note-types.js?v=5c319d31303c';
+import { PERSONALITY_IDS } from '../../personalities/ids.js?v=d779713692b6';
+import { validState } from '../../shared/storage.js?v=d779713692b6';
+import { availableHours } from '../settings/available-hours.js?v=d779713692b6';
+import { validTagSettings } from '../notes/note-types.js?v=d779713692b6';
 
 const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const clone = (value) => structuredClone(value);

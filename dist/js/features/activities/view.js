@@ -1,8 +1,8 @@
-import { node as el } from '../../shared/dom.js?v=5c319d31303c';
-import { weekStart } from '../monthly/weekly-model.js?v=5c319d31303c';
-import { dimensions, breathingFrame, compassTitle, compassDates } from './model.js?v=5c319d31303c';
-import { activityCatalog, activityFields } from './catalog.js?v=5c319d31303c';
-import { dayKey } from '../../shared/schedule.js?v=5c319d31303c';
+import { node as el } from '../../shared/dom.js?v=d779713692b6';
+import { weekStart } from '../monthly/weekly-model.js?v=d779713692b6';
+import { dimensions, breathingFrame, compassTitle, compassDates } from './model.js?v=d779713692b6';
+import { activityCatalog, activityFields } from './catalog.js?v=d779713692b6';
+import { dayKey } from '../../shared/schedule.js?v=d779713692b6';
 
 const button = (text, fn, cls = 'secondary') => {
   const b = el('button', cls, text);
@@ -51,7 +51,7 @@ export function renderGuidedReports(container, reports = []) {
     container.append(details);
   }
 }
-export function setupActivities({ root, savePlan, onSaved }) {
+export function setupActivities({ root, savePlan, onSaved, favorites }) {
   const dialog = el('dialog', 'activity-dialog');
   dialog.setAttribute('aria-labelledby', 'activity-heading');
   document.body.append(dialog);
@@ -570,14 +570,16 @@ export function setupActivities({ root, savePlan, onSaved }) {
       'Feeling anxious, low on energy, overwhelmed, or unsure where to begin? Take a moment, then make a little room for progress.',
     ),
   );
-  for (const [title, copy, action, label] of [
+  for (const [id, title, copy, action, label] of [
     [
+      'breathing',
       'Guided Breathing',
       'Follow a gentle two-minute animation to settle down or wake up your attention.',
       breathe,
       'Choose a breathing exercise',
     ],
     [
+      'planning',
       'Guided Planning',
       'Choose one small activity for today across work, health, learning, relationships, and spirituality.',
       () => {
@@ -590,6 +592,7 @@ export function setupActivities({ root, savePlan, onSaved }) {
   ]) {
     const card = el('section', 'settings-card activity-card');
     card.append(el('h2', '', title), el('p', 'field-hint', copy), button(label, action, 'primary'));
+    if (favorites) card.append(favorites.register(id, title, action));
     root.append(card);
   }
   for (const [type, activity] of Object.entries(activityCatalog)) {
@@ -599,6 +602,8 @@ export function setupActivities({ root, savePlan, onSaved }) {
       el('p', 'field-hint', activity.description),
       button('Start ' + activity.title, () => launchActivity(type), 'primary'),
     );
+    if (favorites)
+      card.append(favorites.register(type, activity.title, () => launchActivity(type)));
     root.append(card);
   }
   return {

@@ -818,6 +818,33 @@ test('the assembled planner starts, switches views/personalities, edits settings
       'A flexible year',
     );
 
+    document.querySelector('#more-tab').click();
+    assert.equal(document.querySelectorAll('[data-favorite-activity]').length, 6);
+    document.querySelector('[data-favorite-activity="visualization"]').click();
+    document.querySelector('[data-favorite-activity="breathing"]').click();
+    assert.equal(document.querySelectorAll('.activity-quick-launch').length, 2);
+    document.querySelector('#daily-tab').click();
+    document.querySelector('.activity-quick-launch[data-activity="visualization"]').click();
+    const quickVisualization = document.querySelector('.visualization-dialog');
+    assert.equal(quickVisualization.open, true);
+    assert.ok(quickVisualization.querySelector('.visualization-quote a'));
+    quickVisualization.querySelector('.visualization-pin').click();
+    const pinnedTitle = quickVisualization.querySelector('h3').textContent;
+    [...quickVisualization.querySelectorAll('button')]
+      .find((button) => button.textContent === 'Finish')
+      .click();
+    document.querySelector('.activity-quick-launch[data-activity="visualization"]').click();
+    assert.equal(quickVisualization.querySelector('h3').textContent, pinnedTitle);
+    [...quickVisualization.querySelectorAll('button')]
+      .find((button) => button.textContent === 'Finish')
+      .click();
+    document.querySelector('.activity-quick-launch[data-activity="breathing"]').click();
+    const breathingWindow = [...document.querySelectorAll('dialog')].find((dialog) => dialog.open);
+    assert.match(breathingWindow.textContent, /Choose a two-minute rhythm/);
+    [...breathingWindow.querySelectorAll('button')]
+      .find((button) => button.textContent === 'Close')
+      .click();
+
     assert.deepEqual(network, []);
   } finally {
     for (const [name, descriptor] of previous) {

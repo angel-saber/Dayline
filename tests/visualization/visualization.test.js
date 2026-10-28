@@ -7,6 +7,7 @@ import {
   shouldInvite,
   ENABLED_KEY,
   SEEN_KEY,
+  PINNED_KEY,
 } from '../../dist/js/features/visualization/controller.js';
 
 test('all approved visualizations are complete and a reroll chooses another exercise', () => {
@@ -14,6 +15,9 @@ test('all approved visualizations are complete and a reroll chooses another exer
   assert.equal(new Set(VISUALIZATIONS.map((exercise) => exercise.id)).size, 21);
   for (const exercise of VISUALIZATIONS) {
     assert.ok(exercise.title && exercise.guidance && exercise.prompt);
+    assert.equal(exercise.quote.length, 4);
+    assert.ok(exercise.quote.every((value) => typeof value === 'string' && value.trim()));
+    assert.equal(new URL(exercise.quote[3]).protocol, 'https:');
     for (const random of [() => 0, () => 0.5, () => 0.999])
       assert.notEqual(rollVisualization(exercise.id, random).id, exercise.id);
   }
@@ -41,15 +45,29 @@ test('daily invitations wait for entry, roll once per local day, respect Setting
     this.dispatchEvent(new window.Event('close'));
   };
   window.HTMLElement.prototype.focus = function () {};
+  Object.defineProperty(window.HTMLSelectElement.prototype, 'value', {
+    configurable: true,
+    get() {
+      return (
+        this.querySelector('option[selected]')?.value || this.querySelector('option')?.value || ''
+      );
+    },
+    set(value) {
+      for (const option of this.querySelectorAll('option'))
+        option.toggleAttribute('selected', option.value === value);
+    },
+  });
   const data = new Map(),
     saves = [],
     messages = [];
   let gate = false,
     date = new Date(2026, 9, 28, 9),
-    fail = false;
+    fail = false,
+    writeFail = false;
   const storage = {
     getItem: (key) => data.get(key) ?? null,
     setItem(key, value) {
+      if (writeFail) throw new Error('storage full');
       data.set(key, value);
     },
   };
@@ -94,12 +112,25 @@ test('daily invitations wait for entry, roll once per local day, respect Setting
         assert.ok(labels.includes(text));
     };
     assertExerciseScreen();
+    assert.match(
+      api.dialog.querySelector('.visualization-quote').textContent,
+      /Henry David Thoreau/,
+    );
+    click('Pin as first exercise');
+    assert.equal(data.get(PINNED_KEY), 'good-day');
+    assert.equal(document.querySelector('[aria-label="First visualization"]').value, 'good-day');
+    assert.equal(
+      api.dialog.querySelector('.visualization-pin').getAttribute('aria-pressed'),
+      'true',
+    );
     const draft = api.dialog.querySelector('textarea');
     draft.value = 'Previous exercise action';
     draft.dispatchEvent(new window.Event('input'));
     const title = api.dialog.querySelector('h3').textContent;
     click('Reroll');
     assert.notEqual(api.dialog.querySelector('h3').textContent, title);
+    assert.equal(data.get(PINNED_KEY), 'good-day');
+    assert.match(api.dialog.querySelector('.visualization-pin-hint').textContent, /One Good Day/);
     assertExerciseScreen();
     assert.equal(api.dialog.querySelector('textarea').value, '');
     assert.ok(api.dialog.querySelector('.visualization-guidance'));
@@ -112,6 +143,7 @@ test('daily invitations wait for entry, roll once per local day, respect Setting
     api.check();
     assert.equal(api.dialog.open, true);
     assert.equal(data.get(SEEN_KEY), '2026-10-29');
+    assert.equal(api.dialog.querySelector('h3').textContent, 'One Good Day');
     api.dialog.close();
     const toggle = document.querySelector('#settings input');
     toggle.checked = false;
@@ -124,6 +156,9 @@ test('daily invitations wait for entry, roll once per local day, respect Setting
     assert.equal(api.dialog.open, true);
     assert.equal(data.get(SEEN_KEY), '2026-10-29');
     assertExerciseScreen();
+    assert.equal(api.dialog.querySelector('h3').textContent, 'One Good Day');
+    click('Unpin first exercise');
+    assert.equal(data.get(PINNED_KEY), '');
     click('Save action to Daily');
     assert.equal(saves.length, 0);
     const input = api.dialog.querySelector('textarea');
@@ -139,6 +174,37 @@ test('daily invitations wait for entry, roll once per local day, respect Setting
     assert.equal(api.dialog.open, false);
     assert.equal(saves[0].action, 'Open my notebook');
     assert.equal(messages.length, 0);
+    api.open();
+    const retained = api.dialog.querySelector('textarea');
+    retained.value = 'Keep this draft';
+    retained.dispatchEvent(new window.Event('input'));
+    const first = document.querySelector('[aria-label="First visualization"]');
+    first.value = 'today-self';
+    first.dispatchEvent(new window.Event('change'));
+    assert.equal(api.dialog.querySelector('textarea'), retained);
+    assert.equal(retained.value, 'Keep this draft');
+    api.dialog.close();
+    api.open();
+    assert.equal(api.dialog.querySelector('h3').textContent, 'Today’s Version of You');
+    writeFail = true;
+    click('Unpin first exercise');
+    assert.equal(data.get(PINNED_KEY), 'today-self');
+    assert.equal(
+      api.dialog.querySelector('.visualization-pin').getAttribute('aria-pressed'),
+      'true',
+    );
+    assert.match(messages.at(-1), /Could not save the first visualization/);
+    writeFail = false;
+    data.set(PINNED_KEY, 'removed-exercise');
+    api.dialog.close();
+    api.open();
+    assert.ok(
+      VISUALIZATIONS.some((item) => item.title === api.dialog.querySelector('h3').textContent),
+    );
+    assert.equal(
+      api.dialog.querySelector('.visualization-pin').getAttribute('aria-pressed'),
+      'false',
+    );
   } finally {
     for (const [name, descriptor] of previous) {
       if (descriptor) Object.defineProperty(globalThis, name, descriptor);

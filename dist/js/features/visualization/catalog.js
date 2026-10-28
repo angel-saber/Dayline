@@ -1,3 +1,4 @@
+import { VISUALIZATION_QUOTES } from './quotes.js?v=d779713692b6';
 export const VISUALIZATIONS = [
   [
     'good-day',
@@ -125,7 +126,13 @@ export const VISUALIZATIONS = [
     'Think of someone whose way of living you admire. Choose one quality rather than their achievements or circumstances. Imagine expressing that quality in your own way during a moment today. Picture the specific action you could take.',
     'I admire ___. Today, I can express it by ___.',
   ],
-].map(([id, title, guidance, prompt]) => ({ id, title, guidance, prompt }));
+].map(([id, title, guidance, prompt]) => ({
+  id,
+  title,
+  guidance,
+  prompt,
+  quote: VISUALIZATION_QUOTES[id],
+}));
 
 export function rollVisualization(previous, random = Math.random) {
   const choices = VISUALIZATIONS.filter((exercise) => exercise.id !== previous);
