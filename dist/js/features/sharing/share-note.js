@@ -1,20 +1,21 @@
-import { node } from '../../shared/dom.js?v=45ea95c7642d';
-import { weekStart } from '../monthly/weekly-model.js?v=45ea95c7642d';
-import { offsetDay } from '../../shared/schedule.js?v=45ea95c7642d';
-import { indentLevel } from '../notes/formatting/indents.js?v=45ea95c7642d';
+import { richBody, escapeHtml, copyFormatted } from './share-format.js?v=ac12573d358a';
+import { node } from '../../shared/dom.js?v=ac12573d358a';
+import { weekStart } from '../monthly/weekly-model.js?v=ac12573d358a';
+import { offsetDay } from '../../shared/schedule.js?v=ac12573d358a';
+import { indentLevel } from '../notes/formatting/indents.js?v=ac12573d358a';
 import {
   shareAttachments,
   prepareShareFiles,
   supportsFileShare,
-} from './share-files.js?v=45ea95c7642d';
-import { attachmentList } from '../attachments/attachments.js?v=45ea95c7642d';
-import { parseDay, timeLabel } from '../../shared/schedule.js?v=45ea95c7642d';
-import { noteTasks } from '../notes/formatting/tasks.js?v=45ea95c7642d';
-import { NOTE_TYPES, categoryLabel, noteTags } from '../notes/note-types.js?v=45ea95c7642d';
-import { safeLink } from '../notes/formatting/links.js?v=45ea95c7642d';
-import { durationLabel } from '../focus/model.js?v=45ea95c7642d';
-import { dimensions, compassTitle, compassDates } from '../activities/model.js?v=45ea95c7642d';
-import { activityCatalog, activityFields } from '../activities/catalog.js?v=45ea95c7642d';
+} from './share-files.js?v=ac12573d358a';
+import { attachmentList } from '../attachments/attachments.js?v=ac12573d358a';
+import { parseDay, timeLabel } from '../../shared/schedule.js?v=ac12573d358a';
+import { noteTasks } from '../notes/formatting/tasks.js?v=ac12573d358a';
+import { NOTE_TYPES, categoryLabel, noteTags } from '../notes/note-types.js?v=ac12573d358a';
+import { safeLink } from '../notes/formatting/links.js?v=ac12573d358a';
+import { durationLabel } from '../focus/model.js?v=ac12573d358a';
+import { dimensions, compassTitle, compassDates } from '../activities/model.js?v=ac12573d358a';
+import { activityCatalog, activityFields } from '../activities/catalog.js?v=ac12573d358a';
 export const SHARE_DEFAULTS = {
   dateTime: true,
   type: true,
@@ -48,7 +49,7 @@ function linkedLine(text, start, format = []) {
   }
   return result + text.slice(at);
 }
-export function shareNoteText(entry, date, options = {}, clock = '12') {
+export function shareNoteText(entry, date, options = {}, clock = '12', html = false) {
   const settings = { ...SHARE_DEFAULTS, ...options },
     parts = [entry.title?.trim() || 'Dayline note'];
   if (settings.dateTime)
@@ -72,6 +73,7 @@ export function shareNoteText(entry, date, options = {}, clock = '12') {
       return `${indent}${task ? (task.done ? '☑ ' : '☐ ') : bullet ? '• ' : ''}${text}`;
     })
     .join('\n');
+  const bodyIndex = body.trim() ? parts.length + 1 : -1;
   if (body.trim()) parts.push('', body);
   if (settings.focusReports)
     for (const report of entry.focusReports || []) {
@@ -115,9 +117,19 @@ export function shareNoteText(entry, date, options = {}, clock = '12') {
         );
     }
   parts.push('', 'Planned with Dayline');
-  return parts.join('\n');
+  return parts
+    .map((part, index) =>
+      html ? (index === bodyIndex ? richBody(entry) : escapeHtml(part)) : part,
+    )
+    .join('\n');
 }
-export function shareNotesText(items, options = {}, clock = '12', heading = 'Dayline plan') {
+export function shareNotesText(
+  items,
+  options = {},
+  clock = '12',
+  heading = 'Dayline plan',
+  html = false,
+) {
   const settings = { ...SHARE_DEFAULTS, ...options },
     parts = [heading.trim() || 'Dayline plan'];
   const ranks = Object.keys(NOTE_TYPES),
@@ -174,6 +186,7 @@ export function shareNotesText(items, options = {}, clock = '12', heading = 'Day
       date,
       { ...settings, dateTime: false, type: byCategory ? false : settings.type },
       clock,
+      html,
     )
       .split('\n')
       .slice(1, -2)
@@ -182,10 +195,19 @@ export function shareNotesText(items, options = {}, clock = '12', heading = 'Day
       '',
       `${settings.dateTime ? timeLabel(entry.minute, clock) + ' — ' : ''}${entry.title?.trim() || 'Dayline note'}`,
     );
-    if (text.trim()) parts.push(text);
+    if (text.trim()) parts.push({ html: text });
   }
   parts.push('', 'Planned with Dayline');
-  return parts.join('\n');
+  return parts
+    .map((part) => (typeof part === 'object' ? part.html : html ? escapeHtml(part) : part))
+    .join('\n');
+}
+export function shareNotesHtml(items, options = {}, clock = '12', heading = null) {
+  const content =
+    heading === null && items.length === 1
+      ? shareNoteText(items[0].entry, items[0].date, options, clock, true)
+      : shareNotesText(items, options, clock, heading || 'Dayline plan', true);
+  return `<div style="white-space:pre-wrap;font-family:Arial,sans-serif;line-height:1.5;color:#20242a;background:#ffffff">${content}</div>`;
 }
 export function openShareNote(entry, date, clock = '12') {
   return openShareItems([{ entry, date }], clock, false);
@@ -206,7 +228,7 @@ function openShareItems(items, clock, multiple) {
   const intro = node(
     'p',
     'field-hint',
-    'Share a clean text copy. Recipients do not need a Dayline account. Choose what to include below.',
+    'Copy formatted notes into email or documents, or share a text copy. Recipients do not need a Dayline account. Formatting depends on the receiving app; Share… and Email use plain text.',
   );
   let preparedFiles = [],
     loadingFiles = false,
@@ -335,6 +357,38 @@ function openShareItems(items, clock, multiple) {
     },
     'primary',
   );
+  const formattedHtml = () => shareNotesHtml(items, options, clock, multiple ? shareTitle() : null);
+  const formattedCopy = action('Copy formatted', async () => {
+    try {
+      const rich = await copyFormatted(formattedHtml(), preview.value);
+      status.textContent = rich
+        ? 'Copied with formatting. Paste into an app that supports rich text.'
+        : 'Copied as plain text. This browser does not support formatted copying.';
+    } catch {
+      status.textContent = 'Could not copy. Use Copy text or Download formatted instead.';
+    }
+  });
+  const download = action('Download formatted', () => {
+    const url = URL.createObjectURL(
+      new Blob(
+        [
+          '<!doctype html><html><head><meta charset="utf-8"><title>Dayline notes</title></head><body>',
+          formattedHtml(),
+          '</body></html>',
+        ],
+        { type: 'text/html;charset=utf-8' },
+      ),
+    );
+    const link = node('a');
+    link.href = url;
+    link.download = 'dayline-notes.html';
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    status.textContent =
+      'Downloaded formatted notes. Open in a browser or attach to an email. Note attachments are shared separately.';
+  });
   const copy = action('Copy text', async () => {
     try {
       await navigator.clipboard.writeText(preview.value);
@@ -347,7 +401,9 @@ function openShareItems(items, clock, multiple) {
   });
   actions.append(
     share,
+    formattedCopy,
     copy,
+    download,
     email,
     action('Close', () => dialog.close()),
   );
