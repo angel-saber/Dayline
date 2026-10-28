@@ -1,6 +1,8 @@
-import { openExpandedDay } from './expanded-day.js?v=11da2bfc29ac';
-import { node } from '../../shared/dom.js?v=11da2bfc29ac';
-import { createWeeklySection } from './weekly-notes.js?v=11da2bfc29ac';
+import { summarySource, summarizePeriod } from '../summaries/model.js?v=e84921dfd9a4';
+import { createPeriodSummary } from '../summaries/view.js?v=e84921dfd9a4';
+import { openExpandedDay } from './expanded-day.js?v=e84921dfd9a4';
+import { node } from '../../shared/dom.js?v=e84921dfd9a4';
+import { createWeeklySection } from './weekly-notes.js?v=e84921dfd9a4';
 import {
   NOTE_TYPES,
   categoryOptions,
@@ -10,11 +12,11 @@ import {
   typeBadge,
   noteTags,
   categoryLabel,
-} from '../notes/note-types.js?v=11da2bfc29ac';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=11da2bfc29ac';
-import { dateActions } from './date-actions.js?v=11da2bfc29ac';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=11da2bfc29ac';
-import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=11da2bfc29ac';
+} from '../notes/note-types.js?v=e84921dfd9a4';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=e84921dfd9a4';
+import { dateActions } from './date-actions.js?v=e84921dfd9a4';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=e84921dfd9a4';
+import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=e84921dfd9a4';
 
 const button = (text, label, action) => {
   const el = node('button', '', text);
@@ -59,7 +61,8 @@ export function setupMonthly({
     suppressClick = false,
     syncRefreshPending = false;
   let weeklySections = [],
-    overflowUpdates = [];
+    overflowUpdates = [],
+    periodSummaries = [];
   function flushWeekly() {
     for (const section of weeklySections) section.flush();
   }
@@ -242,10 +245,18 @@ export function setupMonthly({
       },
     });
   }
+  function refreshPeriodSummaries() {
+    if (root.hidden) return;
+    const source = summarySource(getState().days);
+    for (const { view, start, end } of periodSummaries)
+      view.update(summarizePeriod(source, start, end, true));
+  }
+  window.addEventListener('dayline:notes-changed', refreshPeriodSummaries);
   function render() {
     dates.reset();
     for (const section of weeklySections) section.destroy();
     weeklySections = [];
+    periodSummaries = [];
     observer?.disconnect();
     overflowUpdates = [];
     const types = categoryOptions(getState().days, getState().settings.tags, true),
@@ -284,9 +295,14 @@ export function setupMonthly({
       }),
     );
     head.append(heading, nav);
+    const monthSummary = createPeriodSummary('Month');
+    const start = month + '-01';
+    const end = dayKey(new Date(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0, 12));
+    periodSummaries.push({ view: monthSummary, start, end });
     content.append(
       node('div', 'eyebrow', voice('monthly.eyebrow')),
       head,
+      monthSummary.element,
       node(
         'p',
         'intro',
@@ -337,7 +353,9 @@ export function setupMonthly({
         '',
         `Week of ${parseDay(week[0]).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`,
       );
-      section.append(weekHeading);
+      const weekSummary = createPeriodSummary('Week');
+      periodSummaries.push({ view: weekSummary, start: week[0], end: week[6] });
+      section.append(weekHeading, weekSummary.element);
       if (applyWeekly) {
         const weekly = createWeeklySection({
           week: week[0],
@@ -471,6 +489,7 @@ export function setupMonthly({
       content.append(section);
     }
     root.replaceChildren(content);
+    refreshPeriodSummaries();
     for (const list of root.querySelectorAll('.month-notes')) observer?.observe(list);
     requestAnimationFrame(measureOverflow);
   }

@@ -367,3 +367,21 @@ without truncation. Creation preserves the source contents, resets completion in
 new copies, and excludes historical reports. Attachment references are retained.
 All writes use existing persistence and rollback on failure, with one creation
 Undo snapshot covering the source metadata and target days.
+
+## Day, week, and month summaries
+
+`features/summaries/` computes an expandable one-line overview from existing notes
+and saved Focus reports, without changing storage. Percentages are note
+prevalence, so multi-tag notes count toward each tag; untagged notes are explicit.
+The denominator includes all notes regardless of display filters. Daily excludes
+Weekly Notes. Weeks include all seven dates plus that week's undated notes;
+months limit dated notes to calendar dates and include undated notes from each
+overlapping week once. A month's total need not equal its padded week totals.
+
+Focus reports are deduplicated by session ID across all notes and clipped to the
+period's local-midnight bounds, accounting for cross-midnight sessions and DST.
+Moving a report's note does not move its recorded Focus time. Active sessions are
+not included; removing a report removes that history from summaries. Holiday
+flags share `shared/holidays.js` with repeat previews. Compact lines expose full
+tag counts, holiday dates, and calculation explanations on expansion. Note-change
+events update summary content without rebuilding calendars or open editors.

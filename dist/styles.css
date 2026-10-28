@@ -4100,6 +4100,56 @@ body.month-dragging .shortcuts-launch {
   font: inherit;
 }
 
+.period-summary {
+  margin: 8px 0 16px;
+  color: var(--muted);
+  font-size: 12px;
+  min-width: 0;
+}
+.period-summary > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  list-style: none;
+  line-height: 1.7;
+}
+.period-summary > summary::-webkit-details-marker {
+  display: none;
+}
+.period-summary-line {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+.period-summary-hint {
+  flex: none;
+  font-size: 10px;
+  color: var(--green);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.period-summary-breakdown {
+  padding: 14px;
+  margin-top: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--white);
+  line-height: 1.7;
+}
+.period-summary-breakdown p {
+  font-size: 12px;
+  margin: 8px 0;
+}
+.period-summary-breakdown ul {
+  padding-left: 20px;
+}
+.period-summary-breakdown a {
+  color: var(--green);
+}
+
 
 :root[data-layout='astronaut'] body {
   background-image:
