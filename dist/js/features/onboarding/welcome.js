@@ -1,4 +1,4 @@
-import { PERSONALITIES, getPersonality } from '../../personalities/index.js?v=2db51b06c402';
+import { PERSONALITIES, getPersonality } from '../../personalities/index.js?v=ca08f99f62a3';
 // First-visit setup stays separate from planner data and personality presentation.
 const KEY = 'dayline.welcome.v1';
 export function needsWelcome(storage, entryComplete = false, loginVisible = true) {
@@ -24,7 +24,7 @@ export function setupWelcome(api) {
       <li><h3>Organize and share</h3><p>Select notes across a day, week, or month to move, tag, delete, or share together. Preview a single note or collection, order by date or category, or share open time as availability.</p></li>
       <li><h3>Make space to focus</h3><p>Start a Focus session with a mantra, interval notes, inspiration, and an interruption log. Minimize it while you work, then finish with an optional reflection and saved summary.</p></li>
       <li><h3>Choose your atmosphere</h3><p>Explore six personalities, each with its own look, voice, and default soundtrack. Launch Focus Audio independently and mix music, ambience, binaural tones, or a metronome.</p></li>
-      <li><h3>Find your next step</h3><p>Open More for guided breathing, planning, Untangle My Thoughts, The Two-Minute Start, and Monthly Compass. Planning activities can save reports to your notes.</p></li>
+      <li><h3>Find your next step</h3><p>Start your day with a short visualization, or open More for Guided Visualization, guided breathing, planning, Untangle My Thoughts, The Two-Minute Start, and Monthly Compass. Planning activities can save reports to your notes.</p></li>
       <li><h3>Find inspiration</h3><p>Explore real stories and role models in the Inspiration Library. Search or filter by need and field, save favorites on this device, or add a story to Daily.</p></li>
       <li><h3>Stay on track</h3><p>Turn on reminders and sound for planned notes. Use Shortcuts to open Google Meet or Drive, or add links to your own favorite websites.</p></li>
     </ul>
@@ -45,6 +45,7 @@ export function setupWelcome(api) {
     <p class="field-hint welcome-footnote">You can change these choices anytime in Settings. Guest notes stay in this browser; invited account users can sync notes and settings across devices. Attachment files stay on this device and do not sync automatically. Download a backup in Settings to keep a copy or transfer files.</p>
     <p class="welcome-error" role="status"></p><div class="inline"><button class="primary welcome-confirm" type="button">Start my day</button><button class="secondary welcome-cancel" type="button" hidden>Cancel</button></div>`;
   document.body.append(dialog);
+  dialog.addEventListener('close', () => window.dispatchEvent(new Event('dayline:welcome-closed')));
   const $ = (selector) => dialog.querySelector(selector),
     interval = $('#welcome-interval'),
     custom = $('#welcome-custom');

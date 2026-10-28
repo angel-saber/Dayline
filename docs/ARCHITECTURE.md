@@ -326,3 +326,15 @@ alternative. Moves use the Daily drop model, preserving the note's minute offset
 and leaving other notes in place. Delete and move use the existing persistence,
 account sync, and Undo paths. Background note refreshes are deferred during a
 drag, and closing the dialog removes its event listeners and pending gesture.
+
+## Guided visualization
+
+`features/visualization/` owns the 15 approved prompts, nonrepeating rerolls,
+invitation, and More activity. The invitation appears on planner entry or a
+later focus/visibility return, once per local calendar day per browser. It waits
+until sign-in and introductory setup are finished and avoids an active editor,
+Focus session, or another dialog. It has no midnight timer. The day marker and
+Settings toggle are device-local keys; they do not alter account preferences or
+require a schema migration. The notice directs users to Settings to disable the
+daily invitation; More remains available. Responses are saved only when the user
+chooses Save action to Daily, using existing note persistence, sync, and Undo.
