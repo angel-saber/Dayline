@@ -684,7 +684,7 @@ dialog p {
   }
   .entry .note-content {
     grid-column: 1 / -1;
-    grid-row: 2;
+    grid-row: 1;
     min-width: 0;
   }
   .entry-tools {
@@ -4457,6 +4457,68 @@ body.month-dragging .activity-favorites-dock {
     max-width: 100%;
     white-space: normal;
   }
+}
+
+/* The time gutter is a proportional target even when an interval holds notes. */
+button.slot-time {
+  position: relative;
+  justify-content: space-between;
+  min-height: 58px;
+  padding: 0;
+  text-align: left;
+  border-radius: 5px;
+}
+button.slot-time .end-time {
+  margin-top: auto;
+}
+button.slot-time .now-badge {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.interval-time-preview {
+  position: absolute;
+  left: calc(100% + 8px);
+  transform: translateY(-50%);
+  z-index: 5;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--white);
+  color: var(--ink);
+  font-size: 11px;
+  pointer-events: none;
+  box-shadow: 0 2px 8px #00000012;
+}
+.interval-time-preview[hidden] {
+  display: none;
+}
+.slot-notes > .empty-add {
+  flex: 1;
+}
+
+/* Actions occupy only the header, leaving the note body its full available width. */
+.note-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 8px;
+}
+.note-heading {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.note-header > .entry-tools {
+  flex: 0 1 auto;
+  max-width: 100%;
+  flex-wrap: wrap;
+  margin: 0;
+}
+.entry .note-body {
+  width: 100%;
+  min-width: 0;
 }
 
 

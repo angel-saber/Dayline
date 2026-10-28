@@ -845,6 +845,29 @@ test('the assembled planner starts, switches views/personalities, edits settings
       .find((button) => button.textContent === 'Close')
       .click();
 
+    document.querySelector('#daily-tab').click();
+    const intervalForClick = JSON.parse(local.getItem('dayline.v1')).settings.interval;
+    const preciseSlot = document.querySelector('#timeline .slot[data-minute="600"]');
+    const preciseGutter = preciseSlot.querySelector('.slot-time');
+    preciseGutter.getBoundingClientRect = () => ({ top: 100, height: 100 });
+    const preciseClick = new window.Event('click', { bubbles: true, cancelable: true });
+    for (const [key, value] of Object.entries({ clientY: 150, detail: 1, button: 0 }))
+      Object.defineProperty(preciseClick, key, { value });
+    preciseGutter.dispatchEvent(preciseClick);
+    const preciseEditor = document.querySelector('#timeline .editor');
+    const expectedMinute = 600 + Math.round(intervalForClick / 2);
+    const expectedTime = `${String(Math.floor(expectedMinute / 60)).padStart(2, '0')}:${String(expectedMinute % 60).padStart(2, '0')}`;
+    assert.equal(preciseEditor.querySelector('[aria-label="Note time"]').value, expectedTime);
+    const preciseTitle = preciseEditor.querySelector('[aria-label="Note title"]');
+    preciseTitle.value = 'Placed at a precise time';
+    preciseTitle.dispatchEvent(new window.Event('input'));
+    document.querySelector('#more-tab').click();
+    assert.ok(
+      JSON.parse(local.getItem('dayline.v1')).days[today].some(
+        (note) => note.title === 'Placed at a precise time' && note.minute === expectedMinute,
+      ),
+    );
+
     assert.deepEqual(network, []);
   } finally {
     for (const [name, descriptor] of previous) {
