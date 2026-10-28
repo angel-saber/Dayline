@@ -1,8 +1,9 @@
-import { summarySource, summarizePeriod } from '../summaries/model.js?v=e84921dfd9a4';
-import { createPeriodSummary } from '../summaries/view.js?v=e84921dfd9a4';
-import { openExpandedDay } from './expanded-day.js?v=e84921dfd9a4';
-import { node } from '../../shared/dom.js?v=e84921dfd9a4';
-import { createWeeklySection } from './weekly-notes.js?v=e84921dfd9a4';
+import { SUMMARY_PREFERENCES_EVENT } from '../summaries/preferences.js?v=31f307a53cca';
+import { summarySource, summarizePeriod } from '../summaries/model.js?v=31f307a53cca';
+import { createPeriodSummary } from '../summaries/view.js?v=31f307a53cca';
+import { openExpandedDay } from './expanded-day.js?v=31f307a53cca';
+import { node } from '../../shared/dom.js?v=31f307a53cca';
+import { createWeeklySection } from './weekly-notes.js?v=31f307a53cca';
 import {
   NOTE_TYPES,
   categoryOptions,
@@ -12,11 +13,11 @@ import {
   typeBadge,
   noteTags,
   categoryLabel,
-} from '../notes/note-types.js?v=e84921dfd9a4';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=e84921dfd9a4';
-import { dateActions } from './date-actions.js?v=e84921dfd9a4';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=e84921dfd9a4';
-import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=e84921dfd9a4';
+} from '../notes/note-types.js?v=31f307a53cca';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=31f307a53cca';
+import { dateActions } from './date-actions.js?v=31f307a53cca';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=31f307a53cca';
+import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=31f307a53cca';
 
 const button = (text, label, action) => {
   const el = node('button', '', text);
@@ -252,6 +253,7 @@ export function setupMonthly({
       view.update(summarizePeriod(source, start, end, true));
   }
   window.addEventListener('dayline:notes-changed', refreshPeriodSummaries);
+  window.addEventListener(SUMMARY_PREFERENCES_EVENT, refreshPeriodSummaries);
   function render() {
     dates.reset();
     for (const section of weeklySections) section.destroy();

@@ -1,6 +1,6 @@
-import { parseDay, offsetDay } from '../../shared/dates.js?v=e84921dfd9a4';
-import { usFederalHolidays } from '../../shared/holidays.js?v=e84921dfd9a4';
-import { noteTags, categoryLabel } from '../notes/note-types.js?v=e84921dfd9a4';
+import { parseDay, offsetDay } from '../../shared/dates.js?v=31f307a53cca';
+import { usFederalHolidays } from '../../shared/holidays.js?v=31f307a53cca';
+import { noteTags, categoryLabel } from '../notes/note-types.js?v=31f307a53cca';
 
 export function summarySource(days) {
   const notes = [],
@@ -77,14 +77,45 @@ export function focusTime(ms) {
         ? `${Math.floor(ms / 1000)}s`
         : '0m';
 }
-export function summaryLine(summary) {
-  const pieces = [
-    `${summary.count} ${summary.count === 1 ? 'note' : 'notes'}${summary.weeklyCount ? ` (${summary.weeklyCount} weekly)` : ''}`,
-  ];
-  pieces.push(...summary.tags.slice(0, 2).map((tag) => `${tag.label} ${tag.percentage}%`));
-  if (summary.tags.length > 2) pieces.push(`+${summary.tags.length - 2} tags`);
-  pieces.push(`Focus ${focusTime(summary.focusMs)}`);
-  if (summary.holidays.length === 1) pieces.push(summary.holidays[0].names.join(', '));
-  else if (summary.holidays.length) pieces.push(`${summary.holidays.length} holiday dates`);
-  return pieces.join(' · ');
+export function summaryParts(summary, preferences = {}) {
+  const options = {
+    notes: true,
+    tags: true,
+    focus: true,
+    holidays: true,
+    tagMode: 'percentage',
+    ...preferences,
+  };
+  const parts = [];
+  if (options.notes)
+    parts.push({
+      key: 'notes',
+      text: `${summary.count} ${summary.count === 1 ? 'note' : 'notes'}${summary.weeklyCount ? ` (${summary.weeklyCount} weekly)` : ''}`,
+    });
+  if (options.tags) {
+    const tags = summary.tags
+      .slice(0, 2)
+      .map((tag) =>
+        options.tagMode === 'count'
+          ? `${tag.label} ${tag.count} ${tag.count === 1 ? 'note' : 'notes'}`
+          : `${tag.label} ${tag.percentage}%`,
+      );
+    if (summary.tags.length > 2) tags.push(`+${summary.tags.length - 2} tags`);
+    parts.push({ key: 'tags', text: tags.length ? tags.join(' · ') : 'No tags yet' });
+  }
+  if (options.focus) parts.push({ key: 'focus', text: `Focus ${focusTime(summary.focusMs)}` });
+  if (options.holidays && summary.holidays.length)
+    parts.push({
+      key: 'holidays',
+      text:
+        summary.holidays.length === 1
+          ? summary.holidays[0].names.join(', ')
+          : `${summary.holidays.length} holiday dates`,
+    });
+  return parts;
+}
+export function summaryLine(summary, preferences = {}) {
+  return summaryParts(summary, preferences)
+    .map((part) => part.text)
+    .join(' · ');
 }

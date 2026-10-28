@@ -4150,6 +4150,46 @@ body.month-dragging .shortcuts-launch {
   color: var(--green);
 }
 
+.summary-tags-toggle {
+  display: inline-block;
+  max-width: 65%;
+  padding: 0 2px;
+  color: var(--green);
+  font: inherit;
+  line-height: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+.summary-setting-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+}
+.summary-settings fieldset {
+  border: 0;
+  padding: 0;
+  margin: 14px 0;
+}
+.summary-mode-label {
+  display: grid;
+  gap: 7px;
+  max-width: 260px;
+  margin: 16px 0;
+}
+.summary-mode-label select {
+  padding: 9px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+
 
 :root[data-layout='astronaut'] body {
   background-image:

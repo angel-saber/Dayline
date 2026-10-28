@@ -1,4 +1,4 @@
-import { renderScore } from './music.js?v=e84921dfd9a4';
+import { renderScore } from './music.js?v=31f307a53cca';
 // Approved Gamer copy. Saved user commitments and notes are never rewritten.
 export default {
   id: 'gamer',
