@@ -385,3 +385,11 @@ not included; removing a report removes that history from summaries. Holiday
 flags share `shared/holidays.js` with repeat previews. Compact lines expose full
 tag counts, holiday dates, and calculation explanations on expansion. Note-change
 events update summary content without rebuilding calendars or open editors.
+
+Summary display preferences are browser-local under `dayline.summary-display.v1`.
+Clicking the tag figures switches every visible summary between percentages and
+exact note counts without opening its disclosure. Settings independently hide
+note totals, tag figures, Focus time, or holidays from compact lines; disabling all
+four hides the summaries. Expanded Details retain the complete breakdown.
+Preference events update summaries and Settings without rebuilding the calendar
+or editing notes, and storage events synchronize display choices across tabs.

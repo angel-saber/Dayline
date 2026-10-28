@@ -1,13 +1,13 @@
-import { deviceNotes } from '../accounts/device-notes.js?v=e84921dfd9a4';
-import { validState, save } from '../../shared/storage.js?v=e84921dfd9a4';
-import { dayKey } from '../../shared/schedule.js?v=e84921dfd9a4';
+import { deviceNotes } from '../accounts/device-notes.js?v=31f307a53cca';
+import { validState, save } from '../../shared/storage.js?v=31f307a53cca';
+import { dayKey } from '../../shared/schedule.js?v=31f307a53cca';
 import {
   exportFiles,
   prepareFiles,
   storeFiles,
   MAX_BACKUP_SIZE,
-} from '../attachments/attachments.js?v=e84921dfd9a4';
-import { downloadText } from '../../shared/download.js?v=e84921dfd9a4';
+} from '../attachments/attachments.js?v=31f307a53cca';
+import { downloadText } from '../../shared/download.js?v=31f307a53cca';
 const $ = (selector) => document.querySelector(selector);
 export function setupBackups({
   getState,

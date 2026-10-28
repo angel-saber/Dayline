@@ -1,4 +1,4 @@
-import { dropHover } from './drop-hover.js?v=e84921dfd9a4';
+import { dropHover } from './drop-hover.js?v=31f307a53cca';
 // One delegated pointer controller; never blocks vertical scrolling on note cards.
 export function attachGestures(root, { complete, remove, move, announce }) {
   let active = null,

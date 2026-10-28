@@ -1,6 +1,7 @@
-import { node } from '../../shared/dom.js?v=e84921dfd9a4';
-import { HOLIDAY_SOURCE } from '../../shared/holidays.js?v=e84921dfd9a4';
-import { summaryLine, focusTime } from './model.js?v=e84921dfd9a4';
+import { readSummaryPreferences, toggleSummaryTagMode } from './preferences.js?v=31f307a53cca';
+import { node } from '../../shared/dom.js?v=31f307a53cca';
+import { HOLIDAY_SOURCE } from '../../shared/holidays.js?v=31f307a53cca';
+import { summaryParts, focusTime } from './model.js?v=31f307a53cca';
 
 export function createPeriodSummary(label) {
   const element = node('details', 'period-summary');
@@ -12,7 +13,38 @@ export function createPeriodSummary(label) {
   const body = node('div', 'period-summary-breakdown');
   element.append(heading, body);
   function update(data) {
-    line.textContent = summaryLine(data);
+    const preferences = readSummaryPreferences();
+    const parts = summaryParts(data, preferences);
+    element.hidden = !parts.length;
+    line.replaceChildren();
+    for (const [index, part] of parts.entries()) {
+      if (index) line.append(document.createTextNode(' · '));
+      if (part.key !== 'tags') {
+        line.append(document.createTextNode(part.text));
+        continue;
+      }
+      const toggle = node('button', 'summary-tags-toggle', part.text);
+      toggle.type = 'button';
+      const nextMode = preferences.tagMode === 'percentage' ? 'note counts' : 'percentages';
+      toggle.title = `Click to show tag ${nextMode}`;
+      toggle.setAttribute('aria-label', `${part.text}. Show tag ${nextMode}`);
+      toggle.setAttribute('aria-pressed', String(preferences.tagMode === 'count'));
+      toggle.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') event.stopPropagation();
+      });
+      toggle.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        try {
+          toggleSummaryTagMode();
+          update(data);
+          line.querySelector('.summary-tags-toggle')?.focus({ preventScroll: true });
+        } catch {
+          window.dispatchEvent(new window.Event('dayline:summary-preference-error'));
+        }
+      });
+      line.append(toggle);
+    }
     heading.setAttribute(
       'aria-label',
       `${label} summary: ${line.textContent}. Expand for the full breakdown`,
