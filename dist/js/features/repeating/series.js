@@ -1,7 +1,7 @@
-import { offsetDay } from '../../shared/dates.js?v=fa258cf0d863';
-import { noteTasks } from '../notes/formatting/tasks.js?v=fa258cf0d863';
-import { noteTags } from '../notes/note-types.js?v=fa258cf0d863';
-import { validDate } from '../bulk/model.js?v=fa258cf0d863';
+import { offsetDay } from '../../shared/dates.js?v=a49de864b933';
+import { noteTasks } from '../notes/formatting/tasks.js?v=a49de864b933';
+import { noteTags } from '../notes/note-types.js?v=a49de864b933';
+import { validDate } from '../bulk/model.js?v=a49de864b933';
 export function validRepeat(value) {
   if (
     !value ||
@@ -31,6 +31,8 @@ export function changeRepeatNotes(days, date, id, action, scope = 'one') {
     'title',
     'text',
     'minute',
+    'allDay',
+    'remind',
     'format',
     'tasks',
     'bullets',
@@ -126,7 +128,11 @@ export function rescheduleRepeatNotes(days, date, id, target, time, scope = 'one
       throw new Error(
         'That would move repeats outside this cycle. Move only this note or create a new finite cycle.',
       );
-    const copy = { ...note, minute: hours * 60 + minutes };
+    const copy = {
+      ...note,
+      minute: hours * 60 + minutes,
+      ...(note.allDay ? { allDay: false, remind: false } : {}),
+    };
     if (to < repeat.start || to > repeat.end) delete copy.repeat;
     return { day, to, note: copy };
   });

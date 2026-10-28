@@ -906,6 +906,41 @@ test('the assembled planner starts, switches views/personalities, edits settings
       ),
     );
 
+    // The real Yearly integration creates an all-day note, persists the cleared
+    // draft atomically, exposes it in Daily and restores the draft with Undo.
+    document.querySelector('#yearly-tab').click();
+    [...document.querySelectorAll('.life-categories button')]
+      .find((b) => b.textContent === 'Birthdays & anniversaries')
+      .click();
+    const lifeTitle = document.querySelector('.life-row [aria-label="Name or occasion"]');
+    lifeTitle.value = 'Family celebration';
+    lifeTitle.dispatchEvent(new window.Event('input'));
+    assert.equal(document.querySelector('.life-row [aria-label="Name or occasion"]'), lifeTitle);
+    const lifeDate = document.querySelector('.life-row [aria-label="Date"]');
+    lifeDate.value = today;
+    lifeDate.dispatchEvent(new window.Event('input'));
+    const repeatChoice = document.querySelector('.life-defaults [aria-label="Repeat"]');
+    repeatChoice.value = 'none';
+    repeatChoice.dispatchEvent(new window.Event('change'));
+    [...document.querySelectorAll('.life-group button')]
+      .find((b) => b.textContent.startsWith('Add 1 item to calendar'))
+      .click();
+    const celebration = JSON.parse(local.getItem('dayline.v1')).days[today].find(
+      (n) => n.title === 'Family celebration',
+    );
+    assert.equal(celebration.allDay, true);
+    document.querySelector('#daily-tab').click();
+    assert.ok(document.querySelector(`.all-day-slot [data-id="${celebration.id}"]`));
+    document.querySelector('#undo').click();
+    assert.ok(
+      !JSON.parse(local.getItem('dayline.v1')).days[today].some((n) => n.id === celebration.id),
+    );
+    document.querySelector('#yearly-tab').click();
+    assert.equal(
+      document.querySelector('.life-row [aria-label="Name or occasion"]').value,
+      'Family celebration',
+    );
+
     assert.deepEqual(network, []);
   } finally {
     for (const [name, descriptor] of previous) {

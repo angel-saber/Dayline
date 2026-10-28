@@ -4,8 +4,8 @@ import {
   offsetDay,
   bucket,
   slots,
-} from '../../shared/schedule.js?v=fa258cf0d863';
-import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=fa258cf0d863';
+} from '../../shared/schedule.js?v=a49de864b933';
+import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=a49de864b933';
 export const MANTRAS = PERSONALITY_MANTRAS.zen;
 export const INSPIRATION = VOICE_QUOTES.zen;
 export function intervalAt(at, interval) {
@@ -28,6 +28,7 @@ export function focusIntervalNotes(state, page) {
     .filter(
       (entry) =>
         !entry.weekly &&
+        !entry.allDay &&
         !entry.yearly &&
         bucket(entry.minute, page.interval || state.settings.interval) === page.minute,
     )

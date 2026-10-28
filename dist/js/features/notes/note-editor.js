@@ -3,29 +3,29 @@ import {
   writeNoteClipboard,
   readNoteClipboard,
   pasteNoteFragment,
-} from './clipboard.js?v=fa258cf0d863';
-import { node as element } from '../../shared/dom.js?v=fa258cf0d863';
+} from './clipboard.js?v=a49de864b933';
+import { node as element } from '../../shared/dom.js?v=a49de864b933';
 import {
   applyIndent,
   editIndents,
   indentLevel,
   MAX_INDENT,
-} from './formatting/indents.js?v=fa258cf0d863';
+} from './formatting/indents.js?v=a49de864b933';
 import {
   prepareUploadFiles,
   reviewCompression,
-} from '../attachments/file-compression.js?v=fa258cf0d863';
-import { addFiles, attachmentList } from '../attachments/attachments.js?v=fa258cf0d863';
-import { typeChips, noteTags } from './note-types.js?v=fa258cf0d863';
-import { safeLink } from './formatting/links.js?v=fa258cf0d863';
-import { toggleBullets, editBullets, selectedLines } from './formatting/bullets.js?v=fa258cf0d863';
+} from '../attachments/file-compression.js?v=a49de864b933';
+import { addFiles, attachmentList } from '../attachments/attachments.js?v=a49de864b933';
+import { typeChips, noteTags } from './note-types.js?v=a49de864b933';
+import { safeLink } from './formatting/links.js?v=a49de864b933';
+import { toggleBullets, editBullets, selectedLines } from './formatting/bullets.js?v=a49de864b933';
 import {
   HIGHLIGHTS,
   renderFormatted,
   editFormat,
   setLink,
-} from './formatting/format.js?v=fa258cf0d863';
-import { lineRange, noteTasks, editTasks } from './formatting/tasks.js?v=fa258cf0d863';
+} from './formatting/format.js?v=a49de864b933';
+import { lineRange, noteTasks, editTasks } from './formatting/tasks.js?v=a49de864b933';
 import {
   recognizeBullets,
   replaceText,
@@ -34,7 +34,7 @@ import {
   applyCheckbox,
   checkTask,
   selectionStyle,
-} from './editor-state.js?v=fa258cf0d863';
+} from './editor-state.js?v=a49de864b933';
 
 const makeButton = (text, label, action) => {
   const el = element('button', '', text);
@@ -62,6 +62,8 @@ export function createNoteEditor({
     attachments: structuredClone(entry?.attachments || []),
     tags: noteTags(entry || {}),
     minute: entry?.minute ?? minute,
+    allDay: entry?.allDay || false,
+    remind: entry?.remind || false,
     noteType: entry?.noteType || '',
     title: entry?.title || '',
     text: entry?.text || '',
@@ -111,6 +113,34 @@ export function createNoteEditor({
     state = { ...state, minute: hour * 60 + minute };
     publish();
   });
+  const dateOnly = element('label', 'note-all-day', 'All day'),
+    allDayCheck = element('input');
+  allDayCheck.type = 'checkbox';
+  allDayCheck.checked = state.allDay;
+  dateOnly.prepend(allDayCheck);
+  const reminderLabel = element('label', 'note-all-day', 'Remind at a specific time'),
+    reminderCheck = element('input');
+  reminderCheck.type = 'checkbox';
+  reminderCheck.checked = state.remind;
+  reminderLabel.prepend(reminderCheck);
+  function syncAllDayControls() {
+    reminderLabel.hidden = !state.allDay || undated;
+    timeLabel.hidden = undated || (state.allDay && !state.remind);
+    timeInput.required = !undated && (!state.allDay || state.remind);
+    timeLabel.firstChild.textContent = state.allDay ? 'Reminder time' : 'Note time';
+  }
+  dateOnly.hidden = undated;
+  syncAllDayControls();
+  allDayCheck.onchange = () => {
+    state.allDay = allDayCheck.checked;
+    syncAllDayControls();
+    publish();
+  };
+  reminderCheck.onchange = () => {
+    state.remind = reminderCheck.checked;
+    syncAllDayControls();
+    publish();
+  };
   const noteType = typeChips(
     state.tags,
     'Tags (optional)',
@@ -549,6 +579,8 @@ export function createNoteEditor({
   wrapper.append(
     titleLabel,
     timeLabel,
+    dateOnly,
+    reminderLabel,
     noteType.element,
     toolbar,
     linkPanel,
@@ -566,6 +598,8 @@ export function createNoteEditor({
       ...previous.state,
       title: state.title,
       minute: state.minute,
+      allDay: state.allDay,
+      remind: state.remind,
       noteType: state.noteType,
       tags: state.tags,
       attachments: state.attachments,

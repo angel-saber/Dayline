@@ -4,8 +4,8 @@ import {
   parseDay,
   slots,
   bucket,
-} from '../../shared/schedule.js?v=fa258cf0d863';
-import { validDate } from '../bulk/model.js?v=fa258cf0d863';
+} from '../../shared/schedule.js?v=a49de864b933';
+import { validDate } from '../bulk/model.js?v=a49de864b933';
 export const availabilityKey = (date, minute) => `${date}:${minute}`;
 export function emptyIntervals(
   days,
@@ -30,7 +30,7 @@ export function emptyIntervals(
     if (!weekdays.includes(parseDay(date).getDay())) continue;
     const occupied = new Set(
       (days[date] || [])
-        .filter((note) => !note.weekly && !note.yearly)
+        .filter((note) => !note.weekly && !note.yearly && !note.allDay)
         .map((note) => bucket(note.minute, interval)),
     );
     for (const minute of times) {

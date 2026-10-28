@@ -1,6 +1,6 @@
-import { duplicateNote } from '../notes/duplicate.js?v=fa258cf0d863';
-import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=fa258cf0d863';
-import { validDate } from '../bulk/model.js?v=fa258cf0d863';
+import { duplicateNote } from '../notes/duplicate.js?v=a49de864b933';
+import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=a49de864b933';
+import { validDate } from '../bulk/model.js?v=a49de864b933';
 export function weekStart(date) {
   if (!validDate(date)) throw new Error('Choose a valid date.');
   return offsetDay(date, -parseDay(date).getDay());
@@ -19,6 +19,8 @@ export function changeWeekly(days, week, id, action, newId = () => crypto.random
       copy = { ...entry, weekly: true, minute: 0 };
     // Only this occurrence becomes undated; its repeat cycle continues unchanged.
     delete copy.repeat;
+    delete copy.allDay;
+    delete copy.remind;
     if (destination.some((note) => note.id === copy.id)) copy.id = newId();
     if (!copy.id || destination.some((note) => note.id === copy.id))
       throw new Error('Could not create a unique note.');

@@ -2518,3 +2518,131 @@ button.slot-time .now-badge {
   outline: 2px solid var(--green);
   outline-offset: -2px;
 }
+
+.life-planner {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.life-section {
+  min-width: 0;
+  align-self: start;
+}
+.life-section > summary {
+  font-family: var(--heading-font, inherit);
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.life-section[open] {
+  grid-column: 1/-1;
+}
+.life-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+.life-categories [aria-pressed='true'] {
+  border-color: var(--green);
+  background: color-mix(in srgb, var(--green) 15%, var(--white));
+}
+.life-defaults,
+.life-row-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+.life-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  min-width: 0;
+  margin: 8px 0;
+}
+.life-field input,
+.life-field select,
+.life-field textarea,
+.life-paste textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+}
+.life-row {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.life-group > button {
+  margin: 12px 8px 8px 0;
+}
+.life-extra > summary,
+.life-paste > summary,
+.life-support-group > summary,
+.life-support-item > summary,
+.life-links > summary {
+  cursor: pointer;
+  padding: 10px 0;
+}
+.life-support-group {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.life-support-item {
+  margin-left: 12px;
+}
+.life-support-item > button,
+.life-links button {
+  margin: 6px;
+}
+.life-links button {
+  display: block;
+  text-align: left;
+}
+.life-planner > .field-hint {
+  grid-column: 1/-1;
+  margin: 0;
+}
+.note-all-day {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+}
+.note-all-day input {
+  width: auto;
+}
+.all-day-slot > .slot-time {
+  opacity: 1;
+  color: var(--green);
+}
+@media (max-width: 640px) {
+  .life-planner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .life-row-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.life-recovery {
+  grid-column: 1/-1;
+  font-size: 12px;
+  color: var(--muted);
+}
+.life-recovery > summary {
+  cursor: pointer;
+}
+.life-recovery button {
+  margin: 8px 8px 0 0;
+}
+.life-version {
+  border-top: 1px solid var(--line);
+  padding: 12px 0;
+}
