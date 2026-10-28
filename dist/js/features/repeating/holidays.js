@@ -1,2 +1,2 @@
 // Compatibility export: all calendar views share one holiday model.
-export { usFederalHolidays, HOLIDAY_SOURCE } from '../../shared/holidays.js?v=d735848dd96a';
+export { usFederalHolidays, HOLIDAY_SOURCE } from '../../shared/holidays.js?v=5c319d31303c';

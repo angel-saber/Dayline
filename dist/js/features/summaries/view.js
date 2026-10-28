@@ -1,7 +1,7 @@
-import { readSummaryPreferences, toggleSummaryTagMode } from './preferences.js?v=d735848dd96a';
-import { node } from '../../shared/dom.js?v=d735848dd96a';
-import { HOLIDAY_SOURCE } from '../../shared/holidays.js?v=d735848dd96a';
-import { summaryParts, focusTime } from './model.js?v=d735848dd96a';
+import { readSummaryPreferences, toggleSummaryTagMode } from './preferences.js?v=5c319d31303c';
+import { node } from '../../shared/dom.js?v=5c319d31303c';
+import { HOLIDAY_SOURCE } from '../../shared/holidays.js?v=5c319d31303c';
+import { summaryParts, focusTime } from './model.js?v=5c319d31303c';
 
 export function createPeriodSummary(label) {
   const element = node('details', 'period-summary');
@@ -16,13 +16,61 @@ export function createPeriodSummary(label) {
     const preferences = readSummaryPreferences();
     const parts = summaryParts(data, preferences);
     element.hidden = !parts.length;
+    const tagScroll = line.querySelector('.summary-tags-scroll')?.scrollLeft || 0;
     line.replaceChildren();
+    let tagScroller = null;
     for (const [index, part] of parts.entries()) {
-      if (index) line.append(document.createTextNode(' · '));
+      if (index) line.append(node('span', 'summary-separator', ' · '));
       if (part.key !== 'tags') {
-        line.append(document.createTextNode(part.text));
+        line.append(node('span', `summary-part summary-part--${part.key}`, part.text));
         continue;
       }
+      const scroller = node('span', 'summary-tags-scroll');
+      scroller.tabIndex = 0;
+      scroller.setAttribute('role', 'region');
+      scroller.setAttribute(
+        'aria-label',
+        'Tag breakdown. Scroll horizontally or use Left and Right arrow keys for more tags. Click the figures to switch percentages and counts.',
+      );
+      scroller.addEventListener('keydown', (event) => {
+        if (event.target === scroller && ['Enter', ' '].includes(event.key)) {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.key === 'Home') scroller.scrollLeft = 0;
+        else if (event.key === 'End') scroller.scrollLeft = scroller.scrollWidth;
+        else scroller.scrollLeft += event.key === 'ArrowRight' ? 100 : -100;
+      });
+      let pointerX = null,
+        dragged = false;
+      scroller.addEventListener('pointerdown', (event) => {
+        pointerX = event.clientX;
+        dragged = false;
+      });
+      scroller.addEventListener('pointermove', (event) => {
+        if (pointerX !== null && Math.abs(event.clientX - pointerX) > 6) dragged = true;
+      });
+      scroller.addEventListener('pointerup', () => {
+        pointerX = null;
+      });
+      scroller.addEventListener('pointercancel', () => {
+        pointerX = null;
+      });
+      scroller.addEventListener(
+        'click',
+        (event) => {
+          if ((dragged && event.detail !== 0) || event.target === scroller) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          dragged = false;
+        },
+        true,
+      );
       const toggle = node('button', 'summary-tags-toggle', part.text);
       toggle.type = 'button';
       const nextMode = preferences.tagMode === 'percentage' ? 'note counts' : 'percentages';
@@ -35,6 +83,10 @@ export function createPeriodSummary(label) {
       toggle.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
+        if (dragged && event.detail !== 0) {
+          dragged = false;
+          return;
+        }
         try {
           toggleSummaryTagMode();
           update(data);
@@ -43,8 +95,11 @@ export function createPeriodSummary(label) {
           window.dispatchEvent(new window.Event('dayline:summary-preference-error'));
         }
       });
-      line.append(toggle);
+      scroller.append(toggle);
+      line.append(scroller);
+      tagScroller = scroller;
     }
+    if (tagScroller) tagScroller.scrollLeft = tagScroll;
     heading.setAttribute(
       'aria-label',
       `${label} summary: ${line.textContent}. Expand for the full breakdown`,

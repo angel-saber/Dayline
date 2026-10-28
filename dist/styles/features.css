@@ -2110,6 +2110,8 @@ body.month-dragging .shortcuts-launch {
   display: none;
 }
 .period-summary-line {
+  display: flex;
+  align-items: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2142,17 +2144,33 @@ body.month-dragging .shortcuts-launch {
   color: var(--green);
 }
 
+.summary-part {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.summary-separator {
+  flex: none;
+  white-space: pre;
+}
+.summary-tags-scroll {
+  display: block;
+  flex: 0 1 auto;
+  min-width: min(7rem, 35%);
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  overscroll-behavior-x: contain;
+}
 .summary-tags-toggle {
-  display: inline-block;
-  max-width: 65%;
+  display: block;
+  width: max-content;
   padding: 0 2px;
   color: var(--green);
   font: inherit;
   line-height: inherit;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  vertical-align: bottom;
   text-decoration: underline dotted;
   text-underline-offset: 3px;
 }
