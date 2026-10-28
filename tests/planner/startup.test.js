@@ -170,6 +170,14 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.equal(document.querySelector('#auth-view').hidden, true);
     assert.match(document.querySelector('#timeline').textContent, /Saved plan/);
     assert.equal(document.querySelectorAll('.line-checkbox').length, 1);
+    assert.match(
+      document.querySelector('#daily-period-summary .period-summary-line').textContent,
+      /1 note/,
+    );
+    assert.match(
+      document.querySelector('#daily-period-summary .period-summary-line').textContent,
+      /Focus 0m/,
+    );
     document.querySelector('[aria-label="Repeat note"]').click();
     const repeat = document.querySelector('.repeat-dialog');
     assert.equal(repeat.open, true);
@@ -283,6 +291,10 @@ test('the assembled planner starts, switches views/personalities, edits settings
     duplicate.click();
     let copied = JSON.parse(local.getItem('dayline.v1')).days[today].filter((note) => !note.weekly);
     assert.equal(copied.length, 2);
+    assert.match(
+      document.querySelector('#daily-period-summary .period-summary-line').textContent,
+      /2 notes/,
+    );
     assert.notEqual(copied[0].id, copied[1].id);
     assert.equal(copied[1].text, 'Keep this plan');
     document.querySelector('#undo').click();
@@ -334,6 +346,20 @@ test('the assembled planner starts, switches views/personalities, edits settings
     document.querySelector('#monthly-tab').click();
     assert.equal(document.querySelector('#monthly-view').hidden, false);
     assert.match(document.querySelector('#monthly-view').textContent, /Weekly direction/);
+    assert.match(
+      document.querySelector('#monthly-view > .period-summary .period-summary-line').textContent,
+      /2 notes \(1 weekly\)/,
+    );
+    const weekOverview = document
+      .querySelector('.weekly-note[data-id="weekly"]')
+      .closest('.month-week')
+      .querySelector('.period-summary');
+    assert.match(
+      weekOverview.querySelector('.period-summary-line').textContent,
+      /2 notes \(1 weekly\)/,
+    );
+    weekOverview.open = true;
+    assert.match(weekOverview.textContent, /percentages may add up to more than 100%/);
     // An open weekly editor must still be draggable, and dropping must preserve its contents.
     let weeklyCard = document.querySelector('.weekly-note[data-id="weekly"]');
     weeklyCard.open = true;
