@@ -81,6 +81,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
   const raw = JSON.stringify(fixture);
   local.setItem('dayline.v1', raw);
   local.setItem('dayline.welcome.v1', 'done');
+  local.setItem('dayline.visualization.seen.v1', today);
   HTMLElement.prototype.focus = function () {};
   HTMLElement.prototype.setCustomValidity = function () {};
   HTMLElement.prototype.showPopover = function () {
@@ -170,6 +171,30 @@ test('the assembled planner starts, switches views/personalities, edits settings
     document.querySelector('#undo').click();
     assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
     document.querySelector('#more-tab').click();
+    [...document.querySelectorAll('#more-view button')]
+      .find((button) => button.textContent === 'Start guided visualization')
+      .click();
+    const visualization = document.querySelector('.visualization-dialog');
+    assert.equal(visualization.open, true);
+    [...visualization.querySelectorAll('button')]
+      .find((button) => button.textContent === 'Begin')
+      .click();
+    const action = visualization.querySelector('textarea');
+    action.value = 'Write the first paragraph';
+    action.dispatchEvent(new window.Event('input'));
+    [...visualization.querySelectorAll('button')]
+      .find((button) => button.textContent === 'Save action to Daily')
+      .click();
+    assert.equal(visualization.open, false);
+    assert.ok(
+      JSON.parse(local.getItem('dayline.v1')).days[today].some(
+        (note) =>
+          note.title.startsWith('Visualization · ') &&
+          note.text.includes('My next action: Write the first paragraph'),
+      ),
+    );
+    document.querySelector('#undo').click();
+    assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
     [...document.querySelectorAll('#more-view button')]
       .find((button) => button.textContent === 'Explore the library')
       .click();
