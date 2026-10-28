@@ -479,3 +479,11 @@ into the next interval. Note cards, editors, selection mode and cancelled gestur
 keep their existing behavior. Explicit Add note keeps its start-time default.
 The resulting minute goes through the shared editor and existing save/reminder
 paths; there are no storage, reminder, or interval-setting changes.
+
+Daily note cards group metadata/title and actions in a wrapping `note-header`.
+The toolbar is inside the content column rather than a sibling that reserves
+width beside the entire body. Body text, bullets and checkboxes use the available
+card width beneath that header. Narrow layouts keep a single content row (with
+the existing selection column in bulk mode); toolbar wrapping never overlays or
+narrows the body. These are layout changes only, preserving saved note content
+and formatting.

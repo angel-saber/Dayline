@@ -2488,3 +2488,27 @@ button.slot-time .now-badge {
 .slot-notes > .empty-add {
   flex: 1;
 }
+
+/* Actions occupy only the header, leaving the note body its full available width. */
+.note-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 8px;
+}
+.note-heading {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.note-header > .entry-tools {
+  flex: 0 1 auto;
+  max-width: 100%;
+  flex-wrap: wrap;
+  margin: 0;
+}
+.entry .note-body {
+  width: 100%;
+  min-width: 0;
+}
