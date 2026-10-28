@@ -10,8 +10,8 @@ import {
 } from '../../dist/js/features/visualization/controller.js';
 
 test('all approved visualizations are complete and a reroll chooses another exercise', () => {
-  assert.equal(VISUALIZATIONS.length, 15);
-  assert.equal(new Set(VISUALIZATIONS.map((exercise) => exercise.id)).size, 15);
+  assert.equal(VISUALIZATIONS.length, 21);
+  assert.equal(new Set(VISUALIZATIONS.map((exercise) => exercise.id)).size, 21);
   for (const exercise of VISUALIZATIONS) {
     assert.ok(exercise.title && exercise.guidance && exercise.prompt);
     for (const random of [() => 0, () => 0.5, () => 0.999])
@@ -84,10 +84,24 @@ test('daily invitations wait for entry, roll once per local day, respect Setting
     assert.equal(data.get(SEEN_KEY), '2026-10-28');
     assert.ok(!api.dialog.textContent.includes('Not now'));
     assert.match(api.dialog.textContent, /disable the daily pop-up in Settings/);
+    const assertExerciseScreen = () => {
+      assert.ok(api.dialog.querySelector('.visualization-guidance'));
+      assert.ok(api.dialog.querySelector('.visualization-prompt'));
+      assert.ok(api.dialog.querySelector('textarea'));
+      const labels = [...api.dialog.querySelectorAll('button')].map((button) => button.textContent);
+      assert.ok(!labels.includes('Begin'));
+      for (const text of ['Finish', 'Save action to Daily', 'Reroll'])
+        assert.ok(labels.includes(text));
+    };
+    assertExerciseScreen();
+    const draft = api.dialog.querySelector('textarea');
+    draft.value = 'Previous exercise action';
+    draft.dispatchEvent(new window.Event('input'));
     const title = api.dialog.querySelector('h3').textContent;
     click('Reroll');
     assert.notEqual(api.dialog.querySelector('h3').textContent, title);
-    click('Begin');
+    assertExerciseScreen();
+    assert.equal(api.dialog.querySelector('textarea').value, '');
     assert.ok(api.dialog.querySelector('.visualization-guidance'));
     assert.equal(saves.length, 0);
     click('Finish');
@@ -109,7 +123,7 @@ test('daily invitations wait for entry, roll once per local day, respect Setting
     document.querySelector('#more button').click();
     assert.equal(api.dialog.open, true);
     assert.equal(data.get(SEEN_KEY), '2026-10-29');
-    click('Begin');
+    assertExerciseScreen();
     click('Save action to Daily');
     assert.equal(saves.length, 0);
     const input = api.dialog.querySelector('textarea');

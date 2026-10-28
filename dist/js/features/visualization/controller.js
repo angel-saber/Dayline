@@ -1,6 +1,6 @@
-import { node } from '../../shared/dom.js?v=29ae997dd2e7';
-import { dayKey } from '../../shared/dates.js?v=29ae997dd2e7';
-import { rollVisualization } from './catalog.js?v=29ae997dd2e7';
+import { node } from '../../shared/dom.js?v=d735848dd96a';
+import { dayKey } from '../../shared/dates.js?v=d735848dd96a';
+import { rollVisualization } from './catalog.js?v=d735848dd96a';
 export const ENABLED_KEY = 'dayline.visualization.enabled.v1';
 export const SEEN_KEY = 'dayline.visualization.seen.v1';
 export function shouldInvite(enabled, seen, today) {
@@ -28,7 +28,6 @@ export function setupVisualizations({
   document.body.append(dialog);
   let exercise,
     response = '',
-    started = false,
     sessionDay = null;
   const shown = new Set();
   const read = (key) => {
@@ -68,7 +67,7 @@ export function setupVisualizations({
     node(
       'p',
       'field-hint',
-      'Imagine a manageable next step with a randomly chosen 30–90-second exercise.',
+      'Imagine a manageable next step or the qualities you want to practice today with a randomly chosen 30–90-second exercise.',
     ),
     button('Start guided visualization', () => open(false), 'primary'),
   );
@@ -91,52 +90,39 @@ export function setupVisualizations({
       node('h3', '', exercise.title),
     );
     const actions = node('div', 'inline');
-    if (!started)
-      actions.append(
-        button(
-          'Begin',
-          () => {
-            started = true;
-            render();
-          },
-          'primary',
-        ),
-      );
-    else {
-      const input = node('textarea');
-      input.rows = 3;
-      input.maxLength = 2000;
-      input.value = response;
-      input.setAttribute('aria-label', 'Your next action (optional)');
-      input.placeholder = 'Your next action (optional)';
-      input.addEventListener('input', () => {
-        response = input.value;
-      });
-      dialog.append(
-        node('p', 'visualization-guidance', exercise.guidance),
-        node('p', 'visualization-prompt', exercise.prompt),
-        input,
-      );
-      actions.append(
-        button('Finish', () => dialog.close(), 'primary'),
-        button('Save action to Daily', () => {
-          if (!response.trim()) {
-            status.textContent = 'Write an action to save, or choose Finish without saving.';
-            input.focus();
-            return;
-          }
-          if (saveAction(exercise, response.trim()) !== false) dialog.close();
-          else
-            status.textContent =
-              'Your action could not be saved. It is still here; please try again.';
-        }),
-      );
-    }
+    const input = node('textarea');
+    input.rows = 3;
+    input.maxLength = 2000;
+    input.value = response;
+    input.setAttribute('aria-label', 'Your next action (optional)');
+    input.placeholder = 'Your next action (optional)';
+    input.addEventListener('input', () => {
+      response = input.value;
+    });
+    dialog.append(
+      node('p', 'visualization-guidance', exercise.guidance),
+      node('p', 'visualization-prompt', exercise.prompt),
+      input,
+    );
+    actions.append(
+      button('Finish', () => dialog.close(), 'primary'),
+      button('Save action to Daily', () => {
+        if (!response.trim()) {
+          status.textContent = 'Write an action to save, or choose Finish without saving.';
+          input.focus();
+          return;
+        }
+        if (saveAction(exercise, response.trim()) !== false) dialog.close();
+        else
+          status.textContent =
+            'Your action could not be saved. It is still here; please try again.';
+      }),
+    );
+
     actions.append(
       button('Reroll', () => {
         exercise = rollVisualization(exercise.id, random);
         response = '';
-        started = false;
         render();
       }),
     );
@@ -156,7 +142,6 @@ export function setupVisualizations({
     if (dialog.open) return;
     sessionDay = daily ? dayKey(now()) : null;
     exercise = rollVisualization(exercise?.id, random);
-    started = false;
     response = '';
     render();
     dialog.showModal();

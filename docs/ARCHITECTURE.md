@@ -330,7 +330,7 @@ drag, and closing the dialog removes its event listeners and pending gesture.
 
 ## Guided visualization
 
-`features/visualization/` owns the 15 approved prompts, nonrepeating rerolls,
+`features/visualization/` owns 21 prompts, nonrepeating rerolls,
 invitation, and More activity. The invitation appears on planner entry or a
 later focus/visibility return, once per local calendar day per browser. It waits
 until sign-in and introductory setup are finished and avoids an active editor,
@@ -339,6 +339,11 @@ Settings toggle are device-local keys; they do not alter account preferences or
 require a schema migration. The notice directs users to Settings to disable the
 daily invitation; More remains available. Responses are saved only when the user
 chooses Save action to Daily, using existing note persistence, sync, and Undo.
+
+Visualization opens directly to guidance, an optional action field, and Finish /
+Save action to Daily / Reroll controls, both for daily invitations and More. The
+catalog includes six identity-oriented exercises that translate desired qualities
+into a specific behavior today; they use the same random pool and save path.
 
 ## Finite repeat cycles
 

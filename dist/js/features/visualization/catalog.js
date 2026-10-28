@@ -89,6 +89,42 @@ export const VISUALIZATIONS = [
     'Imagine a morning that starts late or a plan that goes sideways. Picture calmly choosing a new starting point instead of abandoning the day.',
     'From here, my next step is…',
   ],
+  [
+    'today-self',
+    'Today’s Version of You',
+    'Imagine the kind of person you want to be today. Choose one quality—curious, courageous, patient, playful, or your own. Picture an ordinary moment ahead and watch yourself express that quality through one small action.',
+    'Today, I’ll practice being ___ by ___.',
+  ],
+  [
+    'glad-to-be',
+    'A Person You’d Be Glad to Be',
+    'Imagine looking back tonight and feeling glad about how you showed up. Notice how you treated someone, cared for yourself, or approached something that mattered. Rehearse one choice that would make that version of today feel real.',
+    'I’d be glad to be someone who ___ today. My first choice is ___.',
+  ],
+  [
+    'value-in-motion',
+    'A Value in Motion',
+    'Choose a value you want to live today: kindness, honesty, creativity, diligence, or something personal. Imagine a scene where you could act on it. Watch what you say, what you do, and the small choice that makes the value visible.',
+    'I’ll put ___ into practice when I ___.',
+  ],
+  [
+    'future-self-moment',
+    'Your Future Self, in One Small Moment',
+    'Picture a version of yourself you would like to grow into. Bring them into one moment of your actual day, with the time and energy you have. Imagine how they begin, ask for help, or adapt. Borrow one achievable behavior for today.',
+    'One behavior I can borrow today is ___. I’ll try it when ___.',
+  ],
+  [
+    'on-your-side',
+    'Be on Your Own Side',
+    'Imagine being someone who supports themselves through a demanding day. Picture a moment of frustration and rehearse the words, breath, or movement that would help you respond with care. Then see yourself taking a manageable next step.',
+    'When I need support today, I’ll ___, then ___.',
+  ],
+  [
+    'admired-quality',
+    'Make an Admired Quality Your Own',
+    'Think of someone whose way of living you admire. Choose one quality rather than their achievements or circumstances. Imagine expressing that quality in your own way during a moment today. Picture the specific action you could take.',
+    'I admire ___. Today, I can express it by ___.',
+  ],
 ].map(([id, title, guidance, prompt]) => ({ id, title, guidance, prompt }));
 
 export function rollVisualization(previous, random = Math.random) {
