@@ -437,3 +437,30 @@ automatically complete an intention. Monthly Compass accepts visible Yearly
 context, keeps existing answers, and links its optional Weekly Notes back to the
 intention. Carry-forward requires a reviewed selection and creates new Q1 cards
 while leaving the source year and scheduled steps intact.
+
+## Guided activity quick access and visualization quotes
+
+`features/activity-favorites/` registers the six guided activity launch callbacks
+already used in More. Stars on those cards create direct quick-access buttons
+above Shortcuts, in a bounded scrolling dock that respects safe areas, bulk mode,
+and Monthly drag targets. Hidden planner ancestry keeps them off the sign-in page.
+Favorites use validated device-local IDs in `dayline.activity-favorites.v1`, never
+user-supplied URLs or dynamic code. Failed writes leave the saved choice intact;
+storage events refresh other tabs. Launching uses the existing activity dialogs,
+drafts, timers, save paths and account-change cleanup.
+
+`visualization/quotes.js` owns the 21 approved quote pairings and their source
+links. The catalog attaches each pairing by exercise ID; one shared renderer
+places the text and attribution below the title on initial entry and rerolls.
+Sources are opened only on user request; no quote API or new network dependency
+is introduced. Campbell’s verified wording is used rather than attributing the
+circulating variation to Jung. The final Seneca, Eleanor Roosevelt, Anne Lamott
+and Rilke replacements supersede rejected pairings.
+
+`dayline.visualization.pinned.v1` holds an optional exercise ID. Pin as first
+exercise and the Settings selector update the same preference. Both daily and
+manual launches prefer that ID; invalid/removed IDs fall back to normal rolls.
+Reroll never changes the pin. Preference updates refresh controls without replacing
+an open action draft. Once-per-local-day invitations, Settings opt-out, optional
+saving and failed-save retention are unchanged. Favorites and pins are browser
+preferences, not synced account content or backup schema changes.

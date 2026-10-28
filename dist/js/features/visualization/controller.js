@@ -1,7 +1,8 @@
-import { node } from '../../shared/dom.js?v=5c319d31303c';
-import { dayKey } from '../../shared/dates.js?v=5c319d31303c';
-import { rollVisualization } from './catalog.js?v=5c319d31303c';
+import { node } from '../../shared/dom.js?v=d779713692b6';
+import { dayKey } from '../../shared/dates.js?v=d779713692b6';
+import { VISUALIZATIONS, rollVisualization } from './catalog.js?v=d779713692b6';
 export const ENABLED_KEY = 'dayline.visualization.enabled.v1';
+export const PINNED_KEY = 'dayline.visualization.pinned.v1';
 export const SEEN_KEY = 'dayline.visualization.seen.v1';
 export function shouldInvite(enabled, seen, today) {
   return enabled !== 'off' && seen !== today;
@@ -16,6 +17,7 @@ const button = (text, action, cls = 'secondary') => {
 export function setupVisualizations({
   root,
   settings,
+  favorites,
   canInvite,
   saveAction,
   toast,
@@ -37,6 +39,7 @@ export function setupVisualizations({
       return null;
     }
   };
+  const pinnedExercise = () => VISUALIZATIONS.find((item) => item.id === read(PINNED_KEY));
   const setting = node('section', 'settings-card');
   const label = node('label', 'visualization-toggle');
   const toggle = node('input');
@@ -52,6 +55,28 @@ export function setupVisualizations({
       'Show an invitation when you first open Dayline each day on this browser. Guided Visualization remains available in More.',
     ),
   );
+  const firstLabel = node('label', 'visualization-first-label', 'First visualization');
+  const first = node('select');
+  first.setAttribute('aria-label', 'First visualization');
+  for (const [id, title] of [
+    ['', 'Random exercise'],
+    ...VISUALIZATIONS.map((item) => [item.id, item.title]),
+  ]) {
+    const option = node('option', '', title);
+    option.value = id;
+    first.append(option);
+  }
+  first.value = pinnedExercise()?.id || '';
+  firstLabel.append(first);
+  setting.append(
+    firstLabel,
+    node(
+      'p',
+      'field-hint',
+      'A pinned exercise opens first for the daily pop-up and Guided Visualization. You can still reroll. This choice and activity favorites are saved in this browser.',
+    ),
+  );
+  first.addEventListener('change', () => setPin(first.value));
   settings.append(setting);
   toggle.addEventListener('change', () => {
     try {
@@ -71,6 +96,8 @@ export function setupVisualizations({
     ),
     button('Start guided visualization', () => open(false), 'primary'),
   );
+  if (favorites)
+    card.append(favorites.register('visualization', 'Guided Visualization', () => open(false)));
   root.append(card);
   function render() {
     dialog.replaceChildren();
@@ -89,6 +116,22 @@ export function setupVisualizations({
       ),
       node('h3', '', exercise.title),
     );
+    const [text, author, source, url] = exercise.quote;
+    const quote = node('figure', 'visualization-quote'),
+      words = node('blockquote', '', `“${text}”`),
+      caption = node('figcaption', '', `— ${author} · `),
+      link = node('a', '', source);
+    link.href = url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    caption.append(link);
+    quote.append(words, caption);
+    dialog.append(quote);
+    const pin = button('', () => setPin(pinnedExercise()?.id === exercise.id ? '' : exercise.id));
+    pin.classList.add('visualization-pin');
+    const pinHint = node('p', 'field-hint visualization-pin-hint');
+    dialog.append(pin, pinHint);
+    refreshPin();
     const actions = node('div', 'inline');
     const input = node('textarea');
     input.rows = 3;
@@ -138,10 +181,33 @@ export function setupVisualizations({
       ),
     );
   }
+  function refreshPin() {
+    const pinned = pinnedExercise();
+    first.value = pinned?.id || '';
+    const pin = dialog.querySelector('.visualization-pin');
+    if (!pin || !exercise) return;
+    const selected = pinned?.id === exercise.id;
+    pin.textContent = selected ? 'Unpin first exercise' : 'Pin as first exercise';
+    pin.setAttribute('aria-pressed', String(selected));
+    dialog.querySelector('.visualization-pin-hint').textContent = pinned
+      ? `Opens first: ${pinned.title}. Rerolling does not change your pin.`
+      : 'Pin this exercise to open it first next time. Reroll remains available.';
+  }
+  function setPin(id) {
+    try {
+      storage.setItem(PINNED_KEY, id);
+    } catch {
+      toast('Could not save the first visualization in this browser.');
+    }
+    refreshPin();
+  }
+  window.addEventListener('storage', (event) => {
+    if (event.key === PINNED_KEY || event.key === null) refreshPin();
+  });
   function open(daily) {
     if (dialog.open) return;
     sessionDay = daily ? dayKey(now()) : null;
-    exercise = rollVisualization(exercise?.id, random);
+    exercise = pinnedExercise() || rollVisualization(exercise?.id, random);
     response = '';
     render();
     dialog.showModal();

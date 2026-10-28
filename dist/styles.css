@@ -3512,6 +3512,7 @@ main {
   max-width: calc(100vw - 32px);
 }
 .focus-audio-launch button,
+.activity-quick-launch,
 .shortcuts-launch {
   padding: 12px 18px;
   border-radius: 28px;
@@ -4366,6 +4367,95 @@ body.month-dragging .shortcuts-launch {
   }
   .yearly-dialog {
     padding: 20px;
+  }
+}
+
+.activity-favorite {
+  margin: 10px 0 0 10px;
+  font-size: 12px;
+}
+.activity-favorite[aria-pressed='true'] {
+  color: var(--green);
+}
+.activity-favorites-dock {
+  position: fixed;
+  left: max(24px, env(safe-area-inset-left));
+  bottom: calc(151px + env(safe-area-inset-bottom));
+  z-index: 8;
+  display: grid;
+  gap: 8px;
+  max-width: min(190px, calc(45vw - 24px));
+  max-height: 35dvh;
+  overflow-y: auto;
+  padding: 3px;
+  scrollbar-width: thin;
+}
+.activity-favorites-dock[hidden] {
+  display: none;
+}
+.activity-quick-launch {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  padding: 12px 14px;
+  text-align: left;
+}
+.bulk-mode .activity-favorites-dock {
+  bottom: calc(266px + env(safe-area-inset-bottom));
+}
+body.month-dragging .activity-favorites-dock {
+  pointer-events: none;
+}
+.visualization-quote {
+  margin: 20px 0;
+  padding: 0 0 0 16px;
+  border-left: 2px solid var(--green);
+}
+.visualization-quote blockquote {
+  margin: 0 0 10px;
+  font-style: italic;
+  line-height: 1.6;
+}
+.visualization-quote figcaption {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.visualization-quote a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+.visualization-first-label {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+.visualization-first-label select {
+  max-width: 100%;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  background: var(--white);
+}
+.visualization-pin {
+  margin-top: 4px;
+  font-size: 12px;
+}
+@media (max-width: 600px) {
+  .activity-favorites-dock {
+    left: max(16px, env(safe-area-inset-left));
+    max-width: calc(45vw - 24px);
+  }
+}
+@media (max-width: 600px) {
+  .focus-audio-launch {
+    max-width: calc(50vw - 24px);
+  }
+  .focus-audio-launch button {
+    max-width: 100%;
+    white-space: normal;
   }
 }
 

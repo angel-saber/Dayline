@@ -1,25 +1,25 @@
-import { node as element } from '../../shared/dom.js?v=5c319d31303c';
+import { node as element } from '../../shared/dom.js?v=d779713692b6';
 import {
   applyIndent,
   editIndents,
   indentLevel,
   MAX_INDENT,
-} from './formatting/indents.js?v=5c319d31303c';
+} from './formatting/indents.js?v=d779713692b6';
 import {
   prepareUploadFiles,
   reviewCompression,
-} from '../attachments/file-compression.js?v=5c319d31303c';
-import { addFiles, attachmentList } from '../attachments/attachments.js?v=5c319d31303c';
-import { typeChips, noteTags } from './note-types.js?v=5c319d31303c';
-import { safeLink } from './formatting/links.js?v=5c319d31303c';
-import { toggleBullets, editBullets, selectedLines } from './formatting/bullets.js?v=5c319d31303c';
+} from '../attachments/file-compression.js?v=d779713692b6';
+import { addFiles, attachmentList } from '../attachments/attachments.js?v=d779713692b6';
+import { typeChips, noteTags } from './note-types.js?v=d779713692b6';
+import { safeLink } from './formatting/links.js?v=d779713692b6';
+import { toggleBullets, editBullets, selectedLines } from './formatting/bullets.js?v=d779713692b6';
 import {
   HIGHLIGHTS,
   renderFormatted,
   editFormat,
   setLink,
-} from './formatting/format.js?v=5c319d31303c';
-import { lineRange, noteTasks, editTasks } from './formatting/tasks.js?v=5c319d31303c';
+} from './formatting/format.js?v=d779713692b6';
+import { lineRange, noteTasks, editTasks } from './formatting/tasks.js?v=d779713692b6';
 import {
   recognizeBullets,
   replaceText,
@@ -28,7 +28,7 @@ import {
   applyCheckbox,
   checkTask,
   selectionStyle,
-} from './editor-state.js?v=5c319d31303c';
+} from './editor-state.js?v=d779713692b6';
 
 const makeButton = (text, label, action) => {
   const el = element('button', '', text);
