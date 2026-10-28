@@ -305,9 +305,13 @@ test('the assembled planner starts, switches views/personalities, edits settings
       .click();
     const visualization = document.querySelector('.visualization-dialog');
     assert.equal(visualization.open, true);
-    [...visualization.querySelectorAll('button')]
-      .find((button) => button.textContent === 'Begin')
-      .click();
+    assert.ok(visualization.querySelector('.visualization-guidance'));
+    assert.equal(
+      [...visualization.querySelectorAll('button')].some(
+        (button) => button.textContent === 'Begin',
+      ),
+      false,
+    );
     const action = visualization.querySelector('textarea');
     action.value = 'Write the first paragraph';
     action.dispatchEvent(new window.Event('input'));
