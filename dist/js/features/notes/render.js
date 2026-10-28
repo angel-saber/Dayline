@@ -1,6 +1,8 @@
-import { node } from '../../shared/dom.js?v=dc42e2a6f2c9';
-import { indentLevel } from './formatting/indents.js?v=dc42e2a6f2c9';
-import { renderFormatted } from './formatting/format.js?v=dc42e2a6f2c9';
+import { copyRenderedNote } from './clipboard.js?v=fa258cf0d863';
+import { node } from '../../shared/dom.js?v=fa258cf0d863';
+import { indentLevel } from './formatting/indents.js?v=fa258cf0d863';
+import { renderFormatted } from './formatting/format.js?v=fa258cf0d863';
+const copyHandlers = new WeakMap();
 // Render line controls beside text; never nest a checkbox inside an edit button.
 export function renderNoteLines(
   container,
@@ -13,9 +15,16 @@ export function renderNoteLines(
   indents = [],
 ) {
   container.replaceChildren();
+  const previousCopy = copyHandlers.get(container);
+  if (previousCopy) container.removeEventListener('copy', previousCopy);
+  const onCopy = (event) =>
+    copyRenderedNote(event, container, { text, format, tasks, bullets, indents });
+  copyHandlers.set(container, onCopy);
+  container.addEventListener('copy', onCopy);
   let start = 0;
   for (const line of text.split('\n')) {
     const row = node('div', 'note-line');
+    row.dataset.noteStart = String(start);
     row.style.setProperty('--indent-level', indentLevel(indents, start));
     const task = tasks.find((t) => t.start === start),
       anchor = start;

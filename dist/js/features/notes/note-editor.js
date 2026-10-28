@@ -1,25 +1,31 @@
-import { node as element } from '../../shared/dom.js?v=dc42e2a6f2c9';
+import {
+  noteFragment,
+  writeNoteClipboard,
+  readNoteClipboard,
+  pasteNoteFragment,
+} from './clipboard.js?v=fa258cf0d863';
+import { node as element } from '../../shared/dom.js?v=fa258cf0d863';
 import {
   applyIndent,
   editIndents,
   indentLevel,
   MAX_INDENT,
-} from './formatting/indents.js?v=dc42e2a6f2c9';
+} from './formatting/indents.js?v=fa258cf0d863';
 import {
   prepareUploadFiles,
   reviewCompression,
-} from '../attachments/file-compression.js?v=dc42e2a6f2c9';
-import { addFiles, attachmentList } from '../attachments/attachments.js?v=dc42e2a6f2c9';
-import { typeChips, noteTags } from './note-types.js?v=dc42e2a6f2c9';
-import { safeLink } from './formatting/links.js?v=dc42e2a6f2c9';
-import { toggleBullets, editBullets, selectedLines } from './formatting/bullets.js?v=dc42e2a6f2c9';
+} from '../attachments/file-compression.js?v=fa258cf0d863';
+import { addFiles, attachmentList } from '../attachments/attachments.js?v=fa258cf0d863';
+import { typeChips, noteTags } from './note-types.js?v=fa258cf0d863';
+import { safeLink } from './formatting/links.js?v=fa258cf0d863';
+import { toggleBullets, editBullets, selectedLines } from './formatting/bullets.js?v=fa258cf0d863';
 import {
   HIGHLIGHTS,
   renderFormatted,
   editFormat,
   setLink,
-} from './formatting/format.js?v=dc42e2a6f2c9';
-import { lineRange, noteTasks, editTasks } from './formatting/tasks.js?v=dc42e2a6f2c9';
+} from './formatting/format.js?v=fa258cf0d863';
+import { lineRange, noteTasks, editTasks } from './formatting/tasks.js?v=fa258cf0d863';
 import {
   recognizeBullets,
   replaceText,
@@ -28,7 +34,7 @@ import {
   applyCheckbox,
   checkTask,
   selectionStyle,
-} from './editor-state.js?v=dc42e2a6f2c9';
+} from './editor-state.js?v=fa258cf0d863';
 
 const makeButton = (text, label, action) => {
   const el = element('button', '', text);
@@ -621,15 +627,30 @@ export function createNoteEditor({
   surface.addEventListener('paste', (event) => {
     event.preventDefault();
     readSelection();
-    replace((event.clipboardData?.getData('text/plain') || '').replace(/\r\n?/g, '\n'));
+    const fragment = readNoteClipboard(event.clipboardData);
+    if (fragment) {
+      const caret = selection.start + fragment.text.length;
+      typingStyle = null;
+      update(pasteNoteFragment(state, selection.start, selection.end, fragment), {
+        start: caret,
+        end: caret,
+      });
+    } else replace((event.clipboardData?.getData('text/plain') || '').replace(/\r\n?/g, '\n'));
   });
-  surface.addEventListener('cut', (event) => {
-    readSelection();
-    if (selection.start === selection.end) return;
-    event.preventDefault();
-    event.clipboardData?.setData('text/plain', state.text.slice(selection.start, selection.end));
-    replace('');
-  });
+  for (const kind of ['copy', 'cut'])
+    surface.addEventListener(kind, (event) => {
+      readSelection();
+      if (selection.start === selection.end) return;
+      if (
+        !writeNoteClipboard(
+          event.clipboardData,
+          noteFragment(state, selection.start, selection.end),
+        )
+      )
+        return;
+      event.preventDefault();
+      if (kind === 'cut') replace('');
+    });
   surface.addEventListener('drop', (event) => event.preventDefault());
   surface.addEventListener('keydown', (event) => {
     if (

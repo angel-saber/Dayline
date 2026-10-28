@@ -504,3 +504,13 @@ references. A repeated occurrence detaches from its cycle; other occurrences sta
 unchanged. Same-Sunday moves and destination ID collisions preserve neighbors.
 Weekly-to-Weekly drops use the existing week move. Cancelled/invalid drops do
 nothing, and background sync remains deferred until the gesture finishes.
+
+Note-body clipboard handling lives in `features/notes/clipboard.js`. Editor copy/cut
+and rendered-body copy write plain text, formatted HTML and a versioned body-only
+fragment. An encoded HTML attribute carries the fragment when a browser strips
+custom clipboard types. Paste checks the version, text match, range bounds, safe
+links and line anchors before merging into the normal editor model and Undo
+history. Arbitrary pasted HTML is never installed. Unsupported/malformed payloads
+use the existing plain-text path. Partial selections clip ranges; inline paste
+keeps destination line tools, while imported new lines retain their own tools.
+Titles, times, tags, attachments, reports and IDs are not part of body copying.
