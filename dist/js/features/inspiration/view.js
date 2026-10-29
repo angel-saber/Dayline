@@ -1,12 +1,12 @@
-import { node } from '../../shared/dom.js?v=a49de864b933';
-import { STORIES } from './catalog.js?v=a49de864b933';
+import { node } from '../../shared/dom.js?v=e40ab8c1395f';
+import { STORIES } from './catalog.js?v=e40ab8c1395f';
 import {
   CHALLENGES,
   FIELDS,
   FAVORITES_KEY,
   validFavorites,
   filterStories,
-} from './model.js?v=a49de864b933';
+} from './model.js?v=e40ab8c1395f';
 const button = (label, action, cls = 'secondary') => {
   const value = node('button', cls, label);
   value.type = 'button';
@@ -15,6 +15,7 @@ const button = (label, action, cls = 'secondary') => {
 };
 export function setupInspiration({
   root,
+  favorites: activityFavorites,
   saveStory,
   storage = localStorage,
   random = Math.random,
@@ -30,6 +31,8 @@ export function setupInspiration({
     ),
     launch,
   );
+  if (activityFavorites)
+    card.append(activityFavorites.register('inspiration', 'Inspiration Library', open));
   root.insertBefore(card, root.querySelector('.activity-card'));
   const dialog = node('dialog', 'inspiration-library');
   dialog.setAttribute('aria-labelledby', 'inspiration-library-heading');

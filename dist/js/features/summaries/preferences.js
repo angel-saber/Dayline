@@ -1,4 +1,4 @@
-import { node } from '../../shared/dom.js?v=a49de864b933';
+import { node } from '../../shared/dom.js?v=e40ab8c1395f';
 export const SUMMARY_PREFERENCES_KEY = 'dayline.summary-display.v1';
 export const SUMMARY_PREFERENCES_EVENT = 'dayline:summary-preferences';
 export const DEFAULT_SUMMARY_PREFERENCES = Object.freeze({

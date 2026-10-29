@@ -2646,3 +2646,15 @@ button.slot-time .now-badge {
   border-top: 1px solid var(--line);
   padding: 12px 0;
 }
+
+.focus-activity-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+.focus-activity-shortcuts button {
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+}
