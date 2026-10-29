@@ -58,6 +58,18 @@ test('favorites create direct launch buttons, persist on reload, synchronize tab
     api.dock.querySelector('[data-activity="visualization"]').click();
     assert.deepEqual(calls, ['breathing']);
     assert.match(messages.pop(), /Close the current window/);
+    assert.equal(api.launch('visualization', { allowDialog: modal }), true);
+    assert.equal(calls.at(-1), 'visualization');
+    const secondModal = document.createElement('dialog');
+    secondModal.setAttribute('open', '');
+    document.body.append(secondModal);
+    assert.equal(api.launch('breathing', { allowDialog: modal }), false);
+    secondModal.remove();
+    assert.deepEqual(
+      api.list().map((entry) => entry.id),
+      ['breathing', 'visualization'],
+    );
+    assert.equal(api.launch('missing'), false);
     modal.remove();
     const other = setupActivityFavorites({
       root: document.body,

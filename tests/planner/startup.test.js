@@ -746,8 +746,35 @@ test('the assembled planner starts, switches views/personalities, edits settings
     await new Promise((resolve) => setTimeout(resolve, 1150));
     assert.equal(document.querySelector('.personality-burst')?.dataset.kind, 'focus-commit');
     assert.equal(document.querySelector('.personality-burst')?.parentNode, document.body);
+    const focusQuick = [
+      ...document.querySelectorAll('.focus-activity-shortcuts [data-more-activity]'),
+    ];
+    assert.deepEqual(
+      new Set(focusQuick.map((b) => b.dataset.moreActivity)),
+      new Set([
+        'breathing',
+        'planning',
+        'untangle',
+        'two-minute',
+        'compass',
+        'inspiration',
+        'visualization',
+      ]),
+    );
+    for (const quick of focusQuick.filter((b) => b.dataset.moreActivity !== 'inspiration')) {
+      quick.click();
+      const activity = [...document.querySelectorAll('dialog')].find(
+        (d) => d.open && !d.classList.contains('focus-window'),
+      );
+      assert.ok(activity, quick.textContent);
+      assert.equal(document.querySelector('.focus-window').open, true);
+      [...activity.querySelectorAll('button')]
+        .find((b) => b.textContent === 'Close' || b.textContent === 'Finish')
+        .click();
+      assert.equal(document.querySelector('.focus-window').open, true);
+    }
     [...document.querySelectorAll('.focus-window button')]
-      .find((button) => button.textContent === 'Explore real stories')
+      .find((button) => button.textContent === 'Inspiration Library')
       .click();
     assert.equal(document.querySelector('.inspiration-library').open, true);
     assert.equal(document.querySelector('.focus-window').open, true);
@@ -857,10 +884,21 @@ test('the assembled planner starts, switches views/personalities, edits settings
     );
 
     document.querySelector('#more-tab').click();
-    assert.equal(document.querySelectorAll('[data-favorite-activity]').length, 6);
+    assert.equal(document.querySelectorAll('[data-favorite-activity]').length, 7);
     document.querySelector('[data-favorite-activity="visualization"]').click();
     document.querySelector('[data-favorite-activity="breathing"]').click();
     assert.equal(document.querySelectorAll('.activity-quick-launch').length, 2);
+    document.querySelector('[data-favorite-activity="inspiration"]').click();
+    const pinnedLibrary = document.querySelector(
+      '.activity-quick-launch[data-activity="inspiration"]',
+    );
+    assert.ok(pinnedLibrary);
+    pinnedLibrary.click();
+    assert.equal(document.querySelector('.inspiration-library').open, true);
+    [...document.querySelectorAll('.inspiration-library button')]
+      .find((b) => b.textContent === 'Close')
+      .click();
+
     document.querySelector('#daily-tab').click();
     document.querySelector('.activity-quick-launch[data-activity="visualization"]').click();
     const quickVisualization = document.querySelector('.visualization-dialog');

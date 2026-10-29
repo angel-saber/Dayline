@@ -1,10 +1,10 @@
-import { chooseRepeatScope } from '../repeating/scope.js?v=a49de864b933';
-import { node } from '../../shared/dom.js?v=a49de864b933';
-import { indentLevel } from '../notes/formatting/indents.js?v=a49de864b933';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=a49de864b933';
-import { tagBadges, categoryOptions } from '../notes/note-types.js?v=a49de864b933';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=a49de864b933';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=a49de864b933';
+import { chooseRepeatScope } from '../repeating/scope.js?v=e40ab8c1395f';
+import { node } from '../../shared/dom.js?v=e40ab8c1395f';
+import { indentLevel } from '../notes/formatting/indents.js?v=e40ab8c1395f';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=e40ab8c1395f';
+import { tagBadges, categoryOptions } from '../notes/note-types.js?v=e40ab8c1395f';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=e40ab8c1395f';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=e40ab8c1395f';
 import {
   focusIntervalNotes,
   newFocus,
@@ -15,10 +15,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=a49de864b933';
-import { createNoteEditor } from '../notes/note-editor.js?v=a49de864b933';
-import { renderFormatted } from '../notes/formatting/format.js?v=a49de864b933';
-import { noteTasks } from '../notes/formatting/tasks.js?v=a49de864b933';
+} from './model.js?v=e40ab8c1395f';
+import { createNoteEditor } from '../notes/note-editor.js?v=e40ab8c1395f';
+import { renderFormatted } from '../notes/formatting/format.js?v=e40ab8c1395f';
+import { noteTasks } from '../notes/formatting/tasks.js?v=e40ab8c1395f';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {
@@ -507,8 +507,18 @@ export function setupFocus(api) {
       node('h2', '', voice('focus.inspirationHeading')),
       node('p', 'focus-inspiration'),
       node('small', 'field-hint', voice('focus.inspirationHint')),
-      button('Explore real stories', () => api.openInspiration?.()),
     );
+    const quickActivities = node('div', 'focus-activity-shortcuts');
+    quickActivities.setAttribute('aria-label', 'More activities');
+    for (const { id, title } of api.moreActivities?.() || []) {
+      const quick = button(title, () => {
+        noteEditor?.flush();
+        api.openMoreActivity?.(id);
+      });
+      quick.dataset.moreActivity = id;
+      quickActivities.append(quick);
+    }
+    inspiration.append(quickActivities);
     dialog.append(inspiration);
     const interruptions = node('section', 'focus-section');
     interruptions.append(

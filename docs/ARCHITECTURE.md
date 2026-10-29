@@ -440,7 +440,7 @@ while leaving the source year and scheduled steps intact.
 
 ## Guided activity quick access and visualization quotes
 
-`features/activity-favorites/` registers the six guided activity launch callbacks
+`features/activity-favorites/` registers the six guided activity launch callbacks and the Inspiration Library
 already used in More. Stars on those cards create direct quick-access buttons
 above Shortcuts, in a bounded scrolling dock that respects safe areas, bulk mode,
 and Monthly drag targets. Hidden planner ancestry keeps them off the sign-in page.
@@ -536,3 +536,10 @@ availability and automatic Focus interval selection. They notify only when opted
 in and still honor global reminder settings. Explicit timed rescheduling converts
 them to timed notes. Existing notes keep their previous timed behavior. Older tabs
 should reload before editing these new fields or the new life envelope.
+
+The More activity favorites controller also acts as the shared launch registry.
+Focus's inspiration pocket lists every registered More activity, including the
+Inspiration Library, without duplicating dialogs or save paths. Focus may remain
+open behind the selected activity; launch checks still block additional unrelated
+modal windows. Library pinning uses the same browser-local favorites key and dock
+as guided activities; role-model favorites inside the library remain independent.

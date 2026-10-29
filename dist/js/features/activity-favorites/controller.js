@@ -1,4 +1,4 @@
-import { node } from '../../shared/dom.js?v=a49de864b933';
+import { node } from '../../shared/dom.js?v=e40ab8c1395f';
 export const FAVORITES_KEY = 'dayline.activity-favorites.v1';
 export function validFavorites(value) {
   if (
@@ -12,7 +12,7 @@ export function validFavorites(value) {
 export function setupActivityFavorites({ root, toast, storage }) {
   const entries = new Map();
   const dock = node('aside', 'activity-favorites-dock');
-  dock.setAttribute('aria-label', 'Favorite guided activities');
+  dock.setAttribute('aria-label', 'Favorite More activities');
   root.append(dock);
   function read() {
     try {
@@ -22,6 +22,16 @@ export function setupActivityFavorites({ root, toast, storage }) {
     } catch {
       return [];
     }
+  }
+  function launch(id, { allowDialog = null } = {}) {
+    const entry = entries.get(id);
+    if (!entry) return false;
+    if ([...document.querySelectorAll('dialog[open]')].some((dialog) => dialog !== allowDialog)) {
+      toast('Close the current window before starting another activity.');
+      return false;
+    }
+    entry.launch();
+    return true;
   }
   function refresh() {
     const favorites = read();
@@ -41,13 +51,7 @@ export function setupActivityFavorites({ root, toast, storage }) {
       const quick = node('button', 'secondary activity-quick-launch', entry.title);
       quick.type = 'button';
       quick.dataset.activity = id;
-      quick.addEventListener('click', () => {
-        if (document.querySelector('dialog[open]')) {
-          toast('Close the current window before starting another activity.');
-          return;
-        }
-        entry.launch();
-      });
+      quick.addEventListener('click', () => launch(id));
       dock.append(quick);
     }
     dock.hidden = !dock.childElementCount;
@@ -78,5 +82,11 @@ export function setupActivityFavorites({ root, toast, storage }) {
     if (event.key === FAVORITES_KEY || event.key === null) refresh();
   });
   refresh();
-  return { register, refresh, dock };
+  return {
+    register,
+    refresh,
+    dock,
+    launch,
+    list: () => [...entries].map(([id, entry]) => ({ id, title: entry.title })),
+  };
 }

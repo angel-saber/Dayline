@@ -1390,12 +1390,9 @@ body:has(#monthly-view:not([hidden])) main {
   color: var(--ink) !important;
   font-family: Georgia, serif;
 }
-/* Keep the reminder and library button on separate, comfortably spaced lines. */
+/* Keep the reminder on a separate line above the activity shortcuts. */
 .focus-inspiration + .field-hint {
   display: block;
-}
-.focus-inspiration + .field-hint + button {
-  margin-top: 12px;
 }
 .focus-finish {
   display: block;
@@ -4653,6 +4650,18 @@ button.slot-time .now-badge {
 .life-version {
   border-top: 1px solid var(--line);
   padding: 12px 0;
+}
+
+.focus-activity-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+.focus-activity-shortcuts button {
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
 }
 
 
