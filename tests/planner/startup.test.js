@@ -740,70 +740,18 @@ test('the assembled planner starts, switches views/personalities, edits settings
       /Choose how you will move through this/,
     );
     assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
-    // Optional preparation and the original start page share one editable plan.
-    const summaryOutcome = document.querySelector('.flow-compact [aria-label="Outcome"]');
-    assert.ok(summaryOutcome);
-    summaryOutcome.value = 'Move the project forward';
-    summaryOutcome.dispatchEvent(new window.Event('input'));
-    const selectedFocusId = JSON.parse(local.getItem('dayline.focus.v1')).pages[0].noteId;
-    const beforeCategory = structuredClone(
-      JSON.parse(local.getItem('dayline.v1')).days[today].find((n) => n.id === selectedFocusId),
-    );
-    document.querySelector('.flow-compact [data-note-type="personal"]').click();
-    assert.deepEqual(
-      JSON.parse(local.getItem('dayline.v1')).days[today].find((n) => n.id === selectedFocusId)
-        .tags,
-      ['personal'],
-    );
-    const originalTagSave = local.setItem;
-    let failTagsOnce = true;
-    local.setItem = (key, value) => {
-      if (key === 'dayline.v1' && failTagsOnce) {
-        failTagsOnce = false;
-        throw Error('Storage full');
-      }
-      return originalTagSave(key, value);
-    };
-    document.querySelector('.flow-compact [data-note-type="admin"]').click();
-    local.setItem = originalTagSave;
-    assert.equal(
-      document.querySelector('.flow-compact [data-note-type="admin"]').getAttribute('aria-pressed'),
-      'false',
-    );
-    assert.deepEqual(
-      JSON.parse(local.getItem('dayline.v1')).days[today].find((n) => n.id === selectedFocusId)
-        .tags,
-      ['personal'],
-    );
-    const changedOutside = JSON.parse(local.getItem('dayline.v1'));
-    const outsideNote = changedOutside.days[today].find((n) => n.id === selectedFocusId);
-    outsideNote.tags = ['event'];
-    outsideNote.noteType = 'event';
-    local.setItem('dayline.v1', JSON.stringify(changedOutside));
-    const categorySync = new window.Event('storage');
-    Object.defineProperty(categorySync, 'key', { value: 'dayline.v1' });
-    window.dispatchEvent(categorySync);
-    assert.equal(
-      document.querySelector('.flow-compact [data-note-type="event"]').getAttribute('aria-pressed'),
-      'true',
-    );
-    assert.equal(document.querySelector('.flow-compact [aria-label="Outcome"]'), summaryOutcome);
-    assert.equal(
-      JSON.parse(local.getItem('dayline.v1')).days[today].find((n) => n.id === selectedFocusId)
-        .text,
-      beforeCategory.text,
-    );
-    const firstMove = document.querySelector('.flow-compact [aria-label="Next action"]');
-    firstMove.value = 'Write a rough paragraph';
-    firstMove.dispatchEvent(new window.Event('input'));
+    // Notes remain the planning surface; optional preparation stays lightweight.
+    assert.equal(document.querySelector('.flow-compact'), null);
     [...document.querySelectorAll('.focus-window button')]
       .find((b) => b.textContent === 'Need more help getting started?')
       .click();
-    assert.equal(
-      document.querySelector('.flow-preparation [aria-label="Outcome"]').value,
-      'Move the project forward',
-    );
     assert.ok([...document.querySelectorAll('.flow-part')].every((part) => part.hidden));
+    [...document.querySelectorAll('.flow-support-choices button')]
+      .find((b) => b.textContent === 'Clear Goal and Feedback')
+      .click();
+    const goalHelp = document.querySelector('[data-support-area="goals"]');
+    assert.equal(goalHelp.querySelector('textarea'), null);
+    assert.match(goalHelp.textContent, /Let your note do the planning/);
     [...document.querySelectorAll('.flow-support-choices button')]
       .find((b) => b.textContent === 'Challenge–Skill Balance')
       .click();
@@ -822,10 +770,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
     [...document.querySelectorAll('.flow-preparation button')]
       .find((b) => b.textContent === 'Back to Focus setup')
       .click();
-    assert.equal(
-      document.querySelector('.flow-compact [aria-label="Next action"]').value,
-      'Write a rough paragraph',
-    );
+    assert.equal(document.querySelector('.flow-compact'), null);
     const gamer = document.querySelector('input[name="layout"][value="gamer"]');
     gamer.checked = true;
     gamer.dispatchEvent(new window.Event('change'));
@@ -948,9 +893,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
     );
     celebrate.checked = true;
     celebrate.dispatchEvent(new window.Event('change'));
-    const breakChoice = document.querySelector(
-      '[aria-label="Start an independent break timer after saving"]',
-    );
+    const breakChoice = document.querySelector('[aria-label^="Start the suggested"]');
     breakChoice.checked = true;
     breakChoice.dispatchEvent(new window.Event('change'));
     await new Promise((resolve) => setTimeout(resolve, 850));
@@ -983,7 +926,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
       .flat()
       .flatMap((note) => note.focusReports || [])
       .at(-1);
-    assert.equal(savedSession.flow.outcome, 'Move the project forward');
+    assert.equal(savedSession.flow.outcome, '');
     assert.match(savedSession.logs[0].text, /Remember to reply later/);
     assert.ok(savedSession.recovery.startTimer);
     assert.equal(local.getItem('dayline.focus-audio.v1'), independentAudio);
