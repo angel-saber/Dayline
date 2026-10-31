@@ -180,6 +180,7 @@ test('active preparation reference includes all completed support areas and omit
 test('inline help has four collapsed questions and only two brief goal answers', () =>
   harness((window, document) => {
     const flow = newFlow();
+    flow.readiness = 'ready';
     flow.outcome = 'Keep an earlier outcome';
     flow.evidenceExtra = ['Keep earlier evidence'];
     let saves = 0;
@@ -205,6 +206,22 @@ test('inline help has four collapsed questions and only two brief goal answers',
       );
       assert.equal(helper.element.querySelector('.flow-support-choices'), null);
       assert.equal(helper.element.querySelector('.flow-preparation-actions'), null);
+      assert.ok(
+        ![...helper.element.querySelectorAll('button')].some((b) => b.textContent === 'I’m ready'),
+      );
+      const balance = helper.element.querySelector('[data-support-area="balance"]');
+      assert.ok(
+        [...balance.querySelectorAll('textarea')].every(
+          (t) => !t.parentElement.parentElement.hidden,
+        ),
+      );
+      const judgment = helper.element.querySelector('[data-support-area="judgment"]');
+      assert.equal(judgment.querySelector('summary').textContent, 'What’s making you hesitate?');
+      const children = [...judgment.children];
+      assert.ok(
+        children.indexOf(judgment.querySelector('.flow-options')) <
+          children.indexOf(judgment.querySelector('textarea').parentElement),
+      );
       const goals = helper.element.querySelector('[data-support-area="goals"]');
       assert.equal(goals.querySelectorAll('textarea').length, 2);
       [...goals.querySelectorAll('button')]
@@ -215,6 +232,29 @@ test('inline help has four collapsed questions and only two brief goal answers',
         goals.querySelector('[aria-label="Progress I want to see"]').parentElement.hidden,
         false,
       );
+      const progress = goals.querySelector('[aria-label="Progress I want to see"]');
+      const pick = (key) => goals.querySelector(`[data-progress-choice="${key}"]`);
+      const write = (text) => {
+        progress.value = text;
+        progress.dispatchEvent(new window.Event('input'));
+      };
+      write('A rough version of my opening');
+      pick('decision').click();
+      assert.equal(progress.value, 'A decision about…');
+      assert.equal(pick('decision').getAttribute('aria-pressed'), 'true');
+      assert.equal(pick('rough').getAttribute('aria-pressed'), 'false');
+      write('A decision about the ending');
+      pick('rough').click();
+      assert.equal(progress.value, 'A rough version of my opening');
+      pick('own').click();
+      assert.equal(progress.value, '');
+      write('One useful paragraph');
+      pick('decision').click();
+      assert.equal(progress.value, 'A decision about the ending');
+      pick('rough').click();
+      assert.deepEqual(validFlow(structuredClone(flow)), flow);
+      assert.throws(() => validFlow({ ...flow, progressChoice: 'invalid' }));
+      assert.throws(() => validFlow({ ...flow, progressDrafts: { invalid: 'text' } }));
       const action = goals.querySelector(
         '[aria-label="What is the smallest action that would move that forward?"]',
       );

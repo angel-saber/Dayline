@@ -1,4 +1,4 @@
-import { validTags, categoryLabel } from '../notes/note-types.js?v=f2c75fe48c17';
+import { validTags, categoryLabel } from '../notes/note-types.js?v=a5e287120672';
 export const BREATHS = [
   ['possibility', 'perfection'],
   ['courage', 'judgment'],
@@ -95,6 +95,25 @@ export function validFlow(value) {
     )
       throw Error('Invalid preparation support areas.');
     result.supportAreas = [...new Set(value.supportAreas)];
+  }
+  const progressChoices = ['rough', 'piece', 'decision', 'test', 'understand', 'own'];
+  if (value.progressChoice !== undefined) {
+    if (!progressChoices.includes(value.progressChoice)) throw Error('Invalid progress choice.');
+    result.progressChoice = value.progressChoice;
+  }
+  if (value.progressDrafts !== undefined) {
+    if (
+      !value.progressDrafts ||
+      typeof value.progressDrafts !== 'object' ||
+      Array.isArray(value.progressDrafts)
+    )
+      throw Error('Invalid progress drafts.');
+    result.progressDrafts = {};
+    for (const [key, text] of Object.entries(value.progressDrafts)) {
+      if (!progressChoices.includes(key) || typeof text !== 'string' || text.length > 10000)
+        throw Error('Invalid progress draft.');
+      result.progressDrafts[key] = text;
+    }
   }
   result.tags = validTags(value.tags);
   if (

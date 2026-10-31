@@ -1,9 +1,9 @@
-import { SUMMARY_PREFERENCES_EVENT } from '../summaries/preferences.js?v=f2c75fe48c17';
-import { summarySource, summarizePeriod } from '../summaries/model.js?v=f2c75fe48c17';
-import { createPeriodSummary } from '../summaries/view.js?v=f2c75fe48c17';
-import { openExpandedDay } from './expanded-day.js?v=f2c75fe48c17';
-import { node } from '../../shared/dom.js?v=f2c75fe48c17';
-import { createWeeklySection } from './weekly-notes.js?v=f2c75fe48c17';
+import { SUMMARY_PREFERENCES_EVENT } from '../summaries/preferences.js?v=a5e287120672';
+import { summarySource, summarizePeriod } from '../summaries/model.js?v=a5e287120672';
+import { createPeriodSummary } from '../summaries/view.js?v=a5e287120672';
+import { openExpandedDay } from './expanded-day.js?v=a5e287120672';
+import { node } from '../../shared/dom.js?v=a5e287120672';
+import { createWeeklySection } from './weekly-notes.js?v=a5e287120672';
 import {
   NOTE_TYPES,
   categoryOptions,
@@ -13,11 +13,11 @@ import {
   typeBadge,
   noteTags,
   categoryLabel,
-} from '../notes/note-types.js?v=f2c75fe48c17';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=f2c75fe48c17';
-import { dateActions } from './date-actions.js?v=f2c75fe48c17';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=f2c75fe48c17';
-import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=f2c75fe48c17';
+} from '../notes/note-types.js?v=a5e287120672';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=a5e287120672';
+import { dateActions } from './date-actions.js?v=a5e287120672';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=a5e287120672';
+import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=a5e287120672';
 
 const button = (text, label, action) => {
   const el = node('button', '', text);

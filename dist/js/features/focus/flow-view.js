@@ -1,6 +1,6 @@
-import { node } from '../../shared/dom.js?v=f2c75fe48c17';
-import { ACCESS, INTEREST, PERMISSIONS, BREATHS } from './flow-model.js?v=f2c75fe48c17';
-import { breathingFrame } from '../activities/model.js?v=f2c75fe48c17';
+import { node } from '../../shared/dom.js?v=a5e287120672';
+import { ACCESS, INTEREST, PERMISSIONS, BREATHS } from './flow-model.js?v=a5e287120672';
+import { breathingFrame } from '../activities/model.js?v=a5e287120672';
 const button = (text, action) => {
   const b = node('button', 'secondary', text);
   b.type = 'button';
@@ -75,11 +75,11 @@ export function createFlowPreparation({ flow, onChange, onAudio, onSaveWarmup })
     ['compelling', 'Make it more compelling'],
     ['manageable', 'Make it more manageable'],
     ['both', 'Both'],
-    ['ready', 'I’m ready'],
   ];
   function syncBalance() {
-    interest.hidden = !['', 'compelling', 'both'].includes(flow.readiness);
-    access.hidden = !['', 'manageable', 'both'].includes(flow.readiness);
+    const readiness = flow.readiness === 'ready' ? '' : flow.readiness;
+    interest.hidden = !['', 'compelling', 'both'].includes(readiness);
+    access.hidden = !['', 'manageable', 'both'].includes(readiness);
     for (const b of choices.children)
       b.setAttribute('aria-pressed', String(b.dataset.choice === flow.readiness));
   }
@@ -134,35 +134,51 @@ export function createFlowPreparation({ flow, onChange, onAudio, onSaveWarmup })
     ),
   );
   const progressChoices = node('div', 'flow-options');
+  let progressChoice = flow.progressChoice || (flow.evidence.trim() ? 'own' : '');
+  function syncProgressChoice() {
+    for (const button of progressChoices.children)
+      button.setAttribute('aria-pressed', String(button.dataset.progressChoice === progressChoice));
+  }
   const progress = field(
     goal,
     'Progress I want to see',
     flow.evidence,
     (value) => {
       flow.evidence = value;
+      if (progressChoice) {
+        flow.progressDrafts ||= {};
+        flow.progressDrafts[progressChoice] = value;
+      }
       onChange();
     },
     { rows: 1 },
   );
   progress.parentElement.hidden = !flow.evidence.trim();
-  for (const [label, starter] of [
-    ['A rough version', 'A rough version of…'],
-    ['One finished piece', 'One finished piece of…'],
-    ['A decision', 'A decision about…'],
-    ['Something tested', 'Test whether…'],
-    ['A clearer understanding', 'A clearer understanding of…'],
-    ['My own', ''],
-  ])
-    progressChoices.append(
-      button(label, () => {
-        progress.parentElement.hidden = false;
-        if (!flow.evidence.trim() && starter) {
-          flow.evidence = progress.value = starter;
-          onChange();
-        }
-        progress.focus();
-      }),
-    );
+  for (const [key, label, starter] of [
+    ['rough', 'A rough version', 'A rough version of…'],
+    ['piece', 'One finished piece', 'One finished piece of…'],
+    ['decision', 'A decision', 'A decision about…'],
+    ['test', 'Something tested', 'Test whether…'],
+    ['understand', 'A clearer understanding', 'A clearer understanding of…'],
+    ['own', 'My own', ''],
+  ]) {
+    const choice = button(label, () => {
+      flow.progressDrafts ||= {};
+      if (progressChoice) flow.progressDrafts[progressChoice] = flow.evidence;
+      progressChoice = flow.progressChoice = key;
+      flow.evidence = progress.value = Object.hasOwn(flow.progressDrafts, key)
+        ? flow.progressDrafts[key]
+        : starter;
+      flow.progressDrafts[key] = flow.evidence;
+      progress.parentElement.hidden = false;
+      syncProgressChoice();
+      onChange();
+      progress.focus();
+    });
+    choice.dataset.progressChoice = key;
+    progressChoices.append(choice);
+  }
+  syncProgressChoice();
   goal.insertBefore(progressChoices, progress.parentElement);
   field(
     goal,
@@ -175,7 +191,7 @@ export function createFlowPreparation({ flow, onChange, onAudio, onSaveWarmup })
     },
     { rows: 1, max: 2000 },
   );
-  const permission = section('What are you giving yourself permission to try?', 'judgment');
+  const permission = section('What’s making you hesitate?', 'judgment');
   const fear = field(permission, 'What are you afraid might happen?', flow.fear, (v) => {
     flow.fear = v;
     onChange();
@@ -193,12 +209,18 @@ export function createFlowPreparation({ flow, onChange, onAudio, onSaveWarmup })
   for (const [label, text] of PERMISSIONS)
     fears.append(
       button(label, () => {
-        fear.value = flow.fear = [flow.fear, label].filter(Boolean).join('\n');
-        allow.value = flow.permission = [flow.permission, text].filter(Boolean).join('\n');
+        if (!flow.fear.split('\n').includes(label))
+          fear.value = flow.fear = [flow.fear, label].filter(Boolean).join('\n');
+        if (!flow.permission.split('\n').includes(text))
+          allow.value = flow.permission = [flow.permission, text].filter(Boolean).join('\n');
         onChange();
       }),
     );
-  permission.append(fears);
+  permission.insertBefore(fears, fear.parentElement);
+  permission.insertBefore(
+    node('p', 'field-hint', 'Choose a worry to start with, then adjust the words to fit you.'),
+    fears,
+  );
   const warmups = node('div', 'flow-options'),
     warmup = node('section', 'flow-warmup');
   permission.append(node('h3', '', 'Choose a warm-up (optional)'), warmups, warmup);

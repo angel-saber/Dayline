@@ -582,3 +582,10 @@ by default.
 cleans up on account changes, and never extends work duration or starts another
 session. No new service or backend table is used. Reload older tabs before editing
 new report metadata.
+
+Inline help omits the redundant I’m ready choice. Legacy ready selections remain
+valid and show both engagement/start prompts when revisited. Progress suggestions
+act as switchable choices with pressed states; optional validated progressChoice
+and progressDrafts fields retain each choice's edited answer, so switching does
+not overwrite another answer. The third question is What’s making you hesitate?,
+with worry suggestions before the fear/permission inputs rather than after them.
