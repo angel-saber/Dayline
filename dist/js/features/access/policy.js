@@ -1,8 +1,8 @@
 // Provider-neutral policy/ledger models for FUTURE server enforcement.
 // No checkout, admin endpoint, protected asset delivery, or paywall is enabled.
 // A browser flag, an imported file, and this evaluator are NOT proof of purchase.
-import { validateAccountId } from '../../shared/account-id.js?v=f99b8ac250a9';
-import { PERSONALITY_IDS } from '../../personalities/ids.js?v=f99b8ac250a9';
+import { validateAccountId } from '../../shared/account-id.js?v=ebeed1edf97a';
+import { PERSONALITY_IDS } from '../../personalities/ids.js?v=ebeed1edf97a';
 export { PERSONALITY_IDS };
 export const PAYMENTS_ENABLED = false;
 const validFeature = (value) => PERSONALITY_IDS.some((id) => value === `personality.${id}`);

@@ -169,6 +169,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
     document.dispatchEvent(new window.Event('DOMContentLoaded'));
     assert.equal(document.querySelector('#auth-view').hidden, true);
     assert.match(document.querySelector('#timeline').textContent, /Saved plan/);
+
     assert.equal(document.querySelectorAll('.line-checkbox').length, 1);
     assert.match(
       document.querySelector('#daily-period-summary .period-summary-line').textContent,
@@ -708,6 +709,17 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.deepEqual(saved.days, fixture.days);
     document.querySelector('#daily-tab').click();
     assert.match(document.querySelector('#timeline').textContent, /Saved plan/);
+    // Focus must use a note in the current interval even in the second half-hour.
+    const focusNow = new Date(),
+      focusMinute = focusNow.getHours() * 60 + focusNow.getMinutes();
+    fixture.days[today].find((note) => note.id === 'saved-note').minute = focusMinute;
+    const forFocus = JSON.parse(local.getItem('dayline.v1'));
+    forFocus.days[today].find((note) => note.id === 'saved-note').minute = focusMinute;
+    local.setItem('dayline.v1', JSON.stringify(forFocus));
+    const focusStorage = new window.Event('storage');
+    Object.defineProperty(focusStorage, 'key', { value: 'dayline.v1' });
+    window.dispatchEvent(focusStorage);
+
     document.querySelector('#launch-focus-audio').click();
     assert.equal(document.querySelector('.focus-audio-window').open, true);
     assert.equal(local.getItem('dayline.focus.v1'), null);
@@ -798,6 +810,12 @@ test('the assembled planner starts, switches views/personalities, edits settings
     [...document.querySelectorAll('.flow-preparation button')]
       .find((b) => b.textContent === 'Make a rough version')
       .click();
+    [...document.querySelectorAll('.flow-support-choices button')]
+      .find((b) => b.textContent === 'Step Out of Self-Judgment')
+      .click();
+    [...document.querySelectorAll('.flow-preparation button')]
+      .find((b) => b.textContent === 'Being judged')
+      .click();
     const parked = document.querySelector('[aria-label="Park distractions before starting"]');
     parked.value = 'Remember to reply later';
     parked.dispatchEvent(new window.Event('input'));
@@ -825,6 +843,34 @@ test('the assembled planner starts, switches views/personalities, edits settings
     commit.click();
     await new Promise((resolve) => setTimeout(resolve, 1150));
     assert.equal(document.querySelector('.personality-burst')?.dataset.kind, 'focus-commit');
+    assert.equal(document.querySelector('.focus-next-move'), null);
+    assert.match(
+      document.querySelector('.focus-preparation-reference').textContent,
+      /Make a rough version before refining it/,
+    );
+    assert.match(
+      document.querySelector('.focus-preparation-reference').textContent,
+      /This attempt doesn’t need an audience yet/,
+    );
+    assert.match(
+      document.querySelector('.focus-preparation-reference').textContent,
+      /Remember to reply later/,
+    );
+    const startBeforeEdit = JSON.parse(local.getItem('dayline.focus.v1')).startedAt;
+    [...document.querySelectorAll('.focus-preparation-reference button')]
+      .find((b) => b.textContent === 'Edit preparation')
+      .click();
+    assert.ok(
+      [...document.querySelectorAll('.flow-preparation button')].some(
+        (b) => b.textContent === 'Return to session',
+      ),
+    );
+    [...document.querySelectorAll('.flow-preparation button')]
+      .find((b) => b.textContent === 'Return to session')
+      .click();
+    assert.equal(JSON.parse(local.getItem('dayline.focus.v1')).startedAt, startBeforeEdit);
+    assert.equal(JSON.parse(local.getItem('dayline.focus.v1')).phase, 'active');
+
     assert.equal(document.querySelector('.personality-burst')?.parentNode, document.body);
     const focusQuick = [
       ...document.querySelectorAll('.focus-activity-shortcuts [data-more-activity]'),

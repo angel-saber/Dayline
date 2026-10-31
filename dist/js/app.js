@@ -1,1 +1,1 @@
-import './app/controller.js?v=f99b8ac250a9';
+import './app/controller.js?v=ebeed1edf97a';

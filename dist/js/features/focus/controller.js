@@ -3,16 +3,17 @@ import {
   createFlowPreparation,
   recoverySection,
   refreshOutcomeCategories,
-} from './flow-view.js?v=f99b8ac250a9';
-import { newFlow, newRecovery, nextAction } from './flow-model.js?v=f99b8ac250a9';
-import { setupBreakTimer } from './break-timer.js?v=f99b8ac250a9';
-import { chooseRepeatScope } from '../repeating/scope.js?v=f99b8ac250a9';
-import { node } from '../../shared/dom.js?v=f99b8ac250a9';
-import { indentLevel } from '../notes/formatting/indents.js?v=f99b8ac250a9';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=f99b8ac250a9';
-import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=f99b8ac250a9';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=f99b8ac250a9';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=f99b8ac250a9';
+  preparationReference,
+} from './flow-view.js?v=ebeed1edf97a';
+import { newFlow, newRecovery } from './flow-model.js?v=ebeed1edf97a';
+import { setupBreakTimer } from './break-timer.js?v=ebeed1edf97a';
+import { chooseRepeatScope } from '../repeating/scope.js?v=ebeed1edf97a';
+import { node } from '../../shared/dom.js?v=ebeed1edf97a';
+import { indentLevel } from '../notes/formatting/indents.js?v=ebeed1edf97a';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=ebeed1edf97a';
+import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=ebeed1edf97a';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=ebeed1edf97a';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=ebeed1edf97a';
 import {
   focusIntervalNotes,
   newFocus,
@@ -23,10 +24,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=f99b8ac250a9';
-import { createNoteEditor } from '../notes/note-editor.js?v=f99b8ac250a9';
-import { renderFormatted } from '../notes/formatting/format.js?v=f99b8ac250a9';
-import { noteTasks } from '../notes/formatting/tasks.js?v=f99b8ac250a9';
+} from './model.js?v=ebeed1edf97a';
+import { createNoteEditor } from '../notes/note-editor.js?v=ebeed1edf97a';
+import { renderFormatted } from '../notes/formatting/format.js?v=ebeed1edf97a';
+import { noteTasks } from '../notes/formatting/tasks.js?v=ebeed1edf97a';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {
@@ -445,7 +446,14 @@ export function setupFocus(api) {
         flowOpen = false;
         render();
       },
-      onBegin: beginFocus,
+      returnToSession: session.phase === 'active',
+      onBegin:
+        session.phase === 'active'
+          ? () => {
+              flowOpen = false;
+              render();
+            }
+          : beginFocus,
       onAudio: () => api.openAudio(),
       onSaveWarmup(text) {
         const found = resolve(),
@@ -546,22 +554,20 @@ export function setupFocus(api) {
   function active() {
     base(voice('focus.activeHeading'));
     dialog.append(node('p', 'focus-mantra', session.mantra));
-    const nextMove = node('p', 'focus-next-move');
-    const updateNext = () => {
-      nextMove.textContent = nextAction(flow());
-      save();
-    };
-    nextMove.textContent = nextAction(flow());
     const preparation = node('details', 'focus-session-preparation');
     preparation.append(
-      node('summary', '', 'Preparation & next action'),
+      node('summary', '', 'Focus plan · outcome, evidence & next actions'),
       compactFlow(flow(), {
-        onChange: updateNext,
+        onChange: save,
         categories: categories(),
         onTagsChange: changeOutcomeTags,
       }),
     );
-    dialog.append(nextMove, preparation);
+    const reference = preparationReference(flow(), () => {
+      noteEditor?.flush();
+      flowOpen = true;
+      render();
+    });
 
     const stats = node('div', 'focus-stats');
     stats.append(node('span', 'focus-elapsed'), node('span', 'focus-live-position'));
@@ -605,7 +611,8 @@ export function setupFocus(api) {
           render();
         }),
       );
-    dialog.append(pages, noteSection());
+    if (session.pages.length > 1) dialog.append(pages);
+    dialog.append(noteSection(), preparation, reference);
     const found = resolve(),
       current = session.pages.at(-1);
     if (
@@ -642,9 +649,9 @@ export function setupFocus(api) {
       );
       dialog.append(extend);
     }
-    const inspiration = node('section', 'focus-section');
+    const inspiration = node('details', 'focus-section focus-inspiration-pocket');
     inspiration.append(
-      node('h2', '', voice('focus.inspirationHeading')),
+      node('summary', '', voice('focus.inspirationHeading')),
       node('p', 'focus-inspiration'),
       node('small', 'field-hint', voice('focus.inspirationHint')),
     );
@@ -674,7 +681,7 @@ export function setupFocus(api) {
       interruptions.append(before);
     }
     const log = node('textarea', 'focus-log-input');
-    log.rows = 5;
+    log.rows = 3;
     log.placeholder = voice('focus.interruptionPlaceholder');
     log.value = page().log;
     log.setAttribute(
@@ -780,7 +787,8 @@ export function setupFocus(api) {
     if (!session) return;
     refreshPageSnapshot();
     syncOutcomeTags();
-    if (session.phase === 'prepare') {
+    if (flowOpen && session.phase === 'active') extendedPreparation();
+    else if (session.phase === 'prepare') {
       if (flowOpen) extendedPreparation();
       else prepare();
     } else if (session.phase === 'reflect') reflect();

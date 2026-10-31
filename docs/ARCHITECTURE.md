@@ -605,3 +605,14 @@ older answers/actions without a migration. Add row appends a pair; explicit Remo
 row removes the pair. Existing approaches and completion metadata are preserved.
 The same row layout is used in setup, optional preparation and active editing;
 small screens stack each row's fields together in reading order.
+
+The active session prioritizes its interval notes, with one expandable Focus plan
+editing panel and a populated My preparation reference. The reference includes
+challenge/skill adjustments, stuck strategies, permissions, selected warm-ups,
+breath intentions, parked distractions and space choices, even when those areas
+are no longer selected in the optional helper. Empty prompts stay absent. Edit
+preparation can reopen that helper during an active session; Return to session
+never recommits or changes its start time. The isolated automatic next-action
+line is removed. Single-interval navigation is hidden, activity shortcuts stay in
+a collapsible inspiration pocket, and the interruption log remains directly
+editable. The main Finish action remains available at the bottom of the window.

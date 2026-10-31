@@ -21,6 +21,7 @@ import {
   planRows,
   createFlowPreparation,
   recoverySection,
+  preparationReference,
 } from '../../dist/js/features/focus/flow-view.js';
 import { setupBreakTimer, BREAK_KEY } from '../../dist/js/features/focus/break-timer.js';
 import { validState } from '../../dist/js/shared/storage.js';
@@ -304,4 +305,37 @@ test('paired plan rows preserve unmatched legacy fields and remove only the chos
     assert.equal(flow.steps.length, 1);
     assert.equal(flow.steps[0].strategy, 'Keep this approach');
     assert.deepEqual(validFlow(structuredClone(flow)), flow);
+  }));
+
+test('active preparation reference includes all completed support areas and omits empty prompts', () =>
+  harness((window, document) => {
+    const flow = newFlow();
+    flow.interest = 'Build a useful skill';
+    flow.access = 'Start small';
+    flow.ifStuck = 'Ask for help';
+    flow.fear = 'Being judged';
+    flow.permission = 'I can try';
+    flow.warmup = 'breathing';
+    flow.breathIn = 'courage';
+    flow.breathOut = 'judgment';
+    flow.parked = 'Reply later';
+    flow.space.materials = true;
+    let edited = false;
+    const view = preparationReference(flow, () => (edited = true));
+    document.body.append(view);
+    for (const value of [
+      'Build a useful skill',
+      'Start small',
+      'Ask for help',
+      'Being judged',
+      'I can try',
+      'Inhale courage. Exhale judgment.',
+      'Reply later',
+      'Materials ready',
+    ])
+      assert.ok(view.textContent.includes(value), value);
+    assert.equal(view.querySelectorAll('.focus-reference-group').length, 4);
+    assert.equal(view.querySelector('textarea'), null);
+    view.querySelector('button').click();
+    assert.equal(edited, true);
   }));

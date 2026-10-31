@@ -4837,6 +4837,61 @@ button.slot-time .now-badge {
     gap: 4px;
   }
 }
+.focus-preparation-reference {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px;
+  margin: 18px 0;
+}
+.focus-preparation-reference > h2 {
+  margin: 0 0 12px;
+}
+.focus-reference-group {
+  border-top: 1px solid var(--line);
+  padding: 12px 0;
+}
+.focus-reference-group > summary,
+.focus-inspiration-pocket > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.focus-reference-group h4 {
+  margin: 12px 0 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.focus-reference-answer {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0 0 10px;
+}
+.focus-session-preparation > summary {
+  line-height: 1.5;
+}
+.focus-window .focus-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+}
+.focus-window .focus-page-nav {
+  margin: 12px 0;
+}
+.focus-window .focus-finish {
+  position: sticky;
+  bottom: 0;
+  margin: 18px 0 0 auto;
+  z-index: 2;
+}
+.focus-session-preparation > .flow-compact {
+  border: 0;
+  padding: 0;
+  margin: 14px 0 0;
+}
+.focus-session-preparation > .flow-compact > h2 {
+  display: none;
+}
 
 
 :root[data-layout='astronaut'] body {
