@@ -3,16 +3,17 @@ import {
   createFlowPreparation,
   stepList,
   recoverySection,
-} from './flow-view.js?v=b8179ad8cdac';
-import { newFlow, newRecovery } from './flow-model.js?v=b8179ad8cdac';
-import { setupBreakTimer } from './break-timer.js?v=b8179ad8cdac';
-import { chooseRepeatScope } from '../repeating/scope.js?v=b8179ad8cdac';
-import { node } from '../../shared/dom.js?v=b8179ad8cdac';
-import { indentLevel } from '../notes/formatting/indents.js?v=b8179ad8cdac';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=b8179ad8cdac';
-import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=b8179ad8cdac';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=b8179ad8cdac';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=b8179ad8cdac';
+  refreshOutcomeCategories,
+} from './flow-view.js?v=47449d930371';
+import { newFlow, newRecovery, nextAction } from './flow-model.js?v=47449d930371';
+import { setupBreakTimer } from './break-timer.js?v=47449d930371';
+import { chooseRepeatScope } from '../repeating/scope.js?v=47449d930371';
+import { node } from '../../shared/dom.js?v=47449d930371';
+import { indentLevel } from '../notes/formatting/indents.js?v=47449d930371';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=47449d930371';
+import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=47449d930371';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=47449d930371';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=47449d930371';
 import {
   focusIntervalNotes,
   newFocus,
@@ -23,10 +24,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=b8179ad8cdac';
-import { createNoteEditor } from '../notes/note-editor.js?v=b8179ad8cdac';
-import { renderFormatted } from '../notes/formatting/format.js?v=b8179ad8cdac';
-import { noteTasks } from '../notes/formatting/tasks.js?v=b8179ad8cdac';
+} from './model.js?v=47449d930371';
+import { createNoteEditor } from '../notes/note-editor.js?v=47449d930371';
+import { renderFormatted } from '../notes/formatting/format.js?v=47449d930371';
+import { noteTasks } from '../notes/formatting/tasks.js?v=47449d930371';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {
@@ -359,6 +360,7 @@ export function setupFocus(api) {
     return section;
   }
   function refreshNotes() {
+    syncOutcomeTags();
     if (!session || !dialog.open || transition || noteEditor || session.phase === 'reflect') return;
     const signature = noteSignature();
     if (signature === notesSignature) return;
@@ -371,6 +373,35 @@ export function setupFocus(api) {
   function flow() {
     if (!session.flow) session.flow = newFlow(noteTags(resolve()?.entry || {}));
     return session.flow;
+  }
+  let syncingOutcome = false;
+  function syncOutcomeTags() {
+    if (!session || session.phase === 'reflect' || syncingOutcome) return;
+    const found = resolve();
+    if (!found) return;
+    const tags = noteTags(found.entry);
+    if (JSON.stringify(flow().tags) !== JSON.stringify(tags)) {
+      flow().tags = [...tags];
+      noteEditor?.setTags(tags);
+      refreshOutcomeCategories(dialog);
+      if (session.owner === owner) save();
+    }
+  }
+  function changeOutcomeTags(tags) {
+    const found = resolve();
+    if (!found) return true;
+    syncingOutcome = true;
+    try {
+      noteEditor?.flush();
+      if (api.setFocusTags?.(found.date, found.entry.id, tags) === false) {
+        api.toast('Could not save the note categories. Your previous categories were kept.');
+        return false;
+      }
+      noteEditor?.setTags(tags);
+      return true;
+    } finally {
+      syncingOutcome = false;
+    }
   }
   function categories() {
     return categoryOptions(api.getState().days, api.getState().settings.tags);
@@ -410,6 +441,7 @@ export function setupFocus(api) {
       flow: flow(),
       categories: categories(),
       onChange: save,
+      onTagsChange: changeOutcomeTags,
       onBack() {
         flowOpen = false;
         render();
@@ -465,7 +497,12 @@ export function setupFocus(api) {
         flowOpen = true;
         render();
       }),
-      compactFlow(flow(), { onChange: save, categories: categories(), mantra: session.mantra }),
+      compactFlow(flow(), {
+        onChange: save,
+        categories: categories(),
+        mantra: session.mantra,
+        onTagsChange: changeOutcomeTags,
+      }),
     );
     const commitment = node('section', 'focus-commitment');
     commitment.append(node('h2', '', voice('focus.commitmentHeading')));
@@ -517,20 +554,19 @@ export function setupFocus(api) {
     dialog.append(node('p', 'focus-mantra', session.mantra));
     const nextMove = node('p', 'focus-next-move');
     const updateNext = () => {
-      nextMove.textContent =
-        flow().steps.find((step) => !step.done && step.action.trim())?.action ||
-        flow().steps[0].action ||
-        'Choose your next move in the preparation below.';
+      nextMove.textContent = nextAction(flow());
       save();
     };
-    nextMove.textContent =
-      flow().steps.find((step) => !step.done && step.action.trim())?.action ||
-      flow().steps[0].action ||
-      'Choose your next move in the preparation below.';
+    nextMove.textContent = nextAction(flow());
     const preparation = node('details', 'focus-session-preparation');
     preparation.append(
-      node('summary', '', 'Preparation & next move'),
-      compactFlow(flow(), { onChange: updateNext, categories: categories(), showFirst: false }),
+      node('summary', '', 'Preparation & next action'),
+      compactFlow(flow(), {
+        onChange: updateNext,
+        categories: categories(),
+        showFirst: false,
+        onTagsChange: changeOutcomeTags,
+      }),
       stepList(flow(), updateNext),
     );
     dialog.append(nextMove, preparation);
@@ -663,6 +699,7 @@ export function setupFocus(api) {
     tickLabels();
   }
   function finish() {
+    syncOutcomeTags();
     flushNote();
     advanceFocus(session, api.getState(), Date.now());
     session.endedAt = Math.max(session.startedAt, Date.now());
@@ -750,6 +787,7 @@ export function setupFocus(api) {
   function render() {
     if (!session) return;
     refreshPageSnapshot();
+    syncOutcomeTags();
     if (session.phase === 'prepare') {
       if (flowOpen) extendedPreparation();
       else prepare();

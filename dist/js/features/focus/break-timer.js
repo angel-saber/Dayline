@@ -1,4 +1,4 @@
-import { node } from '../../shared/dom.js?v=b8179ad8cdac';
+import { node } from '../../shared/dom.js?v=47449d930371';
 export const BREAK_KEY = 'dayline.focus-break.v1';
 export function setupBreakTimer({
   root = document.body,

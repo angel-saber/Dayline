@@ -143,9 +143,16 @@ test('editor copy, cut, paste and undo use the same model as displayed-note copy
     });
     document.body.append(target.element);
     const destination = target.element.querySelector('.rich-editor');
+    target.setTags(['personal']);
+    assert.equal(saved, undefined);
+    assert.equal(
+      target.element.querySelector('[data-note-type=personal]').getAttribute('aria-pressed'),
+      'true',
+    );
     select(destination, 0);
     destination.dispatchEvent(event('paste', data));
     assert.equal(saved.text, source.text);
+    assert.deepEqual(saved.tags, ['personal']);
     assert.deepEqual(saved.format, source.format);
     assert.deepEqual(saved.tasks, source.tasks);
     const undo = new window.Event('beforeinput', { cancelable: true });

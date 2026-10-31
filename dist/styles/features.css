@@ -2787,3 +2787,24 @@ button.slot-time .now-badge {
     transition: none;
   }
 }
+.flow-step > button,
+.flow-evidence-row > button {
+  margin: 4px 8px 8px 0;
+}
+.flow-support-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0;
+}
+.flow-support-choices [aria-pressed='true'] {
+  border-color: var(--green);
+  background: color-mix(in srgb, var(--green) 14%, var(--white));
+}
+.flow-support-choices button {
+  white-space: normal;
+  text-align: left;
+}
+.flow-part[hidden] {
+  display: none;
+}

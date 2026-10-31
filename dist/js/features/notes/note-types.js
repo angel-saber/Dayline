@@ -111,10 +111,10 @@ export function typeChips(value = [], label = 'Note tags', onChange = () => {}, 
     buttons.push([key, button]);
     group.insertBefore(button, custom);
   }
-  function publish() {
+  function publish(notify = true) {
     for (const [type, chip] of buttons)
       chip.setAttribute('aria-pressed', String(selected.has(type)));
-    onChange([...selected]);
+    if (notify) onChange([...selected]);
   }
   function toggle(key) {
     if (selected.has(key)) selected.delete(key);
@@ -164,6 +164,18 @@ export function typeChips(value = [], label = 'Note tags', onChange = () => {}, 
   group.append(custom);
   for (const [key, text] of Object.entries(options)) add(key, text);
   return {
+    setValue(value) {
+      const tags = validTags(value);
+      selected.clear();
+      for (const tag of tags) {
+        if (!options[tag]) {
+          options[tag] = categoryLabel(tag);
+          add(tag, options[tag]);
+        }
+        selected.add(tag);
+      }
+      publish(false);
+    },
     element: group,
     get value() {
       return [...selected];

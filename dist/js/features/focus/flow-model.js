@@ -1,4 +1,4 @@
-import { validTags, categoryLabel } from '../notes/note-types.js?v=b8179ad8cdac';
+import { validTags, categoryLabel } from '../notes/note-types.js?v=47449d930371';
 export const BREATHS = [
   ['possibility', 'perfection'],
   ['courage', 'judgment'],
@@ -7,7 +7,7 @@ export const BREATHS = [
 ];
 export const INTEREST = [
   ['Find the interesting part', 'The part I’m curious about is…'],
-  ['Give it meaning', 'Doing this makes room for…'],
+  ['Make it meaningful', 'Accomplishing this would show that…'],
   ['Practice a skill', 'I’ll use this task to get better at…'],
   ['Try a different method', 'This time, I’ll try…'],
   ['Make it a game', 'My small challenge is to…'],
@@ -79,6 +79,23 @@ export function validFlow(value) {
       throw Error('Keep preparation fields under 10,000 characters.');
     result[key] = value[key];
   }
+  if (value.evidenceExtra !== undefined) {
+    if (
+      !Array.isArray(value.evidenceExtra) ||
+      value.evidenceExtra.length > 29 ||
+      value.evidenceExtra.some((answer) => typeof answer !== 'string' || answer.length > 10000)
+    )
+      throw Error('Use up to 30 evidence answers of 10,000 characters each.');
+    result.evidenceExtra = [...value.evidenceExtra];
+  }
+  if (value.supportAreas !== undefined) {
+    if (
+      !Array.isArray(value.supportAreas) ||
+      value.supportAreas.some((key) => !['balance', 'goals', 'judgment', 'attention'].includes(key))
+    )
+      throw Error('Invalid preparation support areas.');
+    result.supportAreas = [...new Set(value.supportAreas)];
+  }
   result.tags = validTags(value.tags);
   if (
     !['', 'compelling', 'manageable', 'both', 'ready'].includes(value.readiness) ||
@@ -99,7 +116,14 @@ export function validFlow(value) {
       typeof s.done !== 'boolean'
     )
       throw Error('Invalid preparation step.');
-    return { action: s.action, strategy: s.strategy, done: s.done };
+    if (s.approachOpen !== undefined && typeof s.approachOpen !== 'boolean')
+      throw Error('Invalid action approach.');
+    return {
+      action: s.action,
+      strategy: s.strategy,
+      done: s.done,
+      ...(s.approachOpen !== undefined ? { approachOpen: s.approachOpen } : {}),
+    };
   });
   if (!value.space || typeof value.hideClock !== 'boolean')
     throw Error('Invalid attention preferences.');
@@ -168,11 +192,13 @@ export function flowLines(flow) {
     ['warmupText', 'Warm-up attempt'],
   ])
     if (f[key].trim()) lines.push(`${label}: ${f[key]}`);
+  for (const [i, answer] of (f.evidenceExtra || []).entries())
+    if (answer.trim()) lines.push(`Evidence of progress ${i + 2}: ${answer}`);
   if (f.tags.length) lines.push(`Outcome categories: ${f.tags.map(categoryLabel).join(' · ')}`);
   f.steps.forEach((step, i) => {
     if (step.action || step.strategy)
       lines.push(
-        `${step.done ? '☑' : '☐'} Step ${i + 1}: ${step.action}${step.strategy ? ' — ' + step.strategy : ''}`,
+        `${step.done ? '☑' : '☐'} Action ${i + 1}: ${step.action}${step.strategy ? ' — ' + step.strategy : ''}`,
       );
   });
   if (f.warmup)
@@ -199,4 +225,13 @@ export function recoveryLines(recovery) {
   if (r.acknowledgment) lines.push(r.acknowledgment);
   if (r.win) lines.push(r.win);
   return lines;
+}
+
+export function nextAction(flow) {
+  return (
+    flow.steps.find((step) => !step.done && step.action.trim())?.action ||
+    (flow.steps.some((step) => step.action.trim())
+      ? 'All planned actions are checked off. Add another action or finish when ready.'
+      : 'Choose your next action in the preparation below.')
+  );
 }

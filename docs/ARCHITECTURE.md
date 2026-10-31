@@ -552,7 +552,7 @@ provides an always-editable compact plan plus an optional four-part preparation
 page. Both operate on the same session `flow` object; entering the helper is never
 a prerequisite for writing an outcome, choosing tags or starting. Outcome tags use
 the shared category picker (including custom tags and disabled-default settings)
-and are independent of note tags. Steps, permission, warm-ups, breath intentions,
+and stay synchronized with the selected note. Steps, permission, warm-ups, breath intentions,
 attention preferences and parked distractions autosave to the existing Focus draft.
 Warm-up text can explicitly append to the selected note through the existing edit
 boundary; it is never added silently. Temporary exercise timers stop on leaving
@@ -573,3 +573,27 @@ continues separately after Focus closes, survives reload, and does not contribut
 to work duration or start another session. It cleans up on account changes and
 uses the existing browser event model without a new service or backend table.
 Reload older tabs before editing new report metadata.
+
+Focus plans use the shared `evidenceList` and action-list renderer in compact
+setup, optional preparation and active-session editing. The original `evidence`
+string remains the first answer; an optional validated `evidenceExtra` array holds
+up to 29 more. Existing multiline answers are not split or rewritten. Actions keep
+the existing steps structure; their optional `approachOpen` boolean retains an
+explicitly opened empty approach. Any existing strategy is always shown. Removing
+an approach explicitly clears only that action's strategy. Reports and opt-in
+shares preserve all evidence answers, and the prominent next action follows the
+first unfinished nonempty action rather than falling back to a completed one.
+
+Outcome categories now bind bidirectionally to the session's selected summary
+note. A dedicated tag-only application callback preserves all other note fields
+and rolls back failed writes; it never applies the change to other interval notes
+or an entire repeat cycle. Note/category refresh quietly updates the shared chip
+picker and any open note editor without replacing preparation text fields. With
+no note selected, categories remain in the draft and seed a newly created report
+note. Existing report snapshots remain historical.
+
+Optional preparation starts with four support-area choices and reveals only the
+selected sections. Optional validated `supportAreas` metadata preserves choices
+across reopening; hiding a section does not erase answers. Older drafts start
+with no areas selected. Make it meaningful inserts the starter Accomplishing this
+would show that… without rewriting an existing response.

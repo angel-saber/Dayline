@@ -1,6 +1,6 @@
-import { flowLines, recoveryLines } from './flow-model.js?v=b8179ad8cdac';
-import { node } from '../../shared/dom.js?v=b8179ad8cdac';
-import { durationLabel } from './model.js?v=b8179ad8cdac';
+import { flowLines, recoveryLines } from './flow-model.js?v=47449d930371';
+import { node } from '../../shared/dom.js?v=47449d930371';
+import { durationLabel } from './model.js?v=47449d930371';
 
 export function renderFocusReports(container, reports = []) {
   for (const report of reports) {

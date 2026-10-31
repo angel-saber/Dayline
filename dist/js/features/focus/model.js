@@ -1,13 +1,13 @@
-import { newFlow, validFlow, validRecovery } from './flow-model.js?v=b8179ad8cdac';
-import { noteTags } from '../notes/note-types.js?v=b8179ad8cdac';
+import { newFlow, validFlow, validRecovery } from './flow-model.js?v=47449d930371';
+import { noteTags } from '../notes/note-types.js?v=47449d930371';
 import {
   dayKey,
   parseDay,
   offsetDay,
   bucket,
   slots,
-} from '../../shared/schedule.js?v=b8179ad8cdac';
-import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=b8179ad8cdac';
+} from '../../shared/schedule.js?v=47449d930371';
+import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=47449d930371';
 export const MANTRAS = PERSONALITY_MANTRAS.zen;
 export const INSPIRATION = VOICE_QUOTES.zen;
 export function intervalAt(at, interval) {
@@ -250,6 +250,7 @@ export function attachFocusReport(days, session) {
   const entry = found?.entry || {
     id: `focus-${session.id}`,
     title: page.title || 'Focus session',
+    ...(session.flow ? { tags: [...session.flow.tags] } : {}),
     text: page.text || '',
     minute: page.minute,
     done: false,

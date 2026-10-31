@@ -7,6 +7,7 @@ import {
   newRecovery,
   validRecovery,
   suggestedBreak,
+  nextAction,
 } from '../../dist/js/features/focus/flow-model.js';
 import {
   newFocus,
@@ -33,12 +34,15 @@ const state = {
     ],
   },
 };
-test('preparation inherits independent tags, preserves old drafts, validates new metadata and saves it in reports without expanding work time', () => {
+test('preparation copies initial tags without aliasing, preserves old drafts, validates new metadata and saves it in reports without expanding work time', () => {
   const session = newFocus(state, at, 'session', 'owner');
   assert.deepEqual(session.flow.tags, ['project']);
   session.flow.tags.push('personal');
   assert.deepEqual(state.days['2026-10-31'][0].tags, ['project']);
   session.flow.outcome = 'Private outcome';
+  session.flow.evidenceExtra = ['Private second evidence'];
+  session.flow.steps[0].strategy = 'Existing approach';
+  session.flow.steps[0].approachOpen = true;
   session.flow.parked = 'Private distraction';
   session.flow.steps[0].action = 'First move';
   commitFocus(session, state, at + 120000);
@@ -56,6 +60,7 @@ test('preparation inherits independent tags, preserves old drafts, validates new
   assert.ok(!shareNoteText(note, '2026-10-31').includes('Private'));
   const shared = shareNoteText(note, '2026-10-31', { focusReports: true });
   assert.match(shared, /Private outcome/);
+  assert.match(shared, /Private second evidence/);
   assert.match(shared, /Private acknowledgment/);
   const old = structuredClone(session);
   delete old.flow;
@@ -67,6 +72,8 @@ test('preparation inherits independent tags, preserves old drafts, validates new
     { hideClock: 'yes' },
     { outcome: 'x'.repeat(10001) },
     { space: {} },
+    { evidenceExtra: [42] },
+    { steps: [{ action: '', strategy: '', done: false, approachOpen: 'yes' }] },
   ])
     assert.throws(() => validFlow({ ...newFlow(), ...patch }));
   assert.throws(() => validRecovery({ ...newRecovery(0), minutes: NaN }));
@@ -120,8 +127,23 @@ test('blank compact fields are immediately editable and helper suggestions, step
       mantra: 'My commitment',
     });
     document.body.append(compact);
-    for (const label of ['Outcome', 'Evidence of progress', 'First move', 'Approach'])
+    for (const label of ['Outcome', 'Evidence of progress', 'Next action'])
       assert.ok(compact.querySelector(`[aria-label="${label}"]`));
+    assert.equal(compact.querySelector('[aria-label="Approach"]'), null);
+    [...compact.querySelectorAll('button')]
+      .find((b) => b.textContent === '＋ Add evidence')
+      .click();
+    const secondEvidence = compact.querySelector('[aria-label="Evidence of progress 2"]');
+    secondEvidence.value = 'A second sign of progress';
+    secondEvidence.dispatchEvent(new window.Event('input'));
+    assert.deepEqual(flow.evidenceExtra, ['A second sign of progress']);
+    [...compact.querySelectorAll('button')]
+      .find((b) => b.textContent === '＋ Add an approach')
+      .click();
+    const approach = compact.querySelector('[aria-label="Approach"]');
+    approach.value = 'Use an example';
+    approach.dispatchEvent(new window.Event('input'));
+    assert.equal(flow.steps[0].strategy, 'Use an example');
     const outcome = compact.querySelector('[aria-label="Outcome"]');
     outcome.value = 'Write a draft';
     outcome.dispatchEvent(new window.Event('input'));
@@ -144,13 +166,23 @@ test('blank compact fields are immediately editable and helper suggestions, step
     const click = (text) =>
       [...helper.element.querySelectorAll('button')].find((b) => b.textContent === text).click();
     try {
+      assert.ok([...helper.element.querySelectorAll('.flow-part')].every((part) => part.hidden));
+      click('Challenge–Skill Balance');
+      assert.equal(
+        [...helper.element.querySelectorAll('.flow-part')].filter((part) => !part.hidden).length,
+        1,
+      );
+      click('Make it meaningful');
+      assert.match(flow.interest, /Accomplishing this would show that/);
       click('Make a rough version');
       click('Make a rough version');
       assert.equal(flow.access, 'Make a rough version before refining it.');
       click('Practice a skill');
       assert.match(flow.interest, /get better/);
-      click('＋ Add another step');
+      click('Clear Goal and Feedback');
+      click('＋ Add action');
       assert.equal(flow.steps.length, 2);
+      click('Step Out of Self-Judgment');
       click('Being judged');
       assert.match(flow.permission, /audience/);
       click('Breathe with intention');
@@ -167,6 +199,10 @@ test('blank compact fields are immediately editable and helper suggestions, step
       attempt.dispatchEvent(new window.Event('input'));
       click('Keep this in my note');
       assert.equal(warmupSaved, 'A rough opening');
+      click('Challenge–Skill Balance');
+      assert.equal(helper.element.querySelector('[data-support-area=balance]').hidden, true);
+      assert.match(flow.interest, /Accomplishing this would show that/);
+      assert.deepEqual(validFlow(structuredClone(flow)), flow);
       click('Back to Focus setup');
       assert.equal(back, 1);
       click('Begin Focus');
@@ -215,4 +251,26 @@ test('recovery timer uses elapsed wall time, survives reload, synchronizes, and 
       timer.destroy();
       reloaded?.destroy();
     }
+  }));
+
+test('next action advances through unfinished actions and existing approaches stay visible', () =>
+  harness((window, document) => {
+    const flow = newFlow();
+    flow.steps = [
+      { action: 'First task', strategy: 'Keep this method', done: true },
+      { action: 'Second task', strategy: '', done: false },
+    ];
+    assert.equal(nextAction(flow), 'Second task');
+    const view = compactFlow(flow, { onChange() {}, categories: {} });
+    document.body.append(view);
+    assert.equal(view.querySelector('[aria-label="Approach"]').value, 'Keep this method');
+    assert.equal(view.querySelector('[aria-label="Approach for action 2"]'), null);
+    [...view.querySelectorAll('button')].find((b) => b.textContent === 'Remove approach').click();
+    assert.equal(flow.steps[0].strategy, '');
+    assert.equal(view.querySelector('[aria-label="Approach"]'), null);
+    const done = view.querySelector('[aria-label="Action 2 complete"]');
+    done.checked = true;
+    done.dispatchEvent(new window.Event('change'));
+    assert.match(nextAction(flow), /All planned actions are checked off/);
+    assert.deepEqual(validFlow(structuredClone(flow)), flow);
   }));
