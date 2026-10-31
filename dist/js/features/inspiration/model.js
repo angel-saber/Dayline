@@ -1,4 +1,4 @@
-import { STORIES } from './catalog.js?v=221bd4f8c2b4';
+import { STORIES } from './catalog.js?v=47449d930371';
 export const FAVORITES_KEY = 'dayline.inspiration.favorites.v1';
 export const CHALLENGES = [...new Set(STORIES.map((story) => story.challenge))];
 export const FIELDS = [...new Set(STORIES.map((story) => story.field))].sort((a, b) =>

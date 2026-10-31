@@ -733,6 +733,54 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.ok(summaryOutcome);
     summaryOutcome.value = 'Move the project forward';
     summaryOutcome.dispatchEvent(new window.Event('input'));
+    const selectedFocusId = JSON.parse(local.getItem('dayline.focus.v1')).pages[0].noteId;
+    const beforeCategory = structuredClone(
+      JSON.parse(local.getItem('dayline.v1')).days[today].find((n) => n.id === selectedFocusId),
+    );
+    document.querySelector('.flow-compact [data-note-type="personal"]').click();
+    assert.deepEqual(
+      JSON.parse(local.getItem('dayline.v1')).days[today].find((n) => n.id === selectedFocusId)
+        .tags,
+      ['personal'],
+    );
+    const originalTagSave = local.setItem;
+    let failTagsOnce = true;
+    local.setItem = (key, value) => {
+      if (key === 'dayline.v1' && failTagsOnce) {
+        failTagsOnce = false;
+        throw Error('Storage full');
+      }
+      return originalTagSave(key, value);
+    };
+    document.querySelector('.flow-compact [data-note-type="admin"]').click();
+    local.setItem = originalTagSave;
+    assert.equal(
+      document.querySelector('.flow-compact [data-note-type="admin"]').getAttribute('aria-pressed'),
+      'false',
+    );
+    assert.deepEqual(
+      JSON.parse(local.getItem('dayline.v1')).days[today].find((n) => n.id === selectedFocusId)
+        .tags,
+      ['personal'],
+    );
+    const changedOutside = JSON.parse(local.getItem('dayline.v1'));
+    const outsideNote = changedOutside.days[today].find((n) => n.id === selectedFocusId);
+    outsideNote.tags = ['event'];
+    outsideNote.noteType = 'event';
+    local.setItem('dayline.v1', JSON.stringify(changedOutside));
+    const categorySync = new window.Event('storage');
+    Object.defineProperty(categorySync, 'key', { value: 'dayline.v1' });
+    window.dispatchEvent(categorySync);
+    assert.equal(
+      document.querySelector('.flow-compact [data-note-type="event"]').getAttribute('aria-pressed'),
+      'true',
+    );
+    assert.equal(document.querySelector('.flow-compact [aria-label="Outcome"]'), summaryOutcome);
+    assert.equal(
+      JSON.parse(local.getItem('dayline.v1')).days[today].find((n) => n.id === selectedFocusId)
+        .text,
+      beforeCategory.text,
+    );
     const firstMove = document.querySelector('.flow-compact [aria-label="Next action"]');
     firstMove.value = 'Write a rough paragraph';
     firstMove.dispatchEvent(new window.Event('input'));
@@ -743,6 +791,10 @@ test('the assembled planner starts, switches views/personalities, edits settings
       document.querySelector('.flow-preparation [aria-label="Outcome"]').value,
       'Move the project forward',
     );
+    assert.ok([...document.querySelectorAll('.flow-part')].every((part) => part.hidden));
+    [...document.querySelectorAll('.flow-support-choices button')]
+      .find((b) => b.textContent === 'Challenge–Skill Balance')
+      .click();
     [...document.querySelectorAll('.flow-preparation button')]
       .find((b) => b.textContent === 'Make a rough version')
       .click();

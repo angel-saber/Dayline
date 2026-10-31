@@ -1,4 +1,4 @@
-import { validTags, categoryLabel } from '../notes/note-types.js?v=221bd4f8c2b4';
+import { validTags, categoryLabel } from '../notes/note-types.js?v=47449d930371';
 export const BREATHS = [
   ['possibility', 'perfection'],
   ['courage', 'judgment'],
@@ -7,7 +7,7 @@ export const BREATHS = [
 ];
 export const INTEREST = [
   ['Find the interesting part', 'The part I’m curious about is…'],
-  ['Give it meaning', 'Doing this makes room for…'],
+  ['Make it meaningful', 'Accomplishing this would show that…'],
   ['Practice a skill', 'I’ll use this task to get better at…'],
   ['Try a different method', 'This time, I’ll try…'],
   ['Make it a game', 'My small challenge is to…'],
@@ -87,6 +87,14 @@ export function validFlow(value) {
     )
       throw Error('Use up to 30 evidence answers of 10,000 characters each.');
     result.evidenceExtra = [...value.evidenceExtra];
+  }
+  if (value.supportAreas !== undefined) {
+    if (
+      !Array.isArray(value.supportAreas) ||
+      value.supportAreas.some((key) => !['balance', 'goals', 'judgment', 'attention'].includes(key))
+    )
+      throw Error('Invalid preparation support areas.');
+    result.supportAreas = [...new Set(value.supportAreas)];
   }
   result.tags = validTags(value.tags);
   if (

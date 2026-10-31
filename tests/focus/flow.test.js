@@ -34,7 +34,7 @@ const state = {
     ],
   },
 };
-test('preparation inherits independent tags, preserves old drafts, validates new metadata and saves it in reports without expanding work time', () => {
+test('preparation copies initial tags without aliasing, preserves old drafts, validates new metadata and saves it in reports without expanding work time', () => {
   const session = newFocus(state, at, 'session', 'owner');
   assert.deepEqual(session.flow.tags, ['project']);
   session.flow.tags.push('personal');
@@ -166,13 +166,23 @@ test('blank compact fields are immediately editable and helper suggestions, step
     const click = (text) =>
       [...helper.element.querySelectorAll('button')].find((b) => b.textContent === text).click();
     try {
+      assert.ok([...helper.element.querySelectorAll('.flow-part')].every((part) => part.hidden));
+      click('Challenge–Skill Balance');
+      assert.equal(
+        [...helper.element.querySelectorAll('.flow-part')].filter((part) => !part.hidden).length,
+        1,
+      );
+      click('Make it meaningful');
+      assert.match(flow.interest, /Accomplishing this would show that/);
       click('Make a rough version');
       click('Make a rough version');
       assert.equal(flow.access, 'Make a rough version before refining it.');
       click('Practice a skill');
       assert.match(flow.interest, /get better/);
+      click('Clear Goal and Feedback');
       click('＋ Add action');
       assert.equal(flow.steps.length, 2);
+      click('Step Out of Self-Judgment');
       click('Being judged');
       assert.match(flow.permission, /audience/);
       click('Breathe with intention');
@@ -189,6 +199,10 @@ test('blank compact fields are immediately editable and helper suggestions, step
       attempt.dispatchEvent(new window.Event('input'));
       click('Keep this in my note');
       assert.equal(warmupSaved, 'A rough opening');
+      click('Challenge–Skill Balance');
+      assert.equal(helper.element.querySelector('[data-support-area=balance]').hidden, true);
+      assert.match(flow.interest, /Accomplishing this would show that/);
+      assert.deepEqual(validFlow(structuredClone(flow)), flow);
       click('Back to Focus setup');
       assert.equal(back, 1);
       click('Begin Focus');

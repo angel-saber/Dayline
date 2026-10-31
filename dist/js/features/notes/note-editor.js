@@ -3,29 +3,29 @@ import {
   writeNoteClipboard,
   readNoteClipboard,
   pasteNoteFragment,
-} from './clipboard.js?v=221bd4f8c2b4';
-import { node as element } from '../../shared/dom.js?v=221bd4f8c2b4';
+} from './clipboard.js?v=47449d930371';
+import { node as element } from '../../shared/dom.js?v=47449d930371';
 import {
   applyIndent,
   editIndents,
   indentLevel,
   MAX_INDENT,
-} from './formatting/indents.js?v=221bd4f8c2b4';
+} from './formatting/indents.js?v=47449d930371';
 import {
   prepareUploadFiles,
   reviewCompression,
-} from '../attachments/file-compression.js?v=221bd4f8c2b4';
-import { addFiles, attachmentList } from '../attachments/attachments.js?v=221bd4f8c2b4';
-import { typeChips, noteTags } from './note-types.js?v=221bd4f8c2b4';
-import { safeLink } from './formatting/links.js?v=221bd4f8c2b4';
-import { toggleBullets, editBullets, selectedLines } from './formatting/bullets.js?v=221bd4f8c2b4';
+} from '../attachments/file-compression.js?v=47449d930371';
+import { addFiles, attachmentList } from '../attachments/attachments.js?v=47449d930371';
+import { typeChips, noteTags } from './note-types.js?v=47449d930371';
+import { safeLink } from './formatting/links.js?v=47449d930371';
+import { toggleBullets, editBullets, selectedLines } from './formatting/bullets.js?v=47449d930371';
 import {
   HIGHLIGHTS,
   renderFormatted,
   editFormat,
   setLink,
-} from './formatting/format.js?v=221bd4f8c2b4';
-import { lineRange, noteTasks, editTasks } from './formatting/tasks.js?v=221bd4f8c2b4';
+} from './formatting/format.js?v=47449d930371';
+import { lineRange, noteTasks, editTasks } from './formatting/tasks.js?v=47449d930371';
 import {
   recognizeBullets,
   replaceText,
@@ -34,7 +34,7 @@ import {
   applyCheckbox,
   checkTask,
   selectionStyle,
-} from './editor-state.js?v=221bd4f8c2b4';
+} from './editor-state.js?v=47449d930371';
 
 const makeButton = (text, label, action) => {
   const el = element('button', '', text);
@@ -818,6 +818,11 @@ export function createNoteEditor({
   render(false);
   return {
     element: wrapper,
+    setTags(tags) {
+      state.tags = [...tags];
+      state.noteType = tags[0] || '';
+      noteType.setValue(tags);
+    },
     focus: restoreSelection,
     attachFiles: uploadFiles,
     flush,
