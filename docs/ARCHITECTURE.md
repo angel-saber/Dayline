@@ -180,8 +180,9 @@ Preview effects button that changes no notes or Focus session data.
 dispatch and Web Audio engine. `setupFocusAudio()` creates exactly one player per
 app tab, launched from the planner's floating Launch Focus Audio button or a
 shortcut inside a session. Opening the dialog does not autoplay or create a Focus
-session. Minimizing, navigating planner views and ending a session leave playback
-alone. Pause belongs to the player; unloading the page stops it. Browser lifecycle
+session. Minimizing and navigating planner views leave playback alone. Finishing
+a Focus Session fades the player into recovery without changing its preferences.
+Pause also belongs to the player; unloading the page stops it. Browser lifecycle
 restrictions still apply to background audio.
 
 Audio preferences use `dayline.focus-audio.v1` on this device, separately from
@@ -543,3 +544,32 @@ Inspiration Library, without duplicating dialogs or save paths. Focus may remain
 open behind the selected activity; launch checks still block additional unrelated
 modal windows. Library pinning uses the same browser-local favorites key and dock
 as guided activities; role-model favorites inside the library remain independent.
+
+### Optional flow preparation and recovery
+
+The original Focus start view keeps its advice and mantra. `focus/flow-view.js`
+provides an always-editable compact plan plus an optional four-part preparation
+page. Both operate on the same session `flow` object; entering the helper is never
+a prerequisite for writing an outcome, choosing tags or starting. Outcome tags use
+the shared category picker (including custom tags and disabled-default settings)
+and are independent of note tags. Steps, permission, warm-ups, breath intentions,
+attention preferences and parked distractions autosave to the existing Focus draft.
+Warm-up text can explicitly append to the selected note through the existing edit
+boundary; it is never added silently. Temporary exercise timers stop on leaving
+the preparation view. Preparation does not count as session work time.
+
+`focus/flow-model.js` validates optional `flow` and `recovery` metadata in drafts
+and saved reports; older drafts and reports without them remain valid. Parked
+items appear as a Before starting log and enter the combined report once. Work
+ends at Finish, before reflection, break selection or celebration. Break defaults
+are 3/5/10/15 minutes at 25/50/90 minute work thresholds and are explicitly editable
+product defaults. Celebration is opt-in and runs only after report saving succeeds.
+Preparation/recovery data appears in expandable reports and in shares only when
+Focus reports are selected, preserving the default privacy choice.
+
+`focus/break-timer.js` owns an optional browser-local wall-clock deadline under
+`dayline.focus-break.v1`. It starts only after a successful session report save,
+continues separately after Focus closes, survives reload, and does not contribute
+to work duration or start another session. It cleans up on account changes and
+uses the existing browser event model without a new service or backend table.
+Reload older tabs before editing new report metadata.

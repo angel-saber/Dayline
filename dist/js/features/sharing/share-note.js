@@ -1,21 +1,22 @@
-import { richBody, escapeHtml, copyFormatted } from './share-format.js?v=e40ab8c1395f';
-import { node } from '../../shared/dom.js?v=e40ab8c1395f';
-import { weekStart } from '../monthly/weekly-model.js?v=e40ab8c1395f';
-import { offsetDay } from '../../shared/schedule.js?v=e40ab8c1395f';
-import { indentLevel } from '../notes/formatting/indents.js?v=e40ab8c1395f';
+import { flowLines, recoveryLines } from '../focus/flow-model.js?v=b8179ad8cdac';
+import { richBody, escapeHtml, copyFormatted } from './share-format.js?v=b8179ad8cdac';
+import { node } from '../../shared/dom.js?v=b8179ad8cdac';
+import { weekStart } from '../monthly/weekly-model.js?v=b8179ad8cdac';
+import { offsetDay } from '../../shared/schedule.js?v=b8179ad8cdac';
+import { indentLevel } from '../notes/formatting/indents.js?v=b8179ad8cdac';
 import {
   shareAttachments,
   prepareShareFiles,
   supportsFileShare,
-} from './share-files.js?v=e40ab8c1395f';
-import { attachmentList } from '../attachments/attachments.js?v=e40ab8c1395f';
-import { parseDay, timeLabel } from '../../shared/schedule.js?v=e40ab8c1395f';
-import { noteTasks } from '../notes/formatting/tasks.js?v=e40ab8c1395f';
-import { NOTE_TYPES, categoryLabel, noteTags } from '../notes/note-types.js?v=e40ab8c1395f';
-import { safeLink } from '../notes/formatting/links.js?v=e40ab8c1395f';
-import { durationLabel } from '../focus/model.js?v=e40ab8c1395f';
-import { dimensions, compassTitle, compassDates } from '../activities/model.js?v=e40ab8c1395f';
-import { activityCatalog, activityFields } from '../activities/catalog.js?v=e40ab8c1395f';
+} from './share-files.js?v=b8179ad8cdac';
+import { attachmentList } from '../attachments/attachments.js?v=b8179ad8cdac';
+import { parseDay, timeLabel } from '../../shared/schedule.js?v=b8179ad8cdac';
+import { noteTasks } from '../notes/formatting/tasks.js?v=b8179ad8cdac';
+import { NOTE_TYPES, categoryLabel, noteTags } from '../notes/note-types.js?v=b8179ad8cdac';
+import { safeLink } from '../notes/formatting/links.js?v=b8179ad8cdac';
+import { durationLabel } from '../focus/model.js?v=b8179ad8cdac';
+import { dimensions, compassTitle, compassDates } from '../activities/model.js?v=b8179ad8cdac';
+import { activityCatalog, activityFields } from '../activities/catalog.js?v=b8179ad8cdac';
 export const SHARE_DEFAULTS = {
   dateTime: true,
   type: true,
@@ -93,6 +94,10 @@ export function shareNoteText(entry, date, options = {}, clock = '12', html = fa
         ['next', 'Where I will pick up next'],
       ])
         if (report.reflection[key]) parts.push(`${label}: ${report.reflection[key]}`);
+      const preparation = flowLines(report.flow),
+        recovery = recoveryLines(report.recovery);
+      if (preparation.length) parts.push('Flow preparation:', ...preparation);
+      if (recovery.length) parts.push('Recovery & acknowledgment:', ...recovery);
     }
   if (settings.guidedReports)
     for (const report of entry.guidedActivities || []) {

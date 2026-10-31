@@ -1,11 +1,13 @@
+import { newFlow, validFlow, validRecovery } from './flow-model.js?v=b8179ad8cdac';
+import { noteTags } from '../notes/note-types.js?v=b8179ad8cdac';
 import {
   dayKey,
   parseDay,
   offsetDay,
   bucket,
   slots,
-} from '../../shared/schedule.js?v=e40ab8c1395f';
-import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=e40ab8c1395f';
+} from '../../shared/schedule.js?v=b8179ad8cdac';
+import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=b8179ad8cdac';
 export const MANTRAS = PERSONALITY_MANTRAS.zen;
 export const INSPIRATION = VOICE_QUOTES.zen;
 export function intervalAt(at, interval) {
@@ -55,6 +57,13 @@ export function newFocus(state, now, id, owner) {
     id,
     owner,
     phase: 'prepare',
+    flow: newFlow(
+      noteTags(
+        focusIntervalNotes(state, intervalAt(now, state.settings.interval)).find(
+          (n) => n.id === focusPage(state, now).noteId,
+        ) || {},
+      ),
+    ),
     launchedAt: now,
     startedAt: null,
     endedAt: null,
@@ -163,8 +172,21 @@ export function focusReport(session) {
     endedAt,
     durationMs: Math.max(0, endedAt - session.startedAt),
     mantra: session.mantra,
-    logs: session.pages.map((p) => ({ date: p.date, minute: p.minute, text: p.log })),
+    logs: [
+      ...(session.flow?.parked.trim()
+        ? [
+            {
+              date: session.pages[0].date,
+              minute: session.pages[0].minute,
+              text: 'Before starting:\n' + session.flow.parked,
+            },
+          ]
+        : []),
+      ...session.pages.map((p) => ({ date: p.date, minute: p.minute, text: p.log })),
+    ],
     reflection: { ...session.reflection },
+    ...(session.flow ? { flow: validFlow(session.flow) } : {}),
+    ...(session.recovery ? { recovery: validRecovery(session.recovery) } : {}),
   };
 }
 const text = (value) => typeof value === 'string';
@@ -208,6 +230,8 @@ export function validFocusReports(value) {
       durationMs: r.durationMs,
       mantra: r.mantra,
       logs,
+      ...(r.flow !== undefined ? { flow: validFlow(r.flow) } : {}),
+      ...(r.recovery !== undefined ? { recovery: validRecovery(r.recovery) } : {}),
       reflection: {
         progress: r.reflection.progress,
         learned: r.reflection.learned,
@@ -283,6 +307,8 @@ export function validFocusDraft(s) {
     )
       throw new Error('Invalid focus interval page.');
   }
+  if (s.flow !== undefined) s.flow = validFlow(s.flow);
+  if (s.recovery !== undefined) s.recovery = validRecovery(s.recovery);
   return s;
 }
 export function durationLabel(ms) {

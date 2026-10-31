@@ -728,6 +728,34 @@ test('the assembled planner starts, switches views/personalities, edits settings
       /Choose how you will move through this/,
     );
     assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
+    // Optional preparation and the original start page share one editable plan.
+    const summaryOutcome = document.querySelector('.flow-compact [aria-label="Outcome"]');
+    assert.ok(summaryOutcome);
+    summaryOutcome.value = 'Move the project forward';
+    summaryOutcome.dispatchEvent(new window.Event('input'));
+    const firstMove = document.querySelector('.flow-compact [aria-label="First move"]');
+    firstMove.value = 'Write a rough paragraph';
+    firstMove.dispatchEvent(new window.Event('input'));
+    [...document.querySelectorAll('.focus-window button')]
+      .find((b) => b.textContent === 'Need more help getting started?')
+      .click();
+    assert.equal(
+      document.querySelector('.flow-preparation [aria-label="Outcome"]').value,
+      'Move the project forward',
+    );
+    [...document.querySelectorAll('.flow-preparation button')]
+      .find((b) => b.textContent === 'Make a rough version')
+      .click();
+    const parked = document.querySelector('[aria-label="Park distractions before starting"]');
+    parked.value = 'Remember to reply later';
+    parked.dispatchEvent(new window.Event('input'));
+    [...document.querySelectorAll('.flow-preparation button')]
+      .find((b) => b.textContent === 'Back to Focus setup')
+      .click();
+    assert.equal(
+      document.querySelector('.flow-compact [aria-label="First move"]').value,
+      'Write a rough paragraph',
+    );
     const gamer = document.querySelector('input[name="layout"][value="gamer"]');
     gamer.checked = true;
     gamer.dispatchEvent(new window.Event('change'));
@@ -817,26 +845,50 @@ test('the assembled planner starts, switches views/personalities, edits settings
       .find((button) => button.textContent === 'Minimize audio')
       .click();
     document.querySelector('.focus-finish').click();
+    const celebrate = document.querySelector(
+      '[aria-label="Play a celebration effect when I save"]',
+    );
+    celebrate.checked = true;
+    celebrate.dispatchEvent(new window.Event('change'));
+    const breakChoice = document.querySelector(
+      '[aria-label="Start an independent break timer after saving"]',
+    );
+    breakChoice.checked = true;
+    breakChoice.dispatchEvent(new window.Event('change'));
+    await new Promise((resolve) => setTimeout(resolve, 850));
     const skip = [...document.querySelectorAll('.focus-window button')].find(
       (button) => button.textContent === 'Skip reflection & close',
     );
     assert.ok(skip);
+    const completedDraft = JSON.parse(local.getItem('dayline.focus.v1'));
+    const setItemBeforeReport = local.setItem;
+    let failReportOnce = true;
+    local.setItem = (key, value) => {
+      if (key === 'dayline.v1' && failReportOnce) {
+        failReportOnce = false;
+        throw Error('Storage full');
+      }
+      return setItemBeforeReport(key, value);
+    };
+    skip.click();
+    assert.equal(document.querySelector('.focus-window').open, true);
+    assert.equal(document.querySelector('.focus-break-timer').hidden, true);
+    assert.equal(JSON.parse(local.getItem('dayline.focus.v1')).endedAt, completedDraft.endedAt);
+    local.setItem = setItemBeforeReport;
     skip.click();
     assert.equal(document.querySelector('.focus-window').open, false);
     assert.equal(document.querySelector('.personality-burst')?.dataset.kind, 'focus-finish');
     assert.match(document.querySelector('.personality-burst').textContent, /Progress saved!/);
-    assert.equal(
-      document.querySelector('#launch-focus-audio').textContent,
-      'Focus Audio · Playing',
-    );
-    assert.equal(local.getItem('dayline.focus-audio.v1'), independentAudio);
-    document.querySelector('#launch-focus-audio').click();
-    [...document.querySelectorAll('.focus-audio-window button')]
-      .find((button) => button.textContent === 'Pause audio')
-      .click();
-    await new Promise((resolve) => setTimeout(resolve, 850));
     assert.equal(document.querySelector('#launch-focus-audio').textContent, 'Launch Focus Audio');
-
+    assert.equal(document.querySelector('.focus-break-timer').hidden, false);
+    const savedSession = Object.values(JSON.parse(local.getItem('dayline.v1')).days)
+      .flat()
+      .flatMap((note) => note.focusReports || [])
+      .at(-1);
+    assert.equal(savedSession.flow.outcome, 'Move the project forward');
+    assert.match(savedSession.logs[0].text, /Remember to reply later/);
+    assert.ok(savedSession.recovery.startTimer);
+    assert.equal(local.getItem('dayline.focus-audio.v1'), independentAudio);
     document.querySelector('#yearly-tab').click();
     assert.equal(document.querySelector('#yearly-view').hidden, false);
     assert.equal(document.querySelector('#monthly-view').hidden, true);

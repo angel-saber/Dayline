@@ -1,8 +1,8 @@
-import { node } from '../../shared/dom.js?v=e40ab8c1395f';
-import { PERSONALITIES, personality } from '../../personalities/index.js?v=e40ab8c1395f';
-import { musicProfile } from './music.js?v=e40ab8c1395f';
-import { FocusAudio } from './audio.js?v=e40ab8c1395f';
-import { restoreAudioSettings } from './settings.js?v=e40ab8c1395f';
+import { node } from '../../shared/dom.js?v=b8179ad8cdac';
+import { PERSONALITIES, personality } from '../../personalities/index.js?v=b8179ad8cdac';
+import { musicProfile } from './music.js?v=b8179ad8cdac';
+import { FocusAudio } from './audio.js?v=b8179ad8cdac';
+import { restoreAudioSettings } from './settings.js?v=b8179ad8cdac';
 const defaults = {
   binaural: false,
   ambient: true,
@@ -323,6 +323,11 @@ export function setupFocusAudio({ audio = new FocusAudio(), storage = localStora
   window.addEventListener('pagehide', () => audio.stop());
   buttons();
   return {
+    async fadeForRecovery() {
+      if (audio.playing) await audio.fadeOut();
+      buttons();
+      if (dialog.open) render();
+    },
     open,
     minimize,
     get playing() {
