@@ -1,4 +1,4 @@
-import { safeLink } from '../notes/formatting/links.js?v=ebeed1edf97a';
+import { safeLink } from '../notes/formatting/links.js?v=268df83d9262';
 export const SHORTCUTS_KEY = 'dayline.shortcuts.v1';
 export const DEFAULT_SHORTCUTS = Object.freeze([
   { id: 'google-meet', name: 'Open Google Meet', url: 'https://meet.google.com/' },

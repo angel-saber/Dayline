@@ -1,14 +1,6 @@
-import { node } from '../../shared/dom.js?v=ebeed1edf97a';
-import { typeChips } from '../notes/note-types.js?v=ebeed1edf97a';
-import {
-  ACCESS,
-  INTEREST,
-  PERMISSIONS,
-  BREATHS,
-  RECOVERY_CHOICES,
-  ACKNOWLEDGMENTS,
-} from './flow-model.js?v=ebeed1edf97a';
-import { breathingFrame } from '../activities/model.js?v=ebeed1edf97a';
+import { node } from '../../shared/dom.js?v=268df83d9262';
+import { ACCESS, INTEREST, PERMISSIONS, BREATHS } from './flow-model.js?v=268df83d9262';
+import { breathingFrame } from '../activities/model.js?v=268df83d9262';
 const button = (text, action) => {
   const b = node('button', 'secondary', text);
   b.type = 'button';
@@ -52,193 +44,6 @@ function suggestions(root, choices, input, change) {
     );
   root.append(buttons);
 }
-const categoryPickers = new WeakMap();
-function outcomeCategories(flow, onChange, categories, onTagsChange) {
-  const host = node('div', 'flow-outcome-tags');
-  function render() {
-    const picker = typeChips(
-      flow.tags,
-      'Outcome categories',
-      (tags) => {
-        const previous = [...flow.tags];
-        flow.tags = tags;
-        if (onTagsChange?.(tags) === false) {
-          flow.tags = previous;
-          render();
-        }
-        onChange();
-      },
-      categories,
-    );
-    host.replaceChildren(picker.element);
-    categoryPickers.set(host, () => picker.setValue(flow.tags));
-  }
-  render();
-  return host;
-}
-export function refreshOutcomeCategories(root) {
-  root.querySelectorAll('.flow-outcome-tags').forEach((host) => categoryPickers.get(host)?.());
-}
-export function compactFlow(flow, { onChange, categories, onTagsChange }) {
-  const root = node('section', 'flow-compact');
-  root.append(node('h2', '', 'Your focus plan'));
-  root.append(
-    node(
-      'p',
-      'field-hint',
-      'Optional: edit these directly, or use the extra preparation for help. When a note is selected, its categories and this plan’s categories stay in sync.',
-    ),
-  );
-  field(
-    root,
-    'Outcome',
-    flow.outcome,
-    (v) => {
-      flow.outcome = v;
-      onChange();
-    },
-    { rows: 1, placeholder: 'What would you like to move forward?' },
-  );
-  root.append(outcomeCategories(flow, onChange, categories, onTagsChange));
-  root.append(planRows(flow, onChange));
-  return root;
-}
-export function planRows(flow, onChange, withSuggestions = false) {
-  const root = node('section', 'flow-plan-rows');
-  let focusedEvidence = 0;
-  const evidence = () => [flow.evidence, ...(flow.evidenceExtra || [])];
-  const count = () => Math.max(evidence().length, flow.steps.length);
-  function ensureStep(index) {
-    while (flow.steps.length <= index) flow.steps.push({ action: '', strategy: '', done: false });
-    return flow.steps[index];
-  }
-  function setEvidence(index, value) {
-    if (!index) flow.evidence = value;
-    else {
-      flow.evidenceExtra ||= [];
-      while (flow.evidenceExtra.length < index) flow.evidenceExtra.push('');
-      flow.evidenceExtra[index - 1] = value;
-    }
-  }
-  function render() {
-    root.replaceChildren();
-    const total = count();
-    for (let index = 0; index < total; index++) {
-      const row = node('div', 'flow-plan-row'),
-        step = flow.steps[index],
-        approach = node('div', 'flow-row-approach');
-      const input = field(
-        row,
-        index ? `Evidence of progress ${index + 1}` : 'Evidence of progress',
-        evidence()[index] || '',
-        (value) => {
-          setEvidence(index, value);
-          onChange();
-        },
-        { rows: 1, placeholder: 'What will show progress?' },
-      );
-      input.classList.add('flow-row-evidence');
-      input.addEventListener('focus', () => (focusedEvidence = index));
-      field(
-        row,
-        index ? `Next action ${index + 1}` : 'Next action',
-        step?.action || '',
-        (value) => {
-          ensureStep(index).action = value;
-          onChange();
-        },
-        { rows: 1, max: 2000 },
-      );
-      if (step?.strategy || step?.approachOpen) {
-        field(
-          approach,
-          index ? `Approach for action ${index + 1}` : 'Approach',
-          step.strategy,
-          (value) => {
-            ensureStep(index).strategy = value;
-            onChange();
-          },
-          { rows: 1, max: 2000 },
-        );
-        approach.append(
-          button('Remove approach', () => {
-            const target = ensureStep(index);
-            target.strategy = '';
-            target.approachOpen = false;
-            onChange();
-            render();
-          }),
-        );
-      } else {
-        const add = button('＋ Add an approach', () => {
-          ensureStep(index).approachOpen = true;
-          onChange();
-          render();
-          root
-            .querySelectorAll('.flow-plan-row')
-            [index]?.querySelector('.flow-row-approach textarea')
-            ?.focus();
-        });
-        add.setAttribute('aria-label', `Add an approach to action ${index + 1}`);
-        approach.append(add);
-      }
-      row.append(approach);
-      if (total > 1) {
-        const remove = button('Remove row', () => {
-          const answers = evidence();
-          answers.splice(index, 1);
-          flow.evidence = answers[0] || '';
-          flow.evidenceExtra = answers.slice(1);
-          flow.steps.splice(index, 1);
-          if (!flow.steps.length) flow.steps.push({ action: '', strategy: '', done: false });
-          focusedEvidence = 0;
-          onChange();
-          render();
-        });
-        remove.classList.add('flow-remove-row');
-        row.append(remove);
-      }
-      root.append(row);
-    }
-    const add = button('＋ Add row', () => {
-      const index = count();
-      if (index >= 30) return;
-      ensureStep(index);
-      setEvidence(index, '');
-      onChange();
-      render();
-      root.querySelectorAll('.flow-row-evidence')[index]?.focus();
-    });
-    add.disabled = total >= 30;
-    root.append(add);
-    if (withSuggestions) {
-      const choices = node('div', 'flow-options');
-      for (const value of [
-        'Rough draft',
-        'Working test',
-        'Decision',
-        'Practice attempt',
-        'Completed section',
-        'Clearer question',
-      ])
-        choices.append(
-          button(value, () => {
-            const input =
-              root.querySelectorAll('.flow-row-evidence')[focusedEvidence] ||
-              root.querySelector('.flow-row-evidence');
-            if (!input.value.split('\n').includes(value))
-              input.value = [input.value, value].filter(Boolean).join('\n');
-            setEvidence(focusedEvidence, input.value);
-            onChange();
-            input.focus();
-          }),
-        );
-      root.append(choices);
-    }
-  }
-  render();
-  return root;
-}
 export function createFlowPreparation({
   flow,
   categories,
@@ -247,7 +52,6 @@ export function createFlowPreparation({
   onBegin,
   onAudio,
   onSaveWarmup,
-  onTagsChange,
   returnToSession = false,
 }) {
   const root = node('section', 'flow-preparation focus-prep-fields');
@@ -365,16 +169,14 @@ export function createFlowPreparation({
   });
   syncBalance();
   const goal = section('Clear Goal and Feedback · Choose a target you can act on', 'goals');
-  field(goal, 'Outcome', flow.outcome, (v) => {
-    flow.outcome = v;
-    onChange();
-  });
-  goal.append(outcomeCategories(flow, onChange, categories, onTagsChange));
-  goal.append(planRows(flow, onChange, true));
-  field(goal, 'If I get stuck…', flow.ifStuck, (v) => {
-    flow.ifStuck = v;
-    onChange();
-  });
+  goal.append(
+    node(
+      'p',
+      '',
+      'Let your note do the planning. Name one useful outcome, one small next action, and a simple sign of progress. A rough attempt, a test, a decision, or a clearer question can be enough.',
+    ),
+    button('Back to my note', onBack),
+  );
   const permission = section('Step Out of Self-Judgment · Let yourself attempt it', 'judgment');
   const fear = field(permission, 'What are you afraid might happen?', flow.fear, (v) => {
     flow.fear = v;
@@ -633,84 +435,41 @@ export function createFlowPreparation({
 export function recoverySection(recovery, onChange) {
   const root = node('section', 'focus-recovery');
   root.append(
-    node('h2', '', 'Recover and celebrate'),
-    node('p', '', 'You showed up. Let your effort settle.'),
-  );
-  const label = node('label', 'flow-field', 'Break duration (minutes)'),
-    minutes = node('input');
-  minutes.type = 'number';
-  minutes.min = '1';
-  minutes.max = '120';
-  minutes.value = String(recovery.minutes);
-  minutes.setAttribute('aria-label', 'Break duration (minutes)');
-  minutes.oninput = () => {
-    const n = Number(minutes.value);
-    if (Number.isInteger(n) && n >= 1 && n <= 120) {
-      recovery.minutes = n;
-      minutes.setCustomValidity('');
-      onChange();
-    } else minutes.setCustomValidity('Choose 1–120 whole minutes.');
-  };
-  label.append(minutes);
-  root.append(
-    label,
+    node('h2', '', 'Recovery'),
+    node('p', 'focus-break-suggestion', `Suggested break: about ${recovery.minutes} minutes.`),
     node(
       'p',
       'field-hint',
-      'Suggested from your session length. Change it to suit you; these are optional starting points, not required ratios.',
+      'A gentle starting point based on your session. Rest for as long as you need.',
+    ),
+    node('h3', '', 'What would help you recover now?'),
+    node(
+      'p',
+      '',
+      'Step away from the screen, get some water or food, move comfortably, or rest quietly. Choose what would help you feel replenished; there is nothing to complete here.',
+    ),
+    node('h3', '', 'Recognize what happened'),
+    node(
+      'p',
+      '',
+      'Notice what you tried, learned, clarified, or moved forward—even if things did not go according to plan. Changing direction, finding a limit, or showing up can count. Give yourself credit for the effort, and leave yourself a kind place to begin again.',
     ),
   );
-  const options = node('div', 'flow-options');
-  for (const value of RECOVERY_CHOICES) {
-    const b = button(value, () => {
-      recovery.activity = recovery.activity === value ? '' : value;
-      onChange();
-      for (const item of options.children)
-        item.setAttribute('aria-pressed', String(item.textContent === recovery.activity));
-      custom.parentElement.hidden = recovery.activity !== 'Choose my own';
-    });
-    b.setAttribute('aria-pressed', String(recovery.activity === value));
-    options.append(b);
-  }
-  root.append(node('h3', '', 'What would help you recover now?'), options);
-  const custom = field(
+  check(root, 'Play a celebration effect when I save', recovery.celebrate, (value) => {
+    recovery.celebrate = value;
+    onChange();
+  });
+  check(
     root,
-    'My recovery choice',
-    recovery.custom,
-    (v) => {
-      recovery.custom = v;
+    `Start the suggested ${recovery.minutes}-minute break timer after saving`,
+    recovery.startTimer,
+    (value) => {
+      recovery.startTimer = value;
       onChange();
     },
-    { rows: 1, max: 2000 },
   );
-  custom.parentElement.hidden = recovery.activity !== 'Choose my own';
-  const wins = node('div', 'flow-options');
-  for (const value of ACKNOWLEDGMENTS) {
-    const b = button(value, () => {
-      recovery.acknowledgment = recovery.acknowledgment === value ? '' : value;
-      onChange();
-      for (const item of wins.children)
-        item.setAttribute('aria-pressed', String(item.textContent === recovery.acknowledgment));
-    });
-    b.setAttribute('aria-pressed', String(recovery.acknowledgment === value));
-    wins.append(b);
-  }
-  root.append(node('h3', '', 'Recognize what happened (optional)'), wins);
-  field(root, 'A win, lesson, or effort to acknowledge', recovery.win, (v) => {
-    recovery.win = v;
-    onChange();
-  });
-  check(root, 'Play a celebration effect when I save', recovery.celebrate, (v) => {
-    recovery.celebrate = v;
-    onChange();
-  });
-  check(root, 'Start an independent break timer after saving', recovery.startTimer, (v) => {
-    recovery.startTimer = v;
-    onChange();
-  });
   return root;
 }
-
 export function preparationReference(flow, onEdit) {
   const root = node('section', 'focus-preparation-reference');
   root.append(node('h2', '', 'My preparation'));
@@ -734,6 +493,16 @@ export function preparationReference(flow, onEdit) {
     ],
     ['Protect Your Attention', [['Parked distractions', flow.parked]]],
   ];
+  if (flow.outcome.trim()) groups[1][1].unshift(['Earlier outcome', flow.outcome]);
+  if (flow.evidence.trim()) groups[1][1].push(['Earlier evidence of progress', flow.evidence]);
+  for (const answer of flow.evidenceExtra || [])
+    if (answer.trim()) groups[1][1].push(['Earlier evidence of progress', answer]);
+  for (const step of flow.steps)
+    if (step.action || step.strategy)
+      groups[1][1].push([
+        'Earlier next action',
+        [step.action, step.strategy].filter(Boolean).join(' — '),
+      ]);
   if (flow.readiness)
     groups[0][1].unshift([
       'What helps me engage',

@@ -1,19 +1,17 @@
 import {
-  compactFlow,
   createFlowPreparation,
   recoverySection,
-  refreshOutcomeCategories,
   preparationReference,
-} from './flow-view.js?v=ebeed1edf97a';
-import { newFlow, newRecovery } from './flow-model.js?v=ebeed1edf97a';
-import { setupBreakTimer } from './break-timer.js?v=ebeed1edf97a';
-import { chooseRepeatScope } from '../repeating/scope.js?v=ebeed1edf97a';
-import { node } from '../../shared/dom.js?v=ebeed1edf97a';
-import { indentLevel } from '../notes/formatting/indents.js?v=ebeed1edf97a';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=ebeed1edf97a';
-import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=ebeed1edf97a';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=ebeed1edf97a';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=ebeed1edf97a';
+} from './flow-view.js?v=268df83d9262';
+import { newFlow, newRecovery } from './flow-model.js?v=268df83d9262';
+import { setupBreakTimer } from './break-timer.js?v=268df83d9262';
+import { chooseRepeatScope } from '../repeating/scope.js?v=268df83d9262';
+import { node } from '../../shared/dom.js?v=268df83d9262';
+import { indentLevel } from '../notes/formatting/indents.js?v=268df83d9262';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=268df83d9262';
+import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=268df83d9262';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=268df83d9262';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=268df83d9262';
 import {
   focusIntervalNotes,
   newFocus,
@@ -24,10 +22,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=ebeed1edf97a';
-import { createNoteEditor } from '../notes/note-editor.js?v=ebeed1edf97a';
-import { renderFormatted } from '../notes/formatting/format.js?v=ebeed1edf97a';
-import { noteTasks } from '../notes/formatting/tasks.js?v=ebeed1edf97a';
+} from './model.js?v=268df83d9262';
+import { createNoteEditor } from '../notes/note-editor.js?v=268df83d9262';
+import { renderFormatted } from '../notes/formatting/format.js?v=268df83d9262';
+import { noteTasks } from '../notes/formatting/tasks.js?v=268df83d9262';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {
@@ -374,37 +372,16 @@ export function setupFocus(api) {
     if (!session.flow) session.flow = newFlow(noteTags(resolve()?.entry || {}));
     return session.flow;
   }
-  let syncingOutcome = false;
   function syncOutcomeTags() {
-    if (!session || session.phase === 'reflect' || syncingOutcome) return;
+    if (!session || session.phase === 'reflect') return;
     const found = resolve();
     if (!found) return;
     const tags = noteTags(found.entry);
     if (JSON.stringify(flow().tags) !== JSON.stringify(tags)) {
       flow().tags = [...tags];
       noteEditor?.setTags(tags);
-      refreshOutcomeCategories(dialog);
       if (session.owner === owner) save();
     }
-  }
-  function changeOutcomeTags(tags) {
-    const found = resolve();
-    if (!found) return true;
-    syncingOutcome = true;
-    try {
-      noteEditor?.flush();
-      if (api.setFocusTags?.(found.date, found.entry.id, tags) === false) {
-        api.toast('Could not save the note categories. Your previous categories were kept.');
-        return false;
-      }
-      noteEditor?.setTags(tags);
-      return true;
-    } finally {
-      syncingOutcome = false;
-    }
-  }
-  function categories() {
-    return categoryOptions(api.getState().days, api.getState().settings.tags);
   }
   function beginFocus() {
     const mantra = dialog.querySelector('.focus-mantra-input');
@@ -439,9 +416,7 @@ export function setupFocus(api) {
     base('Access Flow State for the Task');
     flowView = createFlowPreparation({
       flow: flow(),
-      categories: categories(),
       onChange: save,
-      onTagsChange: changeOutcomeTags,
       onBack() {
         flowOpen = false;
         render();
@@ -504,11 +479,6 @@ export function setupFocus(api) {
         flowOpen = true;
         render();
       }),
-      compactFlow(flow(), {
-        onChange: save,
-        categories: categories(),
-        onTagsChange: changeOutcomeTags,
-      }),
     );
     const commitment = node('section', 'focus-commitment');
     commitment.append(node('h2', '', voice('focus.commitmentHeading')));
@@ -554,15 +524,6 @@ export function setupFocus(api) {
   function active() {
     base(voice('focus.activeHeading'));
     dialog.append(node('p', 'focus-mantra', session.mantra));
-    const preparation = node('details', 'focus-session-preparation');
-    preparation.append(
-      node('summary', '', 'Focus plan · outcome, evidence & next actions'),
-      compactFlow(flow(), {
-        onChange: save,
-        categories: categories(),
-        onTagsChange: changeOutcomeTags,
-      }),
-    );
     const reference = preparationReference(flow(), () => {
       noteEditor?.flush();
       flowOpen = true;
@@ -612,7 +573,7 @@ export function setupFocus(api) {
         }),
       );
     if (session.pages.length > 1) dialog.append(pages);
-    dialog.append(noteSection(), preparation, reference);
+    dialog.append(noteSection(), reference);
     const found = resolve(),
       current = session.pages.at(-1);
     if (
@@ -741,18 +702,6 @@ export function setupFocus(api) {
     const saveButton = button('Save reflection & close', () => complete(false), 'primary'),
       skip = button('Skip reflection & close', () => complete(true));
     function complete(skipReflection) {
-      const minutes = dialog.querySelector('[aria-label="Break duration (minutes)"]');
-      if (
-        minutes &&
-        (!minutes.reportValidity() ||
-          !Number.isInteger(Number(minutes.value)) ||
-          Number(minutes.value) < 1 ||
-          Number(minutes.value) > 120)
-      ) {
-        error = 'Choose 1–120 whole break minutes.';
-        status();
-        return;
-      }
       if (skipReflection) session.reflection = { progress: '', learned: '', next: '' };
       save();
       let saved = false;

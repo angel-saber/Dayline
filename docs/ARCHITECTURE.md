@@ -547,72 +547,37 @@ as guided activities; role-model favorites inside the library remain independent
 
 ### Optional flow preparation and recovery
 
-The original Focus start view keeps its advice and mantra. `focus/flow-view.js`
-provides an always-editable compact plan plus an optional four-part preparation
-page. Both operate on the same session `flow` object; entering the helper is never
-a prerequisite for writing an outcome, choosing tags or starting. Outcome tags use
-the shared category picker (including custom tags and disabled-default settings)
-and stay synchronized with the selected note. Steps, permission, warm-ups, breath intentions,
-attention preferences and parked distractions autosave to the existing Focus draft.
-Warm-up text can explicitly append to the selected note through the existing edit
-boundary; it is never added silently. Temporary exercise timers stop on leaving
-the preparation view. Preparation does not count as session work time.
+Focus setup keeps its notes, advice and commitment mantra. The interval note is
+the planning surface; no separate Focus plan form appears in setup, preparation or
+active work. `focus/flow-view.js` provides an optional helper behind Need more
+help getting started. Four support-area choices reveal only selected sections.
+Challenge/skill suggestions, permission, warm-ups, breath intentions and attention
+preferences save to the existing draft. Clear Goal and Feedback is short guidance
+that points back to the note instead of collecting duplicate answers. Warm-up
+text can explicitly append to the note through the existing edit boundary.
 
-`focus/flow-model.js` validates optional `flow` and `recovery` metadata in drafts
-and saved reports; older drafts and reports without them remain valid. Parked
-items appear as a Before starting log and enter the combined report once. Work
-ends at Finish, before reflection, break selection or celebration. Break defaults
-are 3/5/10/15 minutes at 25/50/90 minute work thresholds and are explicitly editable
-product defaults. Celebration is opt-in and runs only after report saving succeeds.
-Preparation/recovery data appears in expandable reports and in shares only when
-Focus reports are selected, preserving the default privacy choice.
+Active Focus prioritizes notes, with populated My preparation references and Edit
+preparation. Returning from this helper never recommits or changes the start time.
+Empty prompts remain absent. The isolated automatic action line is removed,
+single-interval navigation is hidden, activity shortcuts live in a collapsible
+inspiration pocket, and the interruption log stays directly editable.
 
-`focus/break-timer.js` owns an optional browser-local wall-clock deadline under
-`dayline.focus-break.v1`. It starts only after a successful session report save,
-continues separately after Focus closes, survives reload, and does not contribute
-to work duration or start another session. It cleans up on account changes and
-uses the existing browser event model without a new service or backend table.
-Reload older tabs before editing new report metadata.
+`focus/flow-model.js` validates optional flow/recovery metadata. Existing outcome,
+evidence, action, approach, category and recovery answers from older drafts stay
+readable in references/reports and remain in backups and opt-in report sharing.
+They are not migrated or erased when their forms are removed. Note category
+changes can quietly refresh the session snapshot and any open note editor.
 
-Focus plans use the shared `evidenceList` and action-list renderer in compact
-setup, optional preparation and active-session editing. The original `evidence`
-string remains the first answer; an optional validated `evidenceExtra` array holds
-up to 29 more. Existing multiline answers are not split or rewritten. Actions keep
-the existing steps structure; their optional `approachOpen` boolean retains an
-explicitly opened empty approach. Any existing strategy is always shown. Removing
-an approach explicitly clears only that action's strategy. Reports and opt-in
-shares preserve all evidence answers, and the prominent next action follows the
-first unfinished nonempty action rather than falling back to a completed one.
+Finish freezes work time and fades Focus Audio without changing audio preferences.
+Reflection remains optional. Recovery displays a suggested 3/5/10/15-minute break
+at 25/50/90-minute work thresholds, with brief recovery and acknowledgment notes
+rather than editable duration or answer buttons. Celebration and a timer for the
+suggested break are optional; both start only after successful report saving.
+Older saved recovery answers remain preserved. Reports stay excluded from shares
+by default.
 
-Outcome categories now bind bidirectionally to the session's selected summary
-note. A dedicated tag-only application callback preserves all other note fields
-and rolls back failed writes; it never applies the change to other interval notes
-or an entire repeat cycle. Note/category refresh quietly updates the shared chip
-picker and any open note editor without replacing preparation text fields. With
-no note selected, categories remain in the draft and seed a newly created report
-note. Existing report snapshots remain historical.
-
-Optional preparation starts with four support-area choices and reveals only the
-selected sections. Optional validated `supportAreas` metadata preserves choices
-across reopening; hiding a section does not erase answers. Older drafts start
-with no areas selected. Make it meaningful inserts the starter Accomplishing this
-would show that… without rewriting an existing response.
-
-Focus plan editing now uses one shared paired-row renderer: evidence, next action
-and its optional approach sit together, with no action-completion checkbox.
-Rows align the existing evidence and steps arrays by index, retaining unmatched
-older answers/actions without a migration. Add row appends a pair; explicit Remove
-row removes the pair. Existing approaches and completion metadata are preserved.
-The same row layout is used in setup, optional preparation and active editing;
-small screens stack each row's fields together in reading order.
-
-The active session prioritizes its interval notes, with one expandable Focus plan
-editing panel and a populated My preparation reference. The reference includes
-challenge/skill adjustments, stuck strategies, permissions, selected warm-ups,
-breath intentions, parked distractions and space choices, even when those areas
-are no longer selected in the optional helper. Empty prompts stay absent. Edit
-preparation can reopen that helper during an active session; Return to session
-never recommits or changes its start time. The isolated automatic next-action
-line is removed. Single-interval navigation is hidden, activity shortcuts stay in
-a collapsible inspiration pocket, and the interruption log remains directly
-editable. The main Finish action remains available at the bottom of the window.
+`focus/break-timer.js` stores an optional browser-local wall-clock deadline under
+`dayline.focus-break.v1`. It runs independently after Focus closes, survives reload,
+cleans up on account changes, and never extends work duration or starts another
+session. No new service or backend table is used. Reload older tabs before editing
+new report metadata.

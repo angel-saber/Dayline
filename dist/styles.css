@@ -4664,9 +4664,7 @@ button.slot-time .now-badge {
   text-align: left;
 }
 
-.flow-compact,
-.focus-recovery,
-.focus-session-preparation {
+.focus-recovery {
   padding: 18px;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -4692,11 +4690,6 @@ button.slot-time .now-badge {
   font: inherit;
   resize: vertical;
 }
-.flow-compact-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-}
 .flow-options {
   display: flex;
   flex-wrap: wrap;
@@ -4718,17 +4711,12 @@ button.slot-time .now-badge {
   padding: 16px;
   margin: 14px 0;
 }
-.flow-part > summary,
-.focus-session-preparation > summary {
+.flow-part > summary {
   cursor: pointer;
   font-weight: 600;
 }
 .flow-part[open] > summary {
   margin-bottom: 16px;
-}
-.flow-step {
-  border-bottom: 1px solid var(--line);
-  padding: 12px 0;
 }
 .flow-check {
   display: flex;
@@ -4763,10 +4751,6 @@ button.slot-time .now-badge {
 .flow-breath-instruction {
   text-align: center;
 }
-.focus-next-move {
-  font-weight: 600;
-  margin: 16px 0;
-}
 .focus-break-timer {
   position: fixed;
   right: max(16px, env(safe-area-inset-right));
@@ -4792,10 +4776,6 @@ button.slot-time .now-badge {
     transition: none;
   }
 }
-.flow-step > button,
-.flow-evidence-row > button {
-  margin: 4px 8px 8px 0;
-}
 .flow-support-choices {
   display: flex;
   flex-wrap: wrap;
@@ -4812,30 +4792,6 @@ button.slot-time .now-badge {
 }
 .flow-part[hidden] {
   display: none;
-}
-.flow-plan-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(130px, 1fr);
-  gap: 12px;
-  align-items: start;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
-}
-.flow-row-approach {
-  min-width: 0;
-}
-.flow-row-approach > button {
-  margin: 12px 0;
-}
-.flow-remove-row {
-  grid-column: 1/-1;
-  justify-self: start;
-}
-@media (max-width: 600px) {
-  .flow-plan-row {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 4px;
-  }
 }
 .focus-preparation-reference {
   border: 1px solid var(--line);
@@ -4865,9 +4821,6 @@ button.slot-time .now-badge {
   overflow-wrap: anywhere;
   margin: 0 0 10px;
 }
-.focus-session-preparation > summary {
-  line-height: 1.5;
-}
 .focus-window .focus-stats {
   display: flex;
   flex-wrap: wrap;
@@ -4883,14 +4836,6 @@ button.slot-time .now-badge {
   bottom: 0;
   margin: 18px 0 0 auto;
   z-index: 2;
-}
-.focus-session-preparation > .flow-compact {
-  border: 0;
-  padding: 0;
-  margin: 14px 0 0;
-}
-.focus-session-preparation > .flow-compact > h2 {
-  display: none;
 }
 
 

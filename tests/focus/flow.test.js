@@ -17,8 +17,6 @@ import {
   attachFocusReport,
 } from '../../dist/js/features/focus/model.js';
 import {
-  compactFlow,
-  planRows,
   createFlowPreparation,
   recoverySection,
   preparationReference,
@@ -81,7 +79,7 @@ test('preparation copies initial tags without aliasing, preserves old drafts, va
   assert.throws(() => validRecovery({ ...newRecovery(0), minutes: NaN }));
   assert.throws(() => validRecovery({ ...newRecovery(0), minutes: 0 }));
 });
-test('break defaults use exact session boundaries and remain editable', () => {
+test('break defaults use exact session boundaries and retain legacy duration compatibility', () => {
   for (const [m, n] of [
     [0, 3],
     [24.99, 3],
@@ -115,112 +113,6 @@ function harness(run) {
     }
   }
 }
-test('blank compact fields are immediately editable and helper suggestions, steps, warm-ups and recovery use the same draft', () =>
-  harness((window, document) => {
-    const flow = newFlow();
-    let saved = 0,
-      back = 0,
-      started = 0,
-      warmupSaved = '';
-    const change = () => saved++;
-    const compact = compactFlow(flow, {
-      onChange: change,
-      categories: { project: 'Project' },
-    });
-    document.body.append(compact);
-    for (const label of ['Outcome', 'Evidence of progress', 'Next action'])
-      assert.ok(compact.querySelector(`[aria-label="${label}"]`));
-    assert.equal(compact.querySelector('[aria-label="Approach"]'), null);
-    [...compact.querySelectorAll('button')].find((b) => b.textContent === '＋ Add row').click();
-    const secondEvidence = compact.querySelector('[aria-label="Evidence of progress 2"]');
-    secondEvidence.value = 'A second sign of progress';
-    secondEvidence.dispatchEvent(new window.Event('input'));
-    assert.deepEqual(flow.evidenceExtra, ['A second sign of progress']);
-    [...compact.querySelectorAll('button')]
-      .find((b) => b.textContent === '＋ Add an approach')
-      .click();
-    const approach = compact.querySelector('[aria-label="Approach"]');
-    approach.value = 'Use an example';
-    approach.dispatchEvent(new window.Event('input'));
-    assert.equal(flow.steps[0].strategy, 'Use an example');
-    const outcome = compact.querySelector('[aria-label="Outcome"]');
-    outcome.value = 'Write a draft';
-    outcome.dispatchEvent(new window.Event('input'));
-    assert.equal(flow.outcome, 'Write a draft');
-    compact.querySelector('[data-note-type="project"]').click();
-    assert.deepEqual(flow.tags, ['project']);
-    const helper = createFlowPreparation({
-      flow,
-      categories: { project: 'Project' },
-      onChange: change,
-      onBack: () => back++,
-      onBegin: () => started++,
-      onAudio() {},
-      onSaveWarmup: (text) => {
-        warmupSaved = text;
-        return true;
-      },
-    });
-    document.body.append(helper.element);
-    const click = (text) =>
-      [...helper.element.querySelectorAll('button')].find((b) => b.textContent === text).click();
-    try {
-      assert.ok([...helper.element.querySelectorAll('.flow-part')].every((part) => part.hidden));
-      click('Challenge–Skill Balance');
-      assert.equal(
-        [...helper.element.querySelectorAll('.flow-part')].filter((part) => !part.hidden).length,
-        1,
-      );
-      click('Make it meaningful');
-      assert.match(flow.interest, /Accomplishing this would show that/);
-      click('Make a rough version');
-      click('Make a rough version');
-      assert.equal(flow.access, 'Make a rough version before refining it.');
-      click('Practice a skill');
-      assert.match(flow.interest, /get better/);
-      click('Clear Goal and Feedback');
-      click('＋ Add row');
-      assert.equal(flow.steps.length, 3);
-      click('Step Out of Self-Judgment');
-      click('Being judged');
-      assert.match(flow.permission, /audience/);
-      click('Breathe with intention');
-      click('Inhale courage. Exhale judgment.');
-      assert.equal(flow.breathIn, 'courage');
-      click('Move into the task');
-      assert.match(
-        helper.element.querySelector('.flow-warmup').textContent,
-        /make the first small move/,
-      );
-      click('Make a low-stakes attempt');
-      const attempt = helper.element.querySelector('[aria-label="Warm-up attempt"]');
-      attempt.value = 'A rough opening';
-      attempt.dispatchEvent(new window.Event('input'));
-      click('Keep this in my note');
-      assert.equal(warmupSaved, 'A rough opening');
-      click('Challenge–Skill Balance');
-      assert.equal(helper.element.querySelector('[data-support-area=balance]').hidden, true);
-      assert.match(flow.interest, /Accomplishing this would show that/);
-      assert.deepEqual(validFlow(structuredClone(flow)), flow);
-      click('Back to Focus setup');
-      assert.equal(back, 1);
-      click('Begin Focus');
-      assert.equal(started, 1);
-      assert.ok(saved > 0);
-      const recovery = newRecovery(90 * 60000),
-        view = recoverySection(recovery, change);
-      document.body.append(view);
-      [...view.querySelectorAll('button')].find((b) => b.textContent === 'I showed up').click();
-      assert.equal(recovery.acknowledgment, 'I showed up');
-      const minutes = view.querySelector('input[type=number]');
-      minutes.setCustomValidity = () => {};
-      minutes.value = '20';
-      minutes.dispatchEvent(new window.Event('input'));
-      assert.equal(recovery.minutes, 20);
-    } finally {
-      helper.destroy();
-    }
-  }));
 test('recovery timer uses elapsed wall time, survives reload, synchronizes, and clears without launching a session', () =>
   harness((window, document, storage) => {
     let now = 100000;
@@ -250,61 +142,6 @@ test('recovery timer uses elapsed wall time, survives reload, synchronizes, and 
       timer.destroy();
       reloaded?.destroy();
     }
-  }));
-
-test('next action advances through unfinished actions and existing approaches stay visible', () =>
-  harness((window, document) => {
-    const flow = newFlow();
-    flow.steps = [
-      { action: 'First task', strategy: 'Keep this method', done: true },
-      { action: 'Second task', strategy: '', done: false },
-    ];
-    assert.equal(nextAction(flow), 'Second task');
-    const view = compactFlow(flow, { onChange() {}, categories: {} });
-    document.body.append(view);
-    assert.equal(view.querySelector('[aria-label="Approach"]').value, 'Keep this method');
-    assert.equal(view.querySelector('[aria-label="Approach for action 2"]'), null);
-    [...view.querySelectorAll('button')].find((b) => b.textContent === 'Remove approach').click();
-    assert.equal(flow.steps[0].strategy, '');
-    assert.equal(view.querySelector('[aria-label="Approach"]'), null);
-    assert.equal(view.querySelector('input[type=checkbox]'), null);
-    flow.steps[1].done = true;
-    assert.match(nextAction(flow), /All planned actions are checked off/);
-    assert.deepEqual(validFlow(structuredClone(flow)), flow);
-  }));
-
-test('paired plan rows preserve unmatched legacy fields and remove only the chosen pair', () =>
-  harness((window, document) => {
-    const flow = newFlow();
-    flow.evidence = 'First evidence';
-    flow.evidenceExtra = ['Second evidence', 'Third evidence'];
-    flow.steps = [
-      { action: 'First action', strategy: 'Keep this approach', done: false },
-      { action: 'Second action', strategy: '', done: false },
-    ];
-    const original = structuredClone(flow),
-      view = planRows(flow, () => {});
-    document.body.append(view);
-    assert.deepEqual(flow, original);
-    let rows = view.querySelectorAll('.flow-plan-row');
-    assert.equal(rows.length, 3);
-    assert.equal(
-      rows[0].querySelector('[aria-label="Evidence of progress"]').value,
-      'First evidence',
-    );
-    assert.equal(rows[0].querySelector('[aria-label="Next action"]').value, 'First action');
-    assert.equal(rows[0].querySelector('[aria-label="Approach"]').value, 'Keep this approach');
-    assert.equal(
-      rows[2].querySelector('[aria-label="Evidence of progress 3"]').value,
-      'Third evidence',
-    );
-    assert.equal(rows[2].querySelector('[aria-label="Next action 3"]').value, '');
-    assert.equal(view.querySelector('input[type=checkbox]'), null);
-    [...rows[1].querySelectorAll('button')].find((b) => b.textContent === 'Remove row').click();
-    assert.deepEqual(flow.evidenceExtra, ['Third evidence']);
-    assert.equal(flow.steps.length, 1);
-    assert.equal(flow.steps[0].strategy, 'Keep this approach');
-    assert.deepEqual(validFlow(structuredClone(flow)), flow);
   }));
 
 test('active preparation reference includes all completed support areas and omits empty prompts', () =>
@@ -338,4 +175,64 @@ test('active preparation reference includes all completed support areas and omit
     assert.equal(view.querySelector('textarea'), null);
     view.querySelector('button').click();
     assert.equal(edited, true);
+  }));
+
+test('optional goal guidance uses the note instead of additional plan forms', () =>
+  harness((window, document) => {
+    const flow = newFlow();
+    flow.outcome = 'Keep an earlier outcome';
+    flow.evidenceExtra = ['Keep earlier evidence'];
+    flow.steps[0].action = 'Keep an earlier action';
+    const original = structuredClone(flow);
+    let back = 0;
+    const helper = createFlowPreparation({
+      flow,
+      onChange() {},
+      onBack() {
+        back++;
+      },
+      onBegin() {},
+      onAudio() {},
+      onSaveWarmup() {
+        return true;
+      },
+    });
+    document.body.append(helper.element);
+    try {
+      const goals = helper.element.querySelector('[data-support-area="goals"]');
+      assert.equal(goals.querySelector('textarea'), null);
+      assert.equal(helper.element.querySelector('.flow-plan-rows'), null);
+      assert.match(goals.textContent, /Let your note do the planning/);
+      goals.querySelector('button').click();
+      assert.equal(back, 1);
+      assert.deepEqual(flow, original);
+      const reference = preparationReference(flow, () => {});
+      assert.match(reference.textContent, /Keep an earlier outcome/);
+      assert.match(reference.textContent, /Keep earlier evidence/);
+      assert.match(reference.textContent, /Keep an earlier action/);
+    } finally {
+      helper.destroy();
+    }
+  }));
+test('recovery offers a suggestion and brief guidance without answer buttons or editable duration', () =>
+  harness((window, document) => {
+    const recovery = newRecovery(60 * 60000);
+    recovery.win = 'Keep an earlier reflection';
+    recovery.activity = 'Quiet rest';
+    let saved = 0;
+    const view = recoverySection(recovery, () => saved++);
+    document.body.append(view);
+    assert.match(view.textContent, /Suggested break: about 10 minutes/);
+    assert.match(view.textContent, /even if things did not go according to plan/);
+    assert.equal(view.querySelector('button'), null);
+    assert.equal(view.querySelector('textarea'), null);
+    assert.equal(view.querySelector('input[type=number]'), null);
+    const timer = view.querySelector('[aria-label^="Start the suggested"]');
+    timer.checked = true;
+    timer.dispatchEvent(new window.Event('change'));
+    assert.equal(recovery.startTimer, true);
+    assert.equal(saved, 1);
+    assert.equal(recovery.win, 'Keep an earlier reflection');
+    assert.equal(recovery.activity, 'Quiet rest');
+    assert.equal(recovery.minutes, 10);
   }));

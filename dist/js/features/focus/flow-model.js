@@ -1,4 +1,4 @@
-import { validTags, categoryLabel } from '../notes/note-types.js?v=ebeed1edf97a';
+import { validTags, categoryLabel } from '../notes/note-types.js?v=268df83d9262';
 export const BREATHS = [
   ['possibility', 'perfection'],
   ['courage', 'judgment'],
@@ -219,7 +219,7 @@ export function flowLines(flow) {
 export function recoveryLines(recovery) {
   if (!recovery) return [];
   const r = validRecovery(recovery),
-    lines = [`Chosen break: ${r.minutes} minutes`];
+    lines = [`Suggested break: ${r.minutes} minutes`];
   if (r.activity)
     lines.push(`Recovery: ${r.activity === 'Choose my own' ? r.custom || r.activity : r.activity}`);
   if (r.acknowledgment) lines.push(r.acknowledgment);
