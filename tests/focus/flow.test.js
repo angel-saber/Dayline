@@ -18,6 +18,7 @@ import {
 } from '../../dist/js/features/focus/model.js';
 import {
   compactFlow,
+  planRows,
   createFlowPreparation,
   recoverySection,
 } from '../../dist/js/features/focus/flow-view.js';
@@ -124,15 +125,12 @@ test('blank compact fields are immediately editable and helper suggestions, step
     const compact = compactFlow(flow, {
       onChange: change,
       categories: { project: 'Project' },
-      mantra: 'My commitment',
     });
     document.body.append(compact);
     for (const label of ['Outcome', 'Evidence of progress', 'Next action'])
       assert.ok(compact.querySelector(`[aria-label="${label}"]`));
     assert.equal(compact.querySelector('[aria-label="Approach"]'), null);
-    [...compact.querySelectorAll('button')]
-      .find((b) => b.textContent === '＋ Add evidence')
-      .click();
+    [...compact.querySelectorAll('button')].find((b) => b.textContent === '＋ Add row').click();
     const secondEvidence = compact.querySelector('[aria-label="Evidence of progress 2"]');
     secondEvidence.value = 'A second sign of progress';
     secondEvidence.dispatchEvent(new window.Event('input'));
@@ -180,8 +178,8 @@ test('blank compact fields are immediately editable and helper suggestions, step
       click('Practice a skill');
       assert.match(flow.interest, /get better/);
       click('Clear Goal and Feedback');
-      click('＋ Add action');
-      assert.equal(flow.steps.length, 2);
+      click('＋ Add row');
+      assert.equal(flow.steps.length, 3);
       click('Step Out of Self-Judgment');
       click('Being judged');
       assert.match(flow.permission, /audience/);
@@ -268,9 +266,42 @@ test('next action advances through unfinished actions and existing approaches st
     [...view.querySelectorAll('button')].find((b) => b.textContent === 'Remove approach').click();
     assert.equal(flow.steps[0].strategy, '');
     assert.equal(view.querySelector('[aria-label="Approach"]'), null);
-    const done = view.querySelector('[aria-label="Action 2 complete"]');
-    done.checked = true;
-    done.dispatchEvent(new window.Event('change'));
+    assert.equal(view.querySelector('input[type=checkbox]'), null);
+    flow.steps[1].done = true;
     assert.match(nextAction(flow), /All planned actions are checked off/);
+    assert.deepEqual(validFlow(structuredClone(flow)), flow);
+  }));
+
+test('paired plan rows preserve unmatched legacy fields and remove only the chosen pair', () =>
+  harness((window, document) => {
+    const flow = newFlow();
+    flow.evidence = 'First evidence';
+    flow.evidenceExtra = ['Second evidence', 'Third evidence'];
+    flow.steps = [
+      { action: 'First action', strategy: 'Keep this approach', done: false },
+      { action: 'Second action', strategy: '', done: false },
+    ];
+    const original = structuredClone(flow),
+      view = planRows(flow, () => {});
+    document.body.append(view);
+    assert.deepEqual(flow, original);
+    let rows = view.querySelectorAll('.flow-plan-row');
+    assert.equal(rows.length, 3);
+    assert.equal(
+      rows[0].querySelector('[aria-label="Evidence of progress"]').value,
+      'First evidence',
+    );
+    assert.equal(rows[0].querySelector('[aria-label="Next action"]').value, 'First action');
+    assert.equal(rows[0].querySelector('[aria-label="Approach"]').value, 'Keep this approach');
+    assert.equal(
+      rows[2].querySelector('[aria-label="Evidence of progress 3"]').value,
+      'Third evidence',
+    );
+    assert.equal(rows[2].querySelector('[aria-label="Next action 3"]').value, '');
+    assert.equal(view.querySelector('input[type=checkbox]'), null);
+    [...rows[1].querySelectorAll('button')].find((b) => b.textContent === 'Remove row').click();
+    assert.deepEqual(flow.evidenceExtra, ['Third evidence']);
+    assert.equal(flow.steps.length, 1);
+    assert.equal(flow.steps[0].strategy, 'Keep this approach');
     assert.deepEqual(validFlow(structuredClone(flow)), flow);
   }));

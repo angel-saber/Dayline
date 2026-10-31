@@ -1,19 +1,18 @@
 import {
   compactFlow,
   createFlowPreparation,
-  stepList,
   recoverySection,
   refreshOutcomeCategories,
-} from './flow-view.js?v=47449d930371';
-import { newFlow, newRecovery, nextAction } from './flow-model.js?v=47449d930371';
-import { setupBreakTimer } from './break-timer.js?v=47449d930371';
-import { chooseRepeatScope } from '../repeating/scope.js?v=47449d930371';
-import { node } from '../../shared/dom.js?v=47449d930371';
-import { indentLevel } from '../notes/formatting/indents.js?v=47449d930371';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=47449d930371';
-import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=47449d930371';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=47449d930371';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=47449d930371';
+} from './flow-view.js?v=f99b8ac250a9';
+import { newFlow, newRecovery, nextAction } from './flow-model.js?v=f99b8ac250a9';
+import { setupBreakTimer } from './break-timer.js?v=f99b8ac250a9';
+import { chooseRepeatScope } from '../repeating/scope.js?v=f99b8ac250a9';
+import { node } from '../../shared/dom.js?v=f99b8ac250a9';
+import { indentLevel } from '../notes/formatting/indents.js?v=f99b8ac250a9';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=f99b8ac250a9';
+import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=f99b8ac250a9';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=f99b8ac250a9';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=f99b8ac250a9';
 import {
   focusIntervalNotes,
   newFocus,
@@ -24,10 +23,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=47449d930371';
-import { createNoteEditor } from '../notes/note-editor.js?v=47449d930371';
-import { renderFormatted } from '../notes/formatting/format.js?v=47449d930371';
-import { noteTasks } from '../notes/formatting/tasks.js?v=47449d930371';
+} from './model.js?v=f99b8ac250a9';
+import { createNoteEditor } from '../notes/note-editor.js?v=f99b8ac250a9';
+import { renderFormatted } from '../notes/formatting/format.js?v=f99b8ac250a9';
+import { noteTasks } from '../notes/formatting/tasks.js?v=f99b8ac250a9';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {
@@ -500,7 +499,6 @@ export function setupFocus(api) {
       compactFlow(flow(), {
         onChange: save,
         categories: categories(),
-        mantra: session.mantra,
         onTagsChange: changeOutcomeTags,
       }),
     );
@@ -513,8 +511,6 @@ export function setupFocus(api) {
     mantra.addEventListener('input', () => {
       mantra.setCustomValidity('');
       session.mantra = mantra.value;
-      dialog.querySelector('.flow-commitment-preview').textContent =
-        'Commitment: ' + session.mantra;
       save();
     });
     const controls = node('div', 'inline');
@@ -525,8 +521,6 @@ export function setupFocus(api) {
         if (next === session.mantra) next = pool[(pool.indexOf(next) + 1) % pool.length];
         session.mantra = next;
         mantra.value = next;
-        dialog.querySelector('.flow-commitment-preview').textContent =
-          'Commitment: ' + session.mantra;
         save();
       }),
       button('Commit', beginFocus, 'primary'),
@@ -564,10 +558,8 @@ export function setupFocus(api) {
       compactFlow(flow(), {
         onChange: updateNext,
         categories: categories(),
-        showFirst: false,
         onTagsChange: changeOutcomeTags,
       }),
-      stepList(flow(), updateNext),
     );
     dialog.append(nextMove, preparation);
 
