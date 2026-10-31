@@ -1,2 +1,2 @@
 // Compatibility exports; the standalone audio feature owns soundtrack dispatch.
-export { musicProfile, musicLength, renderMusic } from '../focus-audio/music.js?v=f99b8ac250a9';
+export { musicProfile, musicLength, renderMusic } from '../focus-audio/music.js?v=ebeed1edf97a';

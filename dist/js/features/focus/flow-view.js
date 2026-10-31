@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=f99b8ac250a9';
-import { typeChips } from '../notes/note-types.js?v=f99b8ac250a9';
+import { node } from '../../shared/dom.js?v=ebeed1edf97a';
+import { typeChips } from '../notes/note-types.js?v=ebeed1edf97a';
 import {
   ACCESS,
   INTEREST,
@@ -7,8 +7,8 @@ import {
   BREATHS,
   RECOVERY_CHOICES,
   ACKNOWLEDGMENTS,
-} from './flow-model.js?v=f99b8ac250a9';
-import { breathingFrame } from '../activities/model.js?v=f99b8ac250a9';
+} from './flow-model.js?v=ebeed1edf97a';
+import { breathingFrame } from '../activities/model.js?v=ebeed1edf97a';
 const button = (text, action) => {
   const b = node('button', 'secondary', text);
   b.type = 'button';
@@ -248,6 +248,7 @@ export function createFlowPreparation({
   onAudio,
   onSaveWarmup,
   onTagsChange,
+  returnToSession = false,
 }) {
   const root = node('section', 'flow-preparation focus-prep-fields');
   root.append(
@@ -542,7 +543,10 @@ export function createFlowPreparation({
         node('p', 'flow-warmup-timer'),
       );
     }
-    if (flow.warmup) warmup.append(button('I’ve started—begin session', onBegin));
+    if (flow.warmup)
+      warmup.append(
+        button(returnToSession ? 'Return to session' : 'I’ve started—begin session', onBegin),
+      );
   }
   renderWarmup();
   const attention = section(
@@ -589,9 +593,9 @@ export function createFlowPreparation({
     onChange();
   });
   const footer = node('div', 'flow-preparation-actions focus-commitment');
-  const begin = button('Begin Focus', onBegin);
+  const begin = button(returnToSession ? 'Return to session' : 'Begin Focus', onBegin);
   begin.className = 'primary';
-  footer.append(button('Back to Focus setup', onBack), begin);
+  footer.append(button(returnToSession ? 'Back to session' : 'Back to Focus setup', onBack), begin);
   root.append(footer);
   function tick() {
     const circle = warmup.querySelector('.flow-breath-circle'),
@@ -704,5 +708,84 @@ export function recoverySection(recovery, onChange) {
     recovery.startTimer = v;
     onChange();
   });
+  return root;
+}
+
+export function preparationReference(flow, onEdit) {
+  const root = node('section', 'focus-preparation-reference');
+  root.append(node('h2', '', 'My preparation'));
+  const groups = [
+    [
+      'Challenge–Skill Balance',
+      [
+        ['Make it compelling', flow.interest],
+        ['Make it approachable', flow.access],
+      ],
+    ],
+    ['Clear Goal and Feedback', [['If I get stuck', flow.ifStuck]]],
+    [
+      'Step Out of Self-Judgment',
+      [
+        ['What I’m risking', flow.fear],
+        ['My permission', flow.permission],
+        ['Warm-up attempt', flow.warmupText],
+        ['My starting ritual', flow.ritual],
+      ],
+    ],
+    ['Protect Your Attention', [['Parked distractions', flow.parked]]],
+  ];
+  if (flow.readiness)
+    groups[0][1].unshift([
+      'What helps me engage',
+      {
+        compelling: 'Make it more compelling',
+        manageable: 'Make it more manageable',
+        both: 'Make it compelling and manageable',
+        ready: 'I’m ready',
+      }[flow.readiness],
+    ]);
+  if (flow.warmup === 'breathing')
+    groups[2][1].push([
+      'Breathe with intention',
+      `Inhale ${flow.breathIn}. Exhale ${flow.breathOut}.`,
+    ]);
+  if (flow.warmup === 'movement')
+    groups[2][1].push([
+      'Move into the task',
+      'Plant your feet, bring your hands to what you’re working with, and make the first small move.',
+    ]);
+  if (flow.warmup === 'rehearse')
+    groups[2][1].push([
+      'Rehearse the first move',
+      'Practice the opening action once, then let the next attempt become the task.',
+    ]);
+  if (flow.warmup === 'rough')
+    groups[2][1].push(['Make a low-stakes attempt', 'It can stay imperfect.']);
+  const space = {
+    dnd: 'Do Not Disturb',
+    tabs: 'Distracting tabs closed',
+    materials: 'Materials ready',
+    people: 'Let others know',
+  };
+  const selected = Object.keys(space).filter((key) => flow.space[key]);
+  if (selected.length)
+    groups[3][1].push(['My space', selected.map((key) => space[key]).join(' · ')]);
+  let populated = false;
+  for (const [title, items] of groups) {
+    const filled = items.filter(([, value]) => value?.trim());
+    if (!filled.length) continue;
+    populated = true;
+    const group = node('details', 'focus-reference-group');
+    group.open = true;
+    group.append(node('summary', '', title));
+    for (const [label, value] of filled)
+      group.append(node('h4', '', label), node('p', 'focus-reference-answer', value));
+    root.append(group);
+  }
+  if (!populated)
+    root.append(
+      node('p', 'field-hint', 'Your optional preparation will appear here whenever you add it.'),
+    );
+  root.append(button(populated ? 'Edit preparation' : 'Need help getting started?', onEdit));
   return root;
 }

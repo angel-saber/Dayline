@@ -1,4 +1,4 @@
-import { VISUALIZATION_QUOTES } from './quotes.js?v=f99b8ac250a9';
+import { VISUALIZATION_QUOTES } from './quotes.js?v=ebeed1edf97a';
 export const VISUALIZATIONS = [
   [
     'good-day',
