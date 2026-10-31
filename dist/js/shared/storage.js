@@ -1,20 +1,20 @@
-import { validLifeData } from '../features/yearly/life/model.js?v=268df83d9262';
-import { validYearly, validYearlySource } from '../features/yearly/model.js?v=268df83d9262';
-import { validRepeat } from '../features/repeating/series.js?v=268df83d9262';
-import { validIndents } from '../features/notes/formatting/indents.js?v=268df83d9262';
-import { validAvailableHours } from '../features/settings/available-hours.js?v=268df83d9262';
-import { validAttachments } from '../features/attachments/attachments.js?v=268df83d9262';
+import { validLifeData } from '../features/yearly/life/model.js?v=f2c75fe48c17';
+import { validYearly, validYearlySource } from '../features/yearly/model.js?v=f2c75fe48c17';
+import { validRepeat } from '../features/repeating/series.js?v=f2c75fe48c17';
+import { validIndents } from '../features/notes/formatting/indents.js?v=f2c75fe48c17';
+import { validAvailableHours } from '../features/settings/available-hours.js?v=f2c75fe48c17';
+import { validAttachments } from '../features/attachments/attachments.js?v=f2c75fe48c17';
 import {
   validNoteType,
   validTags,
   validTagSettings,
-} from '../features/notes/note-types.js?v=268df83d9262';
-import { validGuidedReports } from '../features/activities/model.js?v=268df83d9262';
-import { validBullets } from '../features/notes/formatting/bullets.js?v=268df83d9262';
-import { validFocusReports } from '../features/focus/model.js?v=268df83d9262';
-import { DEFAULT_SETTINGS } from './schedule.js?v=268df83d9262';
-import { validFormat } from '../features/notes/formatting/format.js?v=268df83d9262';
-import { validTasks } from '../features/notes/formatting/tasks.js?v=268df83d9262';
+} from '../features/notes/note-types.js?v=f2c75fe48c17';
+import { validGuidedReports } from '../features/activities/model.js?v=f2c75fe48c17';
+import { validBullets } from '../features/notes/formatting/bullets.js?v=f2c75fe48c17';
+import { validFocusReports } from '../features/focus/model.js?v=f2c75fe48c17';
+import { DEFAULT_SETTINGS } from './schedule.js?v=f2c75fe48c17';
+import { validFormat } from '../features/notes/formatting/format.js?v=f2c75fe48c17';
+import { validTasks } from '../features/notes/formatting/tasks.js?v=f2c75fe48c17';
 const KEY = 'dayline.v1';
 export function validState(value) {
   if (

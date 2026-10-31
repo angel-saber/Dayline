@@ -549,15 +549,16 @@ as guided activities; role-model favorites inside the library remain independent
 
 Focus setup keeps its notes, advice and commitment mantra. The interval note is
 the planning surface; no separate Focus plan form appears in setup, preparation or
-active work. `focus/flow-view.js` provides an optional helper behind Need more
-help getting started. Four support-area choices reveal only selected sections.
+active work. `focus/flow-view.js` provides four optional collapsed question sections directly
+on the start page. There is no separate preparation page or issue-selection step.
 Challenge/skill suggestions, permission, warm-ups, breath intentions and attention
-preferences save to the existing draft. Clear Goal and Feedback is short guidance
-that points back to the note instead of collecting duplicate answers. Warm-up
+preferences save to the existing draft. Clear Goal and Feedback offers progress suggestions and two short optional answers:
+a sign of progress and its smallest next action. It reuses the existing evidence
+and first action fields without restoring the larger plan form. Warm-up
 text can explicitly append to the note through the existing edit boundary.
 
 Active Focus prioritizes notes, with populated My preparation references and Edit
-preparation. Returning from this helper never recommits or changes the start time.
+preparation. Its inline edit controls never recommit or change the start time.
 Empty prompts remain absent. The isolated automatic action line is removed,
 single-interval navigation is hidden, activity shortcuts live in a collapsible
 inspiration pocket, and the interruption log stays directly editable.

@@ -177,21 +177,17 @@ test('active preparation reference includes all completed support areas and omit
     assert.equal(edited, true);
   }));
 
-test('optional goal guidance uses the note instead of additional plan forms', () =>
+test('inline help has four collapsed questions and only two brief goal answers', () =>
   harness((window, document) => {
     const flow = newFlow();
     flow.outcome = 'Keep an earlier outcome';
     flow.evidenceExtra = ['Keep earlier evidence'];
-    flow.steps[0].action = 'Keep an earlier action';
-    const original = structuredClone(flow);
-    let back = 0;
+    let saves = 0;
     const helper = createFlowPreparation({
       flow,
-      onChange() {},
-      onBack() {
-        back++;
+      onChange() {
+        saves++;
       },
-      onBegin() {},
       onAudio() {},
       onSaveWarmup() {
         return true;
@@ -199,17 +195,38 @@ test('optional goal guidance uses the note instead of additional plan forms', ()
     });
     document.body.append(helper.element);
     try {
+      const parts = [...helper.element.querySelectorAll('.flow-part')];
+      assert.equal(parts.length, 4);
+      assert.ok(
+        parts.every(
+          (part) =>
+            !part.open && !part.hidden && part.querySelector('summary').textContent.endsWith('?'),
+        ),
+      );
+      assert.equal(helper.element.querySelector('.flow-support-choices'), null);
+      assert.equal(helper.element.querySelector('.flow-preparation-actions'), null);
       const goals = helper.element.querySelector('[data-support-area="goals"]');
-      assert.equal(goals.querySelector('textarea'), null);
-      assert.equal(helper.element.querySelector('.flow-plan-rows'), null);
-      assert.match(goals.textContent, /Let your note do the planning/);
-      goals.querySelector('button').click();
-      assert.equal(back, 1);
-      assert.deepEqual(flow, original);
+      assert.equal(goals.querySelectorAll('textarea').length, 2);
+      [...goals.querySelectorAll('button')]
+        .find((b) => b.textContent === 'A rough version')
+        .click();
+      assert.equal(flow.evidence, 'A rough version of…');
+      assert.equal(
+        goals.querySelector('[aria-label="Progress I want to see"]').parentElement.hidden,
+        false,
+      );
+      const action = goals.querySelector(
+        '[aria-label="What is the smallest action that would move that forward?"]',
+      );
+      action.value = 'Write an opening';
+      action.dispatchEvent(new window.Event('input'));
+      assert.equal(flow.steps[0].action, 'Write an opening');
+      assert.ok(saves > 0);
+      assert.deepEqual(flow.evidenceExtra, ['Keep earlier evidence']);
+      assert.equal(flow.outcome, 'Keep an earlier outcome');
       const reference = preparationReference(flow, () => {});
-      assert.match(reference.textContent, /Keep an earlier outcome/);
-      assert.match(reference.textContent, /Keep earlier evidence/);
-      assert.match(reference.textContent, /Keep an earlier action/);
+      assert.match(reference.textContent, /A rough version of/);
+      assert.match(reference.textContent, /Write an opening/);
     } finally {
       helper.destroy();
     }

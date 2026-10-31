@@ -1,4 +1,4 @@
-import { validTags, categoryLabel } from '../notes/note-types.js?v=268df83d9262';
+import { validTags, categoryLabel } from '../notes/note-types.js?v=f2c75fe48c17';
 export const BREATHS = [
   ['possibility', 'perfection'],
   ['courage', 'judgment'],

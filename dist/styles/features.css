@@ -2724,16 +2724,6 @@ button.slot-time .now-badge {
   flex: none;
   width: auto;
 }
-.flow-preparation-actions {
-  position: sticky;
-  bottom: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 14px 0;
-  background: var(--white);
-  z-index: 2;
-}
 .flow-breath-circle {
   width: 110px;
   height: 110px;
@@ -2770,20 +2760,6 @@ button.slot-time .now-badge {
   .flow-breath-circle {
     transition: none;
   }
-}
-.flow-support-choices {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 16px 0;
-}
-.flow-support-choices [aria-pressed='true'] {
-  border-color: var(--green);
-  background: color-mix(in srgb, var(--green) 14%, var(--white));
-}
-.flow-support-choices button {
-  white-space: normal;
-  text-align: left;
 }
 .flow-part[hidden] {
   display: none;
@@ -2831,4 +2807,20 @@ button.slot-time .now-badge {
   bottom: 0;
   margin: 18px 0 0 auto;
   z-index: 2;
+}
+.focus-help-sections {
+  margin: 16px 0;
+}
+.focus-help-sections .flow-part {
+  margin: 10px 0;
+}
+.focus-edit-preparation {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 12px 0;
+}
+.focus-edit-preparation > summary {
+  cursor: pointer;
+  font-weight: 600;
 }

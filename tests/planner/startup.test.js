@@ -742,34 +742,35 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.deepEqual(JSON.parse(local.getItem('dayline.v1')).days, fixture.days);
     // Notes remain the planning surface; optional preparation stays lightweight.
     assert.equal(document.querySelector('.flow-compact'), null);
-    [...document.querySelectorAll('.focus-window button')]
-      .find((b) => b.textContent === 'Need more help getting started?')
-      .click();
-    assert.ok([...document.querySelectorAll('.flow-part')].every((part) => part.hidden));
-    [...document.querySelectorAll('.flow-support-choices button')]
-      .find((b) => b.textContent === 'Clear Goal and Feedback')
-      .click();
+    const inlineParts = [...document.querySelectorAll('.focus-help-sections .flow-part')];
+    assert.equal(inlineParts.length, 4);
+    assert.ok(inlineParts.every((part) => !part.open && !part.hidden));
+    assert.ok(inlineParts.every((part) => part.querySelector('summary').textContent.endsWith('?')));
     const goalHelp = document.querySelector('[data-support-area="goals"]');
-    assert.equal(goalHelp.querySelector('textarea'), null);
-    assert.match(goalHelp.textContent, /Let your note do the planning/);
-    [...document.querySelectorAll('.flow-support-choices button')]
-      .find((b) => b.textContent === 'Challenge–Skill Balance')
+    goalHelp.open = true;
+    [...goalHelp.querySelectorAll('button')]
+      .find((b) => b.textContent === 'A rough version')
       .click();
-    [...document.querySelectorAll('.flow-preparation button')]
+    const firstAction = goalHelp.querySelector(
+      '[aria-label="What is the smallest action that would move that forward?"]',
+    );
+    firstAction.value = 'Write an opening';
+    firstAction.dispatchEvent(new window.Event('input'));
+    goalHelp.open = false;
+    assert.equal(
+      JSON.parse(local.getItem('dayline.focus.v1')).flow.steps[0].action,
+      'Write an opening',
+    );
+    [...document.querySelectorAll('.focus-help-sections button')]
       .find((b) => b.textContent === 'Make a rough version')
       .click();
-    [...document.querySelectorAll('.flow-support-choices button')]
-      .find((b) => b.textContent === 'Step Out of Self-Judgment')
-      .click();
-    [...document.querySelectorAll('.flow-preparation button')]
+    [...document.querySelectorAll('.focus-help-sections button')]
       .find((b) => b.textContent === 'Being judged')
       .click();
     const parked = document.querySelector('[aria-label="Park distractions before starting"]');
     parked.value = 'Remember to reply later';
     parked.dispatchEvent(new window.Event('input'));
-    [...document.querySelectorAll('.flow-preparation button')]
-      .find((b) => b.textContent === 'Back to Focus setup')
-      .click();
+    assert.equal(document.querySelector('.flow-support-choices'), null);
     assert.equal(document.querySelector('.flow-compact'), null);
     const gamer = document.querySelector('input[name="layout"][value="gamer"]');
     gamer.checked = true;
@@ -805,14 +806,10 @@ test('the assembled planner starts, switches views/personalities, edits settings
     [...document.querySelectorAll('.focus-preparation-reference button')]
       .find((b) => b.textContent === 'Edit preparation')
       .click();
-    assert.ok(
-      [...document.querySelectorAll('.flow-preparation button')].some(
-        (b) => b.textContent === 'Return to session',
-      ),
-    );
-    [...document.querySelectorAll('.flow-preparation button')]
-      .find((b) => b.textContent === 'Return to session')
-      .click();
+    const inlineEditor = document.querySelector('.focus-edit-preparation');
+    assert.equal(inlineEditor.open, true);
+    assert.equal(inlineEditor.querySelectorAll('.flow-part').length, 4);
+    inlineEditor.open = false;
     assert.equal(JSON.parse(local.getItem('dayline.focus.v1')).startedAt, startBeforeEdit);
     assert.equal(JSON.parse(local.getItem('dayline.focus.v1')).phase, 'active');
 
