@@ -1,5 +1,5 @@
-import { validTags } from '../notes/note-types.js?v=f2c75fe48c17';
-import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=f2c75fe48c17';
+import { validTags } from '../notes/note-types.js?v=a5e287120672';
+import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=a5e287120672';
 export function monthWeeks(month) {
   const first = month + '-01',
     start = offsetDay(first, -parseDay(first).getDay()),
