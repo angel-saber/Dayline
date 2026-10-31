@@ -1,10 +1,18 @@
-import { chooseRepeatScope } from '../repeating/scope.js?v=e40ab8c1395f';
-import { node } from '../../shared/dom.js?v=e40ab8c1395f';
-import { indentLevel } from '../notes/formatting/indents.js?v=e40ab8c1395f';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=e40ab8c1395f';
-import { tagBadges, categoryOptions } from '../notes/note-types.js?v=e40ab8c1395f';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=e40ab8c1395f';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=e40ab8c1395f';
+import {
+  compactFlow,
+  createFlowPreparation,
+  stepList,
+  recoverySection,
+} from './flow-view.js?v=b8179ad8cdac';
+import { newFlow, newRecovery } from './flow-model.js?v=b8179ad8cdac';
+import { setupBreakTimer } from './break-timer.js?v=b8179ad8cdac';
+import { chooseRepeatScope } from '../repeating/scope.js?v=b8179ad8cdac';
+import { node } from '../../shared/dom.js?v=b8179ad8cdac';
+import { indentLevel } from '../notes/formatting/indents.js?v=b8179ad8cdac';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=b8179ad8cdac';
+import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=b8179ad8cdac';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=b8179ad8cdac';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=b8179ad8cdac';
 import {
   focusIntervalNotes,
   newFocus,
@@ -15,10 +23,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=e40ab8c1395f';
-import { createNoteEditor } from '../notes/note-editor.js?v=e40ab8c1395f';
-import { renderFormatted } from '../notes/formatting/format.js?v=e40ab8c1395f';
-import { noteTasks } from '../notes/formatting/tasks.js?v=e40ab8c1395f';
+} from './model.js?v=b8179ad8cdac';
+import { createNoteEditor } from '../notes/note-editor.js?v=b8179ad8cdac';
+import { renderFormatted } from '../notes/formatting/format.js?v=b8179ad8cdac';
+import { noteTasks } from '../notes/formatting/tasks.js?v=b8179ad8cdac';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {
@@ -36,6 +44,11 @@ export function setupFocus(api) {
   const mini = button('', () => open(), 'focus-mini');
   mini.hidden = true;
   document.body.append(mini);
+  let flowOpen = false,
+    flowView = null;
+  const breakTimer = setupBreakTimer({
+    canShow: () => !document.querySelector('#planner')?.hidden,
+  });
   let notesSignature = '',
     session = null,
     noteEditor = null,
@@ -59,7 +72,7 @@ export function setupFocus(api) {
         return false;
       }
       session.owner = owner;
-      localStorage.setItem(KEY, JSON.stringify(session));
+      localStorage.setItem(KEY, JSON.stringify(validFocusDraft(structuredClone(session))));
       error = '';
       status();
       return true;
@@ -87,7 +100,7 @@ export function setupFocus(api) {
       const elapsed = session.startedAt
         ? durationLabel((session.endedAt || Date.now()) - session.startedAt)
         : 'Ready when you are';
-      mini.textContent = `${session.phase === 'reflect' ? 'Finish reflection' : 'Return to Focus'} · ${elapsed}`;
+      mini.textContent = `${session.phase === 'reflect' ? 'Finish reflection' : 'Return to Focus'}${session.flow?.hideClock && session.phase === 'active' ? '' : ' · ' + elapsed}`;
     }
   }
   function page() {
@@ -104,6 +117,8 @@ export function setupFocus(api) {
     }
   }
   function base(title) {
+    flowView?.destroy();
+    flowView = null;
     flushNote();
     dialog.replaceChildren();
     const header = node('div', 'focus-window-header'),
@@ -119,6 +134,8 @@ export function setupFocus(api) {
     dialog.querySelector('.focus-save-status').setAttribute('role', 'status');
   }
   function minimize() {
+    flowView?.destroy();
+    flowView = null;
     flushNote();
     if (session && session.owner === owner) save();
     dialog.close();
@@ -351,6 +368,85 @@ export function setupFocus(api) {
       if (session.owner === owner) save();
     }
   }
+  function flow() {
+    if (!session.flow) session.flow = newFlow(noteTags(resolve()?.entry || {}));
+    return session.flow;
+  }
+  function categories() {
+    return categoryOptions(api.getState().days, api.getState().settings.tags);
+  }
+  function beginFocus() {
+    const mantra = dialog.querySelector('.focus-mantra-input');
+    if (!session.mantra.trim()) {
+      mantra?.setCustomValidity('Choose or write a mantra first.');
+      mantra?.reportValidity();
+      api.toast('Choose or write a commitment mantra first.');
+      return;
+    }
+    mantra?.setCustomValidity('');
+    flowView?.destroy();
+    flowView = null;
+    flushNote();
+    commitFocus(session, api.getState(), Date.now());
+    breakTimer.stop();
+    flowOpen = false;
+    const committed = save();
+    transition = true;
+    dialog.classList.add('focus-committing');
+    dialog.querySelectorAll('button').forEach((b) => (b.disabled = true));
+    setTimeout(() => {
+      transition = false;
+      dialog.classList.remove('focus-committing');
+      if (session && dialog.open) render();
+      if (committed && session?.phase === 'active')
+        window.dispatchEvent(
+          new CustomEvent('dayline:effect', { detail: { kind: 'focus-commit' } }),
+        );
+    }, 1100);
+  }
+  function extendedPreparation() {
+    base('Access Flow State for the Task');
+    flowView = createFlowPreparation({
+      flow: flow(),
+      categories: categories(),
+      onChange: save,
+      onBack() {
+        flowOpen = false;
+        render();
+      },
+      onBegin: beginFocus,
+      onAudio: () => api.openAudio(),
+      onSaveWarmup(text) {
+        const found = resolve(),
+          current = found?.entry;
+        const result = api.editNote(
+          found?.date || page().date,
+          current?.id || null,
+          page().minute,
+          {
+            ...(current || {
+              title: 'Focus warm-up',
+              minute: page().minute,
+              format: [],
+              tasks: [],
+              bullets: [],
+              indents: [],
+              tags: [],
+              attachments: [],
+            }),
+            tasks: noteTasks(current),
+            text: [current?.text, text].filter(Boolean).join('\n\n'),
+          },
+          'one',
+        );
+        if (!result) return false;
+        page().noteId = result.id;
+        refreshPageSnapshot();
+        return true;
+      },
+    });
+    dialog.append(flowView.element);
+  }
   function prepare() {
     base(voice('focus.preparationHeading'));
     const fields = node('div', 'focus-prep-fields');
@@ -363,6 +459,14 @@ export function setupFocus(api) {
       details.append(node('summary', '', title), node('p', '', copy));
       fields.append(details);
     }
+    fields.append(
+      button('Need more help getting started?', () => {
+        noteEditor?.flush();
+        flowOpen = true;
+        render();
+      }),
+      compactFlow(flow(), { onChange: save, categories: categories(), mantra: session.mantra }),
+    );
     const commitment = node('section', 'focus-commitment');
     commitment.append(node('h2', '', voice('focus.commitmentHeading')));
     const mantra = node('textarea', 'focus-mantra-input');
@@ -372,6 +476,8 @@ export function setupFocus(api) {
     mantra.addEventListener('input', () => {
       mantra.setCustomValidity('');
       session.mantra = mantra.value;
+      dialog.querySelector('.flow-commitment-preview').textContent =
+        'Commitment: ' + session.mantra;
       save();
     });
     const controls = node('div', 'inline');
@@ -382,35 +488,11 @@ export function setupFocus(api) {
         if (next === session.mantra) next = pool[(pool.indexOf(next) + 1) % pool.length];
         session.mantra = next;
         mantra.value = next;
+        dialog.querySelector('.flow-commitment-preview').textContent =
+          'Commitment: ' + session.mantra;
         save();
       }),
-      button(
-        'Commit',
-        () => {
-          if (!session.mantra.trim()) {
-            mantra.setCustomValidity('Choose or write a mantra first.');
-            mantra.reportValidity();
-            return;
-          }
-          mantra.setCustomValidity('');
-          flushNote();
-          commitFocus(session, api.getState(), Date.now());
-          const committed = save();
-          transition = true;
-          dialog.classList.add('focus-committing');
-          controls.querySelectorAll('button').forEach((b) => (b.disabled = true));
-          setTimeout(() => {
-            transition = false;
-            dialog.classList.remove('focus-committing');
-            if (session && dialog.open) render();
-            if (committed && session?.phase === 'active')
-              window.dispatchEvent(
-                new CustomEvent('dayline:effect', { detail: { kind: 'focus-commit' } }),
-              );
-          }, 1100);
-        },
-        'primary',
-      ),
+      button('Commit', beginFocus, 'primary'),
     );
     commitment.append(
       mantra,
@@ -433,8 +515,38 @@ export function setupFocus(api) {
   function active() {
     base(voice('focus.activeHeading'));
     dialog.append(node('p', 'focus-mantra', session.mantra));
+    const nextMove = node('p', 'focus-next-move');
+    const updateNext = () => {
+      nextMove.textContent =
+        flow().steps.find((step) => !step.done && step.action.trim())?.action ||
+        flow().steps[0].action ||
+        'Choose your next move in the preparation below.';
+      save();
+    };
+    nextMove.textContent =
+      flow().steps.find((step) => !step.done && step.action.trim())?.action ||
+      flow().steps[0].action ||
+      'Choose your next move in the preparation below.';
+    const preparation = node('details', 'focus-session-preparation');
+    preparation.append(
+      node('summary', '', 'Preparation & next move'),
+      compactFlow(flow(), { onChange: updateNext, categories: categories(), showFirst: false }),
+      stepList(flow(), updateNext),
+    );
+    dialog.append(nextMove, preparation);
+
     const stats = node('div', 'focus-stats');
     stats.append(node('span', 'focus-elapsed'), node('span', 'focus-live-position'));
+    const clockToggle = button(
+      flow().hideClock ? 'Show session clock' : 'Hide session clock',
+      () => {
+        flow().hideClock = !flow().hideClock;
+        clockToggle.textContent = flow().hideClock ? 'Show session clock' : 'Hide session clock';
+        save();
+        tickLabels();
+      },
+    );
+    stats.append(clockToggle);
     dialog.append(stats);
     const pages = node('div', 'focus-page-nav');
     const previous = button('← Previous interval', () => {
@@ -525,6 +637,14 @@ export function setupFocus(api) {
       node('h2', '', 'Interruption log'),
       node('p', 'field-hint', voice('focus.interruptionHint')),
     );
+    if (flow().parked.trim()) {
+      const before = node('details', 'focus-before-starting');
+      before.append(
+        node('summary', '', 'Before starting'),
+        node('p', 'yearly-copy', flow().parked),
+      );
+      interruptions.append(before);
+    }
     const log = node('textarea', 'focus-log-input');
     log.rows = 5;
     log.placeholder = voice('focus.interruptionPlaceholder');
@@ -547,6 +667,8 @@ export function setupFocus(api) {
     advanceFocus(session, api.getState(), Date.now());
     session.endedAt = Math.max(session.startedAt, Date.now());
     session.phase = 'reflect';
+    session.recovery ||= newRecovery(session.endedAt - session.startedAt);
+    api.fadeAudio?.()?.catch?.((e) => api.toast(e.message));
     save();
     render();
   }
@@ -577,21 +699,46 @@ export function setupFocus(api) {
       field.append(input);
       dialog.append(field);
     }
+    session.recovery ||= newRecovery(session.endedAt - session.startedAt);
+    dialog.append(recoverySection(session.recovery, save));
     const controls = node('div', 'inline');
     const saveButton = button('Save reflection & close', () => complete(false), 'primary'),
       skip = button('Skip reflection & close', () => complete(true));
     function complete(skipReflection) {
+      const minutes = dialog.querySelector('[aria-label="Break duration (minutes)"]');
+      if (
+        minutes &&
+        (!minutes.reportValidity() ||
+          !Number.isInteger(Number(minutes.value)) ||
+          Number(minutes.value) < 1 ||
+          Number(minutes.value) > 120)
+      ) {
+        error = 'Choose 1–120 whole break minutes.';
+        status();
+        return;
+      }
       if (skipReflection) session.reflection = { progress: '', learned: '', next: '' };
       save();
-      if (api.saveReport(session)) {
+      let saved = false;
+      try {
+        saved = api.saveReport(session);
+      } catch (cause) {
+        error = 'Could not save the session: ' + cause.message;
+        status();
+        return;
+      }
+      if (saved) {
+        const recovery = session.recovery;
         clear();
+        if (recovery.startTimer) breakTimer.start(recovery.minutes);
         dialog.close();
         buttons();
         api.refresh();
         api.toast('Focus session saved inside its interval note.');
-        window.dispatchEvent(
-          new CustomEvent('dayline:effect', { detail: { kind: 'focus-finish' } }),
-        );
+        if (recovery.celebrate)
+          window.dispatchEvent(
+            new CustomEvent('dayline:effect', { detail: { kind: 'focus-finish' } }),
+          );
       } else {
         error = 'Your session could not be saved. Your draft is kept here so you can try again.';
         status();
@@ -603,12 +750,17 @@ export function setupFocus(api) {
   function render() {
     if (!session) return;
     refreshPageSnapshot();
-    if (session.phase === 'prepare') prepare();
-    else if (session.phase === 'reflect') reflect();
+    if (session.phase === 'prepare') {
+      if (flowOpen) extendedPreparation();
+      else prepare();
+    } else if (session.phase === 'reflect') reflect();
     else active();
     buttons();
   }
   function clear() {
+    flowView?.destroy();
+    flowView = null;
+    flowOpen = false;
     flushNote();
     if (session?.owner === owner) {
       try {
@@ -713,6 +865,7 @@ export function setupFocus(api) {
       (session.endedAt || Date.now()) - (session.startedAt || Date.now()),
     );
     const elapsedNode = dialog.querySelector('.focus-elapsed');
+    if (elapsedNode) elapsedNode.hidden = !!session.flow?.hideClock;
     if (elapsedNode) elapsedNode.textContent = 'Session · ' + durationLabel(elapsed);
     const position = dialog.querySelector('.focus-live-position');
     if (position)
@@ -740,7 +893,7 @@ export function setupFocus(api) {
         flushNote();
         if (advanceFocus(session, slot, Date.now())) {
           save();
-          if (dialog.open && !transition) render();
+          if (dialog.open && !transition && !flowOpen) render();
         }
       }
     }

@@ -1,6 +1,6 @@
-import { node } from '../../shared/dom.js?v=e40ab8c1395f';
-import { dayKey } from '../../shared/dates.js?v=e40ab8c1395f';
-import { VISUALIZATIONS, rollVisualization } from './catalog.js?v=e40ab8c1395f';
+import { node } from '../../shared/dom.js?v=b8179ad8cdac';
+import { dayKey } from '../../shared/dates.js?v=b8179ad8cdac';
+import { VISUALIZATIONS, rollVisualization } from './catalog.js?v=b8179ad8cdac';
 export const ENABLED_KEY = 'dayline.visualization.enabled.v1';
 export const PINNED_KEY = 'dayline.visualization.pinned.v1';
 export const SEEN_KEY = 'dayline.visualization.seen.v1';

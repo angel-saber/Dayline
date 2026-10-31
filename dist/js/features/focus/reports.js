@@ -1,5 +1,6 @@
-import { node } from '../../shared/dom.js?v=e40ab8c1395f';
-import { durationLabel } from './model.js?v=e40ab8c1395f';
+import { flowLines, recoveryLines } from './flow-model.js?v=b8179ad8cdac';
+import { node } from '../../shared/dom.js?v=b8179ad8cdac';
+import { durationLabel } from './model.js?v=b8179ad8cdac';
 
 export function renderFocusReports(container, reports = []) {
   for (const report of reports) {
@@ -14,6 +15,12 @@ export function renderFocusReports(container, reports = []) {
       node('summary', '', `Focus session · ${when} · ${durationLabel(report.durationMs)}`),
     );
     details.append(node('h4', '', 'My commitment'), node('p', '', report.mantra));
+    for (const [title, lines] of [
+      ['Flow preparation', flowLines(report.flow)],
+      ['Recovery & acknowledgment', recoveryLines(report.recovery)],
+    ])
+      if (lines.length)
+        details.append(node('h4', '', title), node('pre', 'focus-combined-log', lines.join('\n')));
     const combined = report.logs
       .filter((l) => l.text.trim())
       .map(

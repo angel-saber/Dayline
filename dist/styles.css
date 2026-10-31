@@ -4664,6 +4664,135 @@ button.slot-time .now-badge {
   text-align: left;
 }
 
+.flow-compact,
+.focus-recovery,
+.focus-session-preparation {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  margin: 18px 0;
+}
+.flow-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0;
+  font-size: 14px;
+  min-width: 0;
+}
+.flow-field textarea,
+.flow-field input {
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+  resize: vertical;
+}
+.flow-compact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.flow-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+.flow-options button {
+  white-space: normal;
+  text-align: left;
+  max-width: 100%;
+}
+.flow-options [aria-pressed='true'] {
+  border-color: var(--green);
+  background: color-mix(in srgb, var(--green) 14%, var(--white));
+}
+.flow-part {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 14px 0;
+}
+.flow-part > summary,
+.focus-session-preparation > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.flow-part[open] > summary {
+  margin-bottom: 16px;
+}
+.flow-step {
+  border-bottom: 1px solid var(--line);
+  padding: 12px 0;
+}
+.flow-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+  font-size: 14px;
+}
+.flow-check input {
+  flex: none;
+  width: auto;
+}
+.flow-preparation-actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px 0;
+  background: var(--white);
+  z-index: 2;
+}
+.flow-breath-circle {
+  width: 110px;
+  height: 110px;
+  border: 2px solid var(--green);
+  border-radius: 50%;
+  margin: 24px auto;
+  background: color-mix(in srgb, var(--green) 12%, var(--white));
+  transition: transform 0.25s linear;
+}
+.flow-breath-instruction {
+  text-align: center;
+}
+.focus-next-move {
+  font-weight: 600;
+  margin: 16px 0;
+}
+.focus-break-timer {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  top: 90px;
+  z-index: 45;
+  max-width: min(290px, calc(100vw - 32px));
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--white);
+  box-shadow: 0 4px 16px #0002;
+}
+.focus-break-timer[hidden] {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .flow-breath-circle {
+    transition: none;
+  }
+}
+
 
 :root[data-layout='astronaut'] body {
   background-image:

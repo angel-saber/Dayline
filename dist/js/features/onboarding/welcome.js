@@ -1,4 +1,4 @@
-import { PERSONALITIES, getPersonality } from '../../personalities/index.js?v=e40ab8c1395f';
+import { PERSONALITIES, getPersonality } from '../../personalities/index.js?v=b8179ad8cdac';
 // First-visit setup stays separate from planner data and personality presentation.
 const KEY = 'dayline.welcome.v1';
 export function needsWelcome(storage, entryComplete = false, loginVisible = true) {
@@ -25,7 +25,7 @@ export function setupWelcome(api) {
       <li><h3>Organize and share</h3><p>Select notes across a day, week, or month to move, tag, delete, or share together. Preview a single note or collection, order by date or category, or share open time as availability.</p></li>
       <li><h3>Make space to focus</h3><p>Start a Focus session with a mantra, interval notes, inspiration, and an interruption log. Minimize it while you work, then finish with an optional reflection and saved summary.</p></li>
       <li><h3>Choose your atmosphere</h3><p>Explore six personalities, each with its own look, voice, and default soundtrack. Launch Focus Audio independently and mix music, ambience, binaural tones, or a metronome.</p></li>
-      <li><h3>Find your next step</h3><p>Start your day with a short visualization, or open More for Guided Visualization, guided breathing, planning, Untangle My Thoughts, The Two-Minute Start, and Monthly Compass. Planning activities can save reports to your notes. Favorite activities or the Inspiration Library for quick access above Shortcuts, and pin a visualization to open it first each time.</p></li>
+      <li><h3>Find your next step</h3><p>Start your day with a short visualization, or open More for Guided Visualization, guided breathing, planning, Untangle My Thoughts, The Two-Minute Start, and Monthly Compass. Planning activities can save reports to your notes. Focus setup includes an editable outcome and optional flow preparation, followed by reflection, recovery and an optional break timer. Favorite activities or the Inspiration Library for quick access above Shortcuts, and pin a visualization to open it first each time.</p></li>
       <li><h3>Find inspiration</h3><p>Explore real stories and role models in the Inspiration Library. Search or filter by need and field, save favorites on this device, or add a story to Daily.</p></li>
       <li><h3>Stay on track</h3><p>Turn on reminders and sound for planned notes. Use Shortcuts to open Google Meet or Drive, or add links to your own favorite websites.</p></li>
     </ul>

@@ -1,6 +1,6 @@
-import { createLifePlanner } from './life/view.js?v=e40ab8c1395f';
-import { node } from '../../shared/dom.js?v=e40ab8c1395f';
-import { dayKey } from '../../shared/dates.js?v=e40ab8c1395f';
+import { createLifePlanner } from './life/view.js?v=b8179ad8cdac';
+import { node } from '../../shared/dom.js?v=b8179ad8cdac';
+import { dayKey } from '../../shared/dates.js?v=b8179ad8cdac';
 import {
   validYearly,
   DIMENSIONS,
@@ -8,7 +8,7 @@ import {
   yearPosition,
   yearRecords,
   linkedNotes,
-} from './model.js?v=e40ab8c1395f';
+} from './model.js?v=b8179ad8cdac';
 
 const button = (text, action, className = 'secondary') => {
   const item = node('button', className, text);
