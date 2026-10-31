@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=b8179ad8cdac';
-import { typeChips } from '../notes/note-types.js?v=b8179ad8cdac';
+import { node } from '../../shared/dom.js?v=221bd4f8c2b4';
+import { typeChips } from '../notes/note-types.js?v=221bd4f8c2b4';
 import {
   ACCESS,
   INTEREST,
@@ -7,8 +7,8 @@ import {
   BREATHS,
   RECOVERY_CHOICES,
   ACKNOWLEDGMENTS,
-} from './flow-model.js?v=b8179ad8cdac';
-import { breathingFrame } from '../activities/model.js?v=b8179ad8cdac';
+} from './flow-model.js?v=221bd4f8c2b4';
+import { breathingFrame } from '../activities/model.js?v=221bd4f8c2b4';
 const button = (text, action) => {
   const b = node('button', 'secondary', text);
   b.type = 'button';
@@ -83,42 +83,81 @@ export function compactFlow(flow, { onChange, categories, mantra, showFirst = tr
       categories,
     ).element,
   );
-  const grid = node('div', 'flow-compact-grid');
-  field(
-    grid,
-    'Evidence of progress',
-    flow.evidence,
-    (v) => {
-      flow.evidence = v;
-      onChange();
-    },
-    { rows: 1, placeholder: 'What will show you that you’re making progress?' },
-  );
-  if (showFirst)
-    field(
-      grid,
-      'First move',
-      flow.steps[0].action,
-      (v) => {
-        flow.steps[0].action = v;
-        onChange();
-      },
-      { rows: 1, max: 2000 },
-    );
-  if (showFirst)
-    field(
-      grid,
-      'Approach',
-      flow.steps[0].strategy,
-      (v) => {
-        flow.steps[0].strategy = v;
-        onChange();
-      },
-      { rows: 1, max: 2000 },
-    );
-  root.append(grid);
+  root.append(evidenceList(flow, onChange));
+  if (showFirst) root.append(stepList(flow, onChange));
   if (mantra !== undefined)
     root.append(node('p', 'flow-commitment-preview', `Commitment: ${mantra}`));
+  return root;
+}
+export function evidenceList(flow, onChange, withSuggestions = false) {
+  const root = node('section', 'flow-evidence');
+  let focused = 0;
+  function render() {
+    root.replaceChildren();
+    const answers = [flow.evidence, ...(flow.evidenceExtra || [])];
+    answers.forEach((answer, index) => {
+      const row = node('div', 'flow-evidence-row');
+      const input = field(
+        row,
+        index ? `Evidence of progress ${index + 1}` : 'Evidence of progress',
+        answer,
+        (value) => {
+          if (index === 0) flow.evidence = value;
+          else flow.evidenceExtra[index - 1] = value;
+          onChange();
+        },
+        { rows: 1, placeholder: 'What will show you that you’re making progress?' },
+      );
+      input.addEventListener('focus', () => (focused = index));
+      if (answers.length > 1)
+        row.append(
+          button('Remove evidence', () => {
+            const remaining = [flow.evidence, ...(flow.evidenceExtra || [])];
+            remaining.splice(index, 1);
+            flow.evidence = remaining[0];
+            flow.evidenceExtra = remaining.slice(1);
+            focused = 0;
+            onChange();
+            render();
+          }),
+        );
+      root.append(row);
+    });
+    const add = button('＋ Add evidence', () => {
+      if ((flow.evidenceExtra || []).length >= 29) return;
+      flow.evidenceExtra = [...(flow.evidenceExtra || []), ''];
+      onChange();
+      render();
+      root.querySelectorAll('textarea')[root.querySelectorAll('textarea').length - 1]?.focus();
+    });
+    add.disabled = answers.length >= 30;
+    root.append(add);
+    if (withSuggestions) {
+      const options = node('div', 'flow-options');
+      for (const value of [
+        'Rough draft',
+        'Working test',
+        'Decision',
+        'Practice attempt',
+        'Completed section',
+        'Clearer question',
+      ])
+        options.append(
+          button(value, () => {
+            const input =
+              root.querySelectorAll('textarea')[focused] || root.querySelector('textarea');
+            if (!input.value.split('\n').includes(value))
+              input.value = [input.value, value].filter(Boolean).join('\n');
+            if (focused === 0) flow.evidence = input.value;
+            else flow.evidenceExtra[focused - 1] = input.value;
+            onChange();
+            input.focus();
+          }),
+        );
+      root.append(options);
+    }
+  }
+  render();
   return root;
 }
 export function stepList(flow, onChange) {
@@ -127,33 +166,52 @@ export function stepList(flow, onChange) {
     root.replaceChildren();
     flow.steps.forEach((step, index) => {
       const row = node('div', 'flow-step');
-      check(row, `Step ${index + 1} complete`, step.done, (v) => {
-        step.done = v;
+      check(row, `Action ${index + 1} complete`, step.done, (value) => {
+        step.done = value;
         onChange();
       });
       field(
         row,
-        `Step ${index + 1}`,
+        index ? `Next action ${index + 1}` : 'Next action',
         step.action,
-        (v) => {
-          step.action = v;
+        (value) => {
+          step.action = value;
           onChange();
         },
         { rows: 1, max: 2000 },
       );
-      field(
-        row,
-        `How I’ll approach step ${index + 1}`,
-        step.strategy,
-        (v) => {
-          step.strategy = v;
+      if (step.strategy || step.approachOpen) {
+        field(
+          row,
+          index ? `Approach for action ${index + 1}` : 'Approach',
+          step.strategy,
+          (value) => {
+            step.strategy = value;
+            onChange();
+          },
+          { rows: 1, max: 2000 },
+        );
+        row.append(
+          button('Remove approach', () => {
+            step.strategy = '';
+            step.approachOpen = false;
+            onChange();
+            render();
+          }),
+        );
+      } else {
+        const add = button('＋ Add an approach', () => {
+          step.approachOpen = true;
           onChange();
-        },
-        { rows: 1, max: 2000 },
-      );
+          render();
+          root.children[index]?.querySelectorAll('textarea')[1]?.focus();
+        });
+        add.setAttribute('aria-label', `Add an approach to action ${index + 1}`);
+        row.append(add);
+      }
       if (flow.steps.length > 1)
         row.append(
-          button('Remove step', () => {
+          button('Remove action', () => {
             flow.steps.splice(index, 1);
             onChange();
             render();
@@ -161,16 +219,16 @@ export function stepList(flow, onChange) {
         );
       root.append(row);
     });
-    root.append(
-      button('＋ Add another step', () => {
-        if (flow.steps.length < 30) {
-          flow.steps.push({ action: '', strategy: '', done: false });
-          onChange();
-          render();
-          root.querySelectorAll('textarea')[root.querySelectorAll('textarea').length - 2]?.focus();
-        }
-      }),
-    );
+    const add = button('＋ Add action', () => {
+      if (flow.steps.length < 30) {
+        flow.steps.push({ action: '', strategy: '', done: false });
+        onChange();
+        render();
+        root.children[flow.steps.length - 1]?.querySelector('textarea')?.focus();
+      }
+    });
+    add.disabled = flow.steps.length >= 30;
+    root.append(add);
   }
   render();
   return root;
@@ -273,26 +331,7 @@ export function createFlowPreparation({
       categories,
     ).element,
   );
-  const evidence = field(goal, 'Evidence of progress', flow.evidence, (v) => {
-    flow.evidence = v;
-    onChange();
-  });
-  suggestions(
-    goal,
-    [
-      'Rough draft',
-      'Working test',
-      'Decision',
-      'Practice attempt',
-      'Completed section',
-      'Clearer question',
-    ].map((v) => [v, v]),
-    evidence,
-    (v) => {
-      flow.evidence = v;
-      onChange();
-    },
-  );
+  goal.append(evidenceList(flow, onChange, true));
   goal.append(stepList(flow, onChange));
   field(goal, 'If I get stuck…', flow.ifStuck, (v) => {
     flow.ifStuck = v;

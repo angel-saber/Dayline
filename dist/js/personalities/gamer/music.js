@@ -1,4 +1,4 @@
-import { scoreTools } from '../score-tools.js?v=b8179ad8cdac';
+import { scoreTools } from '../score-tools.js?v=221bd4f8c2b4';
 // Next Level: an original, warm adventure-electronic loop. No borrowed themes.
 export function renderScore(data, rate) {
   if (!data.length || rate <= 0) return;

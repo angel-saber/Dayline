@@ -2787,3 +2787,7 @@ button.slot-time .now-badge {
     transition: none;
   }
 }
+.flow-step > button,
+.flow-evidence-row > button {
+  margin: 4px 8px 8px 0;
+}

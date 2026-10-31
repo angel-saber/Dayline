@@ -573,3 +573,13 @@ continues separately after Focus closes, survives reload, and does not contribut
 to work duration or start another session. It cleans up on account changes and
 uses the existing browser event model without a new service or backend table.
 Reload older tabs before editing new report metadata.
+
+Focus plans use the shared `evidenceList` and action-list renderer in compact
+setup, optional preparation and active-session editing. The original `evidence`
+string remains the first answer; an optional validated `evidenceExtra` array holds
+up to 29 more. Existing multiline answers are not split or rewritten. Actions keep
+the existing steps structure; their optional `approachOpen` boolean retains an
+explicitly opened empty approach. Any existing strategy is always shown. Removing
+an approach explicitly clears only that action's strategy. Reports and opt-in
+shares preserve all evidence answers, and the prominent next action follows the
+first unfinished nonempty action rather than falling back to a completed one.

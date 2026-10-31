@@ -733,7 +733,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.ok(summaryOutcome);
     summaryOutcome.value = 'Move the project forward';
     summaryOutcome.dispatchEvent(new window.Event('input'));
-    const firstMove = document.querySelector('.flow-compact [aria-label="First move"]');
+    const firstMove = document.querySelector('.flow-compact [aria-label="Next action"]');
     firstMove.value = 'Write a rough paragraph';
     firstMove.dispatchEvent(new window.Event('input'));
     [...document.querySelectorAll('.focus-window button')]
@@ -753,7 +753,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
       .find((b) => b.textContent === 'Back to Focus setup')
       .click();
     assert.equal(
-      document.querySelector('.flow-compact [aria-label="First move"]').value,
+      document.querySelector('.flow-compact [aria-label="Next action"]').value,
       'Write a rough paragraph',
     );
     const gamer = document.querySelector('input[name="layout"][value="gamer"]');
