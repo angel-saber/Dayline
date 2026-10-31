@@ -1,6 +1,6 @@
-import { parseDay, offsetDay } from '../../shared/dates.js?v=ebeed1edf97a';
-import { usFederalHolidays } from '../../shared/holidays.js?v=ebeed1edf97a';
-import { noteTags, categoryLabel } from '../notes/note-types.js?v=ebeed1edf97a';
+import { parseDay, offsetDay } from '../../shared/dates.js?v=1b376875cb7f';
+import { usFederalHolidays } from '../../shared/holidays.js?v=1b376875cb7f';
+import { noteTags, categoryLabel } from '../notes/note-types.js?v=1b376875cb7f';
 
 export function summarySource(days) {
   const notes = [],

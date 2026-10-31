@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=ebeed1edf97a';
-import { typeChips } from '../notes/note-types.js?v=ebeed1edf97a';
+import { node } from '../../shared/dom.js?v=1b376875cb7f';
+import { typeChips } from '../notes/note-types.js?v=1b376875cb7f';
 import {
   ACCESS,
   INTEREST,
@@ -7,15 +7,21 @@ import {
   BREATHS,
   RECOVERY_CHOICES,
   ACKNOWLEDGMENTS,
-} from './flow-model.js?v=ebeed1edf97a';
-import { breathingFrame } from '../activities/model.js?v=ebeed1edf97a';
+} from './flow-model.js?v=1b376875cb7f';
+import { breathingFrame } from '../activities/model.js?v=1b376875cb7f';
 const button = (text, action) => {
   const b = node('button', 'secondary', text);
   b.type = 'button';
   b.onclick = action;
   return b;
 };
-function field(root, label, value, change, { rows = 2, placeholder = '', max = 10000 } = {}) {
+function field(
+  root,
+  label,
+  value,
+  change,
+  { rows = 2, placeholder = '', max = 10000, readFirst = false } = {},
+) {
   const wrap = node('label', 'flow-field', label),
     input = node('textarea');
   input.rows = rows;
@@ -23,6 +29,50 @@ function field(root, label, value, change, { rows = 2, placeholder = '', max = 1
   input.value = value;
   input.placeholder = placeholder;
   input.setAttribute('aria-label', label);
+  if (readFirst) {
+    input.readOnly = true;
+    input.classList.add('flow-answer');
+    input.title = 'Double-click or double-tap to edit. Press Enter to edit with a keyboard.';
+    let lastTap = null;
+    const edit = () => {
+      input.readOnly = false;
+      input.classList.add('is-editing');
+      input.focus();
+    };
+    input.addEventListener('dblclick', edit);
+    input.addEventListener('pointerup', (event) => {
+      if (event.pointerType !== 'touch') return;
+      const now = Date.now();
+      if (
+        lastTap &&
+        now - lastTap.at < 350 &&
+        Math.hypot(event.clientX - lastTap.x, event.clientY - lastTap.y) < 20
+      ) {
+        edit();
+        lastTap = null;
+      } else lastTap = { at: now, x: event.clientX, y: event.clientY };
+    });
+    input.addEventListener('keydown', (event) => {
+      if (input.readOnly && event.key === 'Enter') {
+        event.preventDefault();
+        edit();
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        input.blur();
+      }
+    });
+    input.addEventListener('blur', () => {
+      input.readOnly = true;
+      input.classList.remove('is-editing');
+      lastTap = null;
+    });
+    const size = () => {
+      input.style.height = 'auto';
+      if (input.scrollHeight > 0) input.style.height = input.scrollHeight + 'px';
+    };
+    input.addEventListener('input', size);
+    globalThis.requestAnimationFrame?.(size);
+  }
   input.addEventListener('input', () => change(input.value));
   wrap.append(input);
   root.append(wrap);
@@ -86,7 +136,7 @@ export function compactFlow(flow, { onChange, categories, onTagsChange }) {
     node(
       'p',
       'field-hint',
-      'Optional: edit these directly, or use the extra preparation for help. When a note is selected, its categories and this plan’s categories stay in sync.',
+      'Double-click or double-tap an answer to edit; click outside to finish. Categories stay in sync with the selected note.',
     ),
   );
   field(
@@ -97,7 +147,7 @@ export function compactFlow(flow, { onChange, categories, onTagsChange }) {
       flow.outcome = v;
       onChange();
     },
-    { rows: 1, placeholder: 'What would you like to move forward?' },
+    { rows: 1, placeholder: 'What would you like to move forward?', readFirst: true },
   );
   root.append(outcomeCategories(flow, onChange, categories, onTagsChange));
   root.append(planRows(flow, onChange));
@@ -127,6 +177,17 @@ export function planRows(flow, onChange, withSuggestions = false) {
       const row = node('div', 'flow-plan-row'),
         step = flow.steps[index],
         approach = node('div', 'flow-row-approach');
+      const complete = node('input', 'flow-row-complete');
+      complete.type = 'checkbox';
+      complete.checked = !!step?.done;
+      complete.setAttribute('aria-label', `Mark row ${index + 1} complete`);
+      row.classList.toggle('completed', !!step?.done);
+      complete.addEventListener('change', () => {
+        ensureStep(index).done = complete.checked;
+        row.classList.toggle('completed', complete.checked);
+        onChange();
+      });
+      row.append(complete);
       const input = field(
         row,
         index ? `Evidence of progress ${index + 1}` : 'Evidence of progress',
@@ -135,7 +196,7 @@ export function planRows(flow, onChange, withSuggestions = false) {
           setEvidence(index, value);
           onChange();
         },
-        { rows: 1, placeholder: 'What will show progress?' },
+        { rows: 1, placeholder: 'What will show progress?', readFirst: true },
       );
       input.classList.add('flow-row-evidence');
       input.addEventListener('focus', () => (focusedEvidence = index));
@@ -147,7 +208,7 @@ export function planRows(flow, onChange, withSuggestions = false) {
           ensureStep(index).action = value;
           onChange();
         },
-        { rows: 1, max: 2000 },
+        { rows: 1, max: 2000, readFirst: true },
       );
       if (step?.strategy || step?.approachOpen) {
         field(
@@ -158,7 +219,7 @@ export function planRows(flow, onChange, withSuggestions = false) {
             ensureStep(index).strategy = value;
             onChange();
           },
-          { rows: 1, max: 2000 },
+          { rows: 1, max: 2000, readFirst: true },
         );
         approach.append(
           button('Remove approach', () => {

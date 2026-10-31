@@ -115,7 +115,7 @@ function harness(run) {
     }
   }
 }
-test('blank compact fields are immediately editable and helper suggestions, steps, warm-ups and recovery use the same draft', () =>
+test('compact fields and helper suggestions, rows, warm-ups and recovery use the same draft', () =>
   harness((window, document) => {
     const flow = newFlow();
     let saved = 0,
@@ -267,7 +267,7 @@ test('next action advances through unfinished actions and existing approaches st
     [...view.querySelectorAll('button')].find((b) => b.textContent === 'Remove approach').click();
     assert.equal(flow.steps[0].strategy, '');
     assert.equal(view.querySelector('[aria-label="Approach"]'), null);
-    assert.equal(view.querySelector('input[type=checkbox]'), null);
+    assert.ok(view.querySelector('.flow-row-complete'));
     flow.steps[1].done = true;
     assert.match(nextAction(flow), /All planned actions are checked off/);
     assert.deepEqual(validFlow(structuredClone(flow)), flow);
@@ -299,7 +299,7 @@ test('paired plan rows preserve unmatched legacy fields and remove only the chos
       'Third evidence',
     );
     assert.equal(rows[2].querySelector('[aria-label="Next action 3"]').value, '');
-    assert.equal(view.querySelector('input[type=checkbox]'), null);
+    assert.ok(view.querySelector('.flow-row-complete'));
     [...rows[1].querySelectorAll('button')].find((b) => b.textContent === 'Remove row').click();
     assert.deepEqual(flow.evidenceExtra, ['Third evidence']);
     assert.equal(flow.steps.length, 1);
@@ -338,4 +338,59 @@ test('active preparation reference includes all completed support areas and omit
     assert.equal(view.querySelector('textarea'), null);
     view.querySelector('button').click();
     assert.equal(edited, true);
+  }));
+
+test('plan answers require editing activation and row completion persists without changing answers', () =>
+  harness((window, document) => {
+    const flow = newFlow();
+    flow.evidence = 'A rough draft';
+    flow.steps[0].action = 'Write a paragraph';
+    let saves = 0;
+    const view = compactFlow(flow, {
+      onChange() {
+        saves++;
+      },
+      categories: {},
+    });
+    document.body.append(view);
+    const answer = view.querySelector('[aria-label="Next action"]');
+    assert.equal(answer.readOnly, true);
+    answer.dispatchEvent(new window.Event('click'));
+    assert.equal(answer.readOnly, true);
+    answer.dispatchEvent(new window.Event('dblclick'));
+    assert.equal(answer.readOnly, false);
+    answer.value = 'Write two paragraphs';
+    answer.dispatchEvent(new window.Event('input'));
+    answer.dispatchEvent(new window.Event('blur'));
+    assert.equal(answer.readOnly, true);
+    assert.equal(flow.steps[0].action, 'Write two paragraphs');
+    const tap = () => {
+      const event = new window.Event('pointerup', { cancelable: true });
+      for (const [key, value] of Object.entries({
+        pointerType: 'touch',
+        clientX: 100,
+        clientY: 100,
+      }))
+        Object.defineProperty(event, key, { value });
+      answer.dispatchEvent(event);
+    };
+    tap();
+    tap();
+    assert.equal(answer.readOnly, false);
+    answer.dispatchEvent(new window.Event('blur'));
+
+    const check = view.querySelector('.flow-row-complete');
+    check.checked = true;
+    check.dispatchEvent(new window.Event('change'));
+    assert.equal(flow.steps[0].done, true);
+    assert.equal(view.querySelector('.flow-plan-row').classList.contains('completed'), true);
+    assert.deepEqual(validFlow(structuredClone(flow)), flow);
+    assert.ok(saves > 0);
+    check.checked = false;
+    check.dispatchEvent(new window.Event('change'));
+    assert.equal(flow.steps[0].done, false);
+    const key = new window.Event('keydown', { cancelable: true });
+    Object.defineProperty(key, 'key', { value: 'Enter' });
+    answer.dispatchEvent(key);
+    assert.equal(answer.readOnly, false);
   }));

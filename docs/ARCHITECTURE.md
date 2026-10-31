@@ -616,3 +616,11 @@ never recommits or changes its start time. The isolated automatic next-action
 line is removed. Single-interval navigation is hidden, activity shortcuts stay in
 a collapsible inspiration pocket, and the interruption log remains directly
 editable. The main Finish action remains available at the bottom of the window.
+
+Each paired Focus plan row now has a completion checkbox bound to its existing
+step's done flag. It strikes through the row's displayed answers, persists to
+drafts/reports, and is reversible without changing note completion. Outcome and
+paired-row answer fields default to borderless read-only text; double-click,
+double-tap, or keyboard Enter enables editing, and blur/Escape returns to reading
+mode. Input still autosaves through the existing callbacks. No schema migration
+is needed, and existing completion values remain intact.

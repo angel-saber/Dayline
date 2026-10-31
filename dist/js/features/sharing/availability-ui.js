@@ -1,14 +1,14 @@
-import { node } from '../../shared/dom.js?v=ebeed1edf97a';
-import { availableHours, hourInput } from '../settings/available-hours.js?v=ebeed1edf97a';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=ebeed1edf97a';
-import { scopeRange } from '../bulk/model.js?v=ebeed1edf97a';
+import { node } from '../../shared/dom.js?v=1b376875cb7f';
+import { availableHours, hourInput } from '../settings/available-hours.js?v=1b376875cb7f';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=1b376875cb7f';
+import { scopeRange } from '../bulk/model.js?v=1b376875cb7f';
 import {
   emptyIntervals,
   availabilityText,
   mergeAvailability,
   validTimeZone,
-} from './availability-model.js?v=ebeed1edf97a';
-import { emailNoteUrl } from './share-note.js?v=ebeed1edf97a';
+} from './availability-model.js?v=1b376875cb7f';
+import { emailNoteUrl } from './share-note.js?v=1b376875cb7f';
 
 const button = (text, fn, cls = 'secondary') => {
   const el = node('button', cls, text);

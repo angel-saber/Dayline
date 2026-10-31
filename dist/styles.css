@@ -4892,6 +4892,50 @@ button.slot-time .now-badge {
 .focus-session-preparation > .flow-compact > h2 {
   display: none;
 }
+.flow-plan-row {
+  grid-template-columns: 24px minmax(0, 1fr) minmax(0, 1fr) minmax(130px, 1fr);
+}
+.flow-row-complete {
+  width: 18px;
+  height: 18px;
+  margin: 34px 0 0;
+  accent-color: var(--green);
+}
+.flow-field .flow-answer[readonly] {
+  border-color: transparent;
+  background: transparent;
+  padding: 8px 0;
+  resize: none;
+  overflow: hidden;
+  box-shadow: none;
+  cursor: text;
+}
+.flow-field .flow-answer.is-editing {
+  border-color: var(--green);
+  background: var(--white);
+  padding: 8px;
+}
+.flow-plan-row.completed .flow-field textarea {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+@media (max-width: 600px) {
+  .flow-plan-row {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+  .flow-plan-row > .flow-field,
+  .flow-plan-row > .flow-row-approach {
+    grid-column: 2;
+  }
+  .flow-row-complete {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
+.flow-field .flow-answer[readonly] {
+  caret-color: transparent;
+  overflow: auto;
+}
 
 
 :root[data-layout='astronaut'] body {
