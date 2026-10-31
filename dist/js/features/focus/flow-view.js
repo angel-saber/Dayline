@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=47449d930371';
-import { typeChips } from '../notes/note-types.js?v=47449d930371';
+import { node } from '../../shared/dom.js?v=34bd393decd8';
+import { typeChips } from '../notes/note-types.js?v=34bd393decd8';
 import {
   ACCESS,
   INTEREST,
@@ -7,8 +7,8 @@ import {
   BREATHS,
   RECOVERY_CHOICES,
   ACKNOWLEDGMENTS,
-} from './flow-model.js?v=47449d930371';
-import { breathingFrame } from '../activities/model.js?v=47449d930371';
+} from './flow-model.js?v=34bd393decd8';
+import { breathingFrame } from '../activities/model.js?v=34bd393decd8';
 const button = (text, action) => {
   const b = node('button', 'secondary', text);
   b.type = 'button';
@@ -79,10 +79,7 @@ function outcomeCategories(flow, onChange, categories, onTagsChange) {
 export function refreshOutcomeCategories(root) {
   root.querySelectorAll('.flow-outcome-tags').forEach((host) => categoryPickers.get(host)?.());
 }
-export function compactFlow(
-  flow,
-  { onChange, categories, mantra, showFirst = true, onTagsChange },
-) {
+export function compactFlow(flow, { onChange, categories, mantra, onTagsChange }) {
   const root = node('section', 'flow-compact');
   root.append(node('h2', '', 'Your focus plan'));
   root.append(
@@ -103,57 +100,121 @@ export function compactFlow(
     { rows: 1, placeholder: 'What would you like to move forward?' },
   );
   root.append(outcomeCategories(flow, onChange, categories, onTagsChange));
-  root.append(evidenceList(flow, onChange));
-  if (showFirst) root.append(stepList(flow, onChange));
+  root.append(planRows(flow, onChange));
   if (mantra !== undefined)
     root.append(node('p', 'flow-commitment-preview', `Commitment: ${mantra}`));
   return root;
 }
-export function evidenceList(flow, onChange, withSuggestions = false) {
-  const root = node('section', 'flow-evidence');
-  let focused = 0;
+export function planRows(flow, onChange, withSuggestions = false) {
+  const root = node('section', 'flow-plan-rows');
+  let focusedEvidence = 0;
+  const evidence = () => [flow.evidence, ...(flow.evidenceExtra || [])];
+  const count = () => Math.max(evidence().length, flow.steps.length);
+  function ensureStep(index) {
+    while (flow.steps.length <= index) flow.steps.push({ action: '', strategy: '', done: false });
+    return flow.steps[index];
+  }
+  function setEvidence(index, value) {
+    if (!index) flow.evidence = value;
+    else {
+      flow.evidenceExtra ||= [];
+      while (flow.evidenceExtra.length < index) flow.evidenceExtra.push('');
+      flow.evidenceExtra[index - 1] = value;
+    }
+  }
   function render() {
     root.replaceChildren();
-    const answers = [flow.evidence, ...(flow.evidenceExtra || [])];
-    answers.forEach((answer, index) => {
-      const row = node('div', 'flow-evidence-row');
+    const total = count();
+    for (let index = 0; index < total; index++) {
+      const row = node('div', 'flow-plan-row'),
+        step = flow.steps[index],
+        approach = node('div', 'flow-row-approach');
       const input = field(
         row,
         index ? `Evidence of progress ${index + 1}` : 'Evidence of progress',
-        answer,
+        evidence()[index] || '',
         (value) => {
-          if (index === 0) flow.evidence = value;
-          else flow.evidenceExtra[index - 1] = value;
+          setEvidence(index, value);
           onChange();
         },
-        { rows: 1, placeholder: 'What will show you that you’re making progress?' },
+        { rows: 1, placeholder: 'What will show progress?' },
       );
-      input.addEventListener('focus', () => (focused = index));
-      if (answers.length > 1)
-        row.append(
-          button('Remove evidence', () => {
-            const remaining = [flow.evidence, ...(flow.evidenceExtra || [])];
-            remaining.splice(index, 1);
-            flow.evidence = remaining[0];
-            flow.evidenceExtra = remaining.slice(1);
-            focused = 0;
+      input.classList.add('flow-row-evidence');
+      input.addEventListener('focus', () => (focusedEvidence = index));
+      field(
+        row,
+        index ? `Next action ${index + 1}` : 'Next action',
+        step?.action || '',
+        (value) => {
+          ensureStep(index).action = value;
+          onChange();
+        },
+        { rows: 1, max: 2000 },
+      );
+      if (step?.strategy || step?.approachOpen) {
+        field(
+          approach,
+          index ? `Approach for action ${index + 1}` : 'Approach',
+          step.strategy,
+          (value) => {
+            ensureStep(index).strategy = value;
+            onChange();
+          },
+          { rows: 1, max: 2000 },
+        );
+        approach.append(
+          button('Remove approach', () => {
+            const target = ensureStep(index);
+            target.strategy = '';
+            target.approachOpen = false;
             onChange();
             render();
           }),
         );
+      } else {
+        const add = button('＋ Add an approach', () => {
+          ensureStep(index).approachOpen = true;
+          onChange();
+          render();
+          root
+            .querySelectorAll('.flow-plan-row')
+            [index]?.querySelector('.flow-row-approach textarea')
+            ?.focus();
+        });
+        add.setAttribute('aria-label', `Add an approach to action ${index + 1}`);
+        approach.append(add);
+      }
+      row.append(approach);
+      if (total > 1) {
+        const remove = button('Remove row', () => {
+          const answers = evidence();
+          answers.splice(index, 1);
+          flow.evidence = answers[0] || '';
+          flow.evidenceExtra = answers.slice(1);
+          flow.steps.splice(index, 1);
+          if (!flow.steps.length) flow.steps.push({ action: '', strategy: '', done: false });
+          focusedEvidence = 0;
+          onChange();
+          render();
+        });
+        remove.classList.add('flow-remove-row');
+        row.append(remove);
+      }
       root.append(row);
-    });
-    const add = button('＋ Add evidence', () => {
-      if ((flow.evidenceExtra || []).length >= 29) return;
-      flow.evidenceExtra = [...(flow.evidenceExtra || []), ''];
+    }
+    const add = button('＋ Add row', () => {
+      const index = count();
+      if (index >= 30) return;
+      ensureStep(index);
+      setEvidence(index, '');
       onChange();
       render();
-      root.querySelectorAll('textarea')[root.querySelectorAll('textarea').length - 1]?.focus();
+      root.querySelectorAll('.flow-row-evidence')[index]?.focus();
     });
-    add.disabled = answers.length >= 30;
+    add.disabled = total >= 30;
     root.append(add);
     if (withSuggestions) {
-      const options = node('div', 'flow-options');
+      const choices = node('div', 'flow-options');
       for (const value of [
         'Rough draft',
         'Working test',
@@ -162,93 +223,20 @@ export function evidenceList(flow, onChange, withSuggestions = false) {
         'Completed section',
         'Clearer question',
       ])
-        options.append(
+        choices.append(
           button(value, () => {
             const input =
-              root.querySelectorAll('textarea')[focused] || root.querySelector('textarea');
+              root.querySelectorAll('.flow-row-evidence')[focusedEvidence] ||
+              root.querySelector('.flow-row-evidence');
             if (!input.value.split('\n').includes(value))
               input.value = [input.value, value].filter(Boolean).join('\n');
-            if (focused === 0) flow.evidence = input.value;
-            else flow.evidenceExtra[focused - 1] = input.value;
+            setEvidence(focusedEvidence, input.value);
             onChange();
             input.focus();
           }),
         );
-      root.append(options);
+      root.append(choices);
     }
-  }
-  render();
-  return root;
-}
-export function stepList(flow, onChange) {
-  const root = node('div', 'flow-steps');
-  function render() {
-    root.replaceChildren();
-    flow.steps.forEach((step, index) => {
-      const row = node('div', 'flow-step');
-      check(row, `Action ${index + 1} complete`, step.done, (value) => {
-        step.done = value;
-        onChange();
-      });
-      field(
-        row,
-        index ? `Next action ${index + 1}` : 'Next action',
-        step.action,
-        (value) => {
-          step.action = value;
-          onChange();
-        },
-        { rows: 1, max: 2000 },
-      );
-      if (step.strategy || step.approachOpen) {
-        field(
-          row,
-          index ? `Approach for action ${index + 1}` : 'Approach',
-          step.strategy,
-          (value) => {
-            step.strategy = value;
-            onChange();
-          },
-          { rows: 1, max: 2000 },
-        );
-        row.append(
-          button('Remove approach', () => {
-            step.strategy = '';
-            step.approachOpen = false;
-            onChange();
-            render();
-          }),
-        );
-      } else {
-        const add = button('＋ Add an approach', () => {
-          step.approachOpen = true;
-          onChange();
-          render();
-          root.children[index]?.querySelectorAll('textarea')[1]?.focus();
-        });
-        add.setAttribute('aria-label', `Add an approach to action ${index + 1}`);
-        row.append(add);
-      }
-      if (flow.steps.length > 1)
-        row.append(
-          button('Remove action', () => {
-            flow.steps.splice(index, 1);
-            onChange();
-            render();
-          }),
-        );
-      root.append(row);
-    });
-    const add = button('＋ Add action', () => {
-      if (flow.steps.length < 30) {
-        flow.steps.push({ action: '', strategy: '', done: false });
-        onChange();
-        render();
-        root.children[flow.steps.length - 1]?.querySelector('textarea')?.focus();
-      }
-    });
-    add.disabled = flow.steps.length >= 30;
-    root.append(add);
   }
   render();
   return root;
@@ -383,8 +371,7 @@ export function createFlowPreparation({
     onChange();
   });
   goal.append(outcomeCategories(flow, onChange, categories, onTagsChange));
-  goal.append(evidenceList(flow, onChange, true));
-  goal.append(stepList(flow, onChange));
+  goal.append(planRows(flow, onChange, true));
   field(goal, 'If I get stuck…', flow.ifStuck, (v) => {
     flow.ifStuck = v;
     onChange();

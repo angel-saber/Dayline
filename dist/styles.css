@@ -4813,6 +4813,30 @@ button.slot-time .now-badge {
 .flow-part[hidden] {
   display: none;
 }
+.flow-plan-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(130px, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.flow-row-approach {
+  min-width: 0;
+}
+.flow-row-approach > button {
+  margin: 12px 0;
+}
+.flow-remove-row {
+  grid-column: 1/-1;
+  justify-self: start;
+}
+@media (max-width: 600px) {
+  .flow-plan-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}
 
 
 :root[data-layout='astronaut'] body {

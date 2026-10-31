@@ -597,3 +597,11 @@ selected sections. Optional validated `supportAreas` metadata preserves choices
 across reopening; hiding a section does not erase answers. Older drafts start
 with no areas selected. Make it meaningful inserts the starter Accomplishing this
 would show that… without rewriting an existing response.
+
+Focus plan editing now uses one shared paired-row renderer: evidence, next action
+and its optional approach sit together, with no action-completion checkbox.
+Rows align the existing evidence and steps arrays by index, retaining unmatched
+older answers/actions without a migration. Add row appends a pair; explicit Remove
+row removes the pair. Existing approaches and completion metadata are preserved.
+The same row layout is used in setup, optional preparation and active editing;
+small screens stack each row's fields together in reading order.
