@@ -2,16 +2,16 @@ import {
   createFlowPreparation,
   recoverySection,
   preparationReference,
-} from './flow-view.js?v=268df83d9262';
-import { newFlow, newRecovery } from './flow-model.js?v=268df83d9262';
-import { setupBreakTimer } from './break-timer.js?v=268df83d9262';
-import { chooseRepeatScope } from '../repeating/scope.js?v=268df83d9262';
-import { node } from '../../shared/dom.js?v=268df83d9262';
-import { indentLevel } from '../notes/formatting/indents.js?v=268df83d9262';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=268df83d9262';
-import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=268df83d9262';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=268df83d9262';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=268df83d9262';
+} from './flow-view.js?v=f2c75fe48c17';
+import { newFlow, newRecovery } from './flow-model.js?v=f2c75fe48c17';
+import { setupBreakTimer } from './break-timer.js?v=f2c75fe48c17';
+import { chooseRepeatScope } from '../repeating/scope.js?v=f2c75fe48c17';
+import { node } from '../../shared/dom.js?v=f2c75fe48c17';
+import { indentLevel } from '../notes/formatting/indents.js?v=f2c75fe48c17';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=f2c75fe48c17';
+import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=f2c75fe48c17';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=f2c75fe48c17';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=f2c75fe48c17';
 import {
   focusIntervalNotes,
   newFocus,
@@ -22,10 +22,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=268df83d9262';
-import { createNoteEditor } from '../notes/note-editor.js?v=268df83d9262';
-import { renderFormatted } from '../notes/formatting/format.js?v=268df83d9262';
-import { noteTasks } from '../notes/formatting/tasks.js?v=268df83d9262';
+} from './model.js?v=f2c75fe48c17';
+import { createNoteEditor } from '../notes/note-editor.js?v=f2c75fe48c17';
+import { renderFormatted } from '../notes/formatting/format.js?v=f2c75fe48c17';
+import { noteTasks } from '../notes/formatting/tasks.js?v=f2c75fe48c17';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {
@@ -43,8 +43,7 @@ export function setupFocus(api) {
   const mini = button('', () => open(), 'focus-mini');
   mini.hidden = true;
   document.body.append(mini);
-  let flowOpen = false,
-    flowView = null;
+  let flowView = null;
   const breakTimer = setupBreakTimer({
     canShow: () => !document.querySelector('#planner')?.hidden,
   });
@@ -397,7 +396,6 @@ export function setupFocus(api) {
     flushNote();
     commitFocus(session, api.getState(), Date.now());
     breakTimer.stop();
-    flowOpen = false;
     const committed = save();
     transition = true;
     dialog.classList.add('focus-committing');
@@ -412,23 +410,10 @@ export function setupFocus(api) {
         );
     }, 1100);
   }
-  function extendedPreparation() {
-    base('Access Flow State for the Task');
+  function helpSections() {
     flowView = createFlowPreparation({
       flow: flow(),
       onChange: save,
-      onBack() {
-        flowOpen = false;
-        render();
-      },
-      returnToSession: session.phase === 'active',
-      onBegin:
-        session.phase === 'active'
-          ? () => {
-              flowOpen = false;
-              render();
-            }
-          : beginFocus,
       onAudio: () => api.openAudio(),
       onSaveWarmup(text) {
         const found = resolve(),
@@ -459,27 +444,13 @@ export function setupFocus(api) {
         return true;
       },
     });
-    dialog.append(flowView.element);
+    return flowView.element;
   }
   function prepare() {
     base(voice('focus.preparationHeading'));
     const fields = node('div', 'focus-prep-fields');
     fields.append(node('p', 'focus-lead', voice('focus.preparationIntro')), noteSection());
-    for (const [title, copy] of [
-      [voice('focus.overwhelmedHeading'), voice('focus.overwhelmedAdvice')],
-      [voice('focus.confusedHeading'), voice('focus.confusedAdvice')],
-    ]) {
-      const details = node('details', 'focus-advice');
-      details.append(node('summary', '', title), node('p', '', copy));
-      fields.append(details);
-    }
-    fields.append(
-      button('Need more help getting started?', () => {
-        noteEditor?.flush();
-        flowOpen = true;
-        render();
-      }),
-    );
+    fields.append(helpSections());
     const commitment = node('section', 'focus-commitment');
     commitment.append(node('h2', '', voice('focus.commitmentHeading')));
     const mantra = node('textarea', 'focus-mantra-input');
@@ -524,10 +495,11 @@ export function setupFocus(api) {
   function active() {
     base(voice('focus.activeHeading'));
     dialog.append(node('p', 'focus-mantra', session.mantra));
+    const editHelp = node('details', 'focus-edit-preparation');
+    editHelp.append(node('summary', '', 'Edit preparation'), helpSections());
     const reference = preparationReference(flow(), () => {
-      noteEditor?.flush();
-      flowOpen = true;
-      render();
+      editHelp.open = true;
+      editHelp.scrollIntoView?.({ block: 'nearest' });
     });
 
     const stats = node('div', 'focus-stats');
@@ -573,7 +545,7 @@ export function setupFocus(api) {
         }),
       );
     if (session.pages.length > 1) dialog.append(pages);
-    dialog.append(noteSection(), reference);
+    dialog.append(noteSection(), reference, editHelp);
     const found = resolve(),
       current = session.pages.at(-1);
     if (
@@ -736,18 +708,14 @@ export function setupFocus(api) {
     if (!session) return;
     refreshPageSnapshot();
     syncOutcomeTags();
-    if (flowOpen && session.phase === 'active') extendedPreparation();
-    else if (session.phase === 'prepare') {
-      if (flowOpen) extendedPreparation();
-      else prepare();
-    } else if (session.phase === 'reflect') reflect();
+    if (session.phase === 'prepare') prepare();
+    else if (session.phase === 'reflect') reflect();
     else active();
     buttons();
   }
   function clear() {
     flowView?.destroy();
     flowView = null;
-    flowOpen = false;
     flushNote();
     if (session?.owner === owner) {
       try {
@@ -880,7 +848,12 @@ export function setupFocus(api) {
         flushNote();
         if (advanceFocus(session, slot, Date.now())) {
           save();
-          if (dialog.open && !transition && !flowOpen) render();
+          if (
+            dialog.open &&
+            !transition &&
+            !dialog.querySelector('.focus-help-sections')?.contains(document.activeElement)
+          )
+            render();
         }
       }
     }

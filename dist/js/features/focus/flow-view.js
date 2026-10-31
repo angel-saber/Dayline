@@ -1,6 +1,6 @@
-import { node } from '../../shared/dom.js?v=268df83d9262';
-import { ACCESS, INTEREST, PERMISSIONS, BREATHS } from './flow-model.js?v=268df83d9262';
-import { breathingFrame } from '../activities/model.js?v=268df83d9262';
+import { node } from '../../shared/dom.js?v=f2c75fe48c17';
+import { ACCESS, INTEREST, PERMISSIONS, BREATHS } from './flow-model.js?v=f2c75fe48c17';
+import { breathingFrame } from '../activities/model.js?v=f2c75fe48c17';
 const button = (text, action) => {
   const b = node('button', 'secondary', text);
   b.type = 'button';
@@ -44,73 +44,30 @@ function suggestions(root, choices, input, change) {
     );
   root.append(buttons);
 }
-export function createFlowPreparation({
-  flow,
-  categories,
-  onChange,
-  onBack,
-  onBegin,
-  onAudio,
-  onSaveWarmup,
-  returnToSession = false,
-}) {
-  const root = node('section', 'flow-preparation focus-prep-fields');
+export function createFlowPreparation({ flow, onChange, onAudio, onSaveWarmup }) {
+  const root = node('section', 'focus-help-sections');
   root.append(
     node(
       'p',
       'field-hint',
-      'Make the task engaging, the next move clear, and your attention available. Everything is optional; begin whenever you’re ready.',
+      'Open only what would help you. Everything here is optional and saves as you go.',
     ),
   );
-  const selected = new Set(flow.supportAreas || []),
-    sections = new Map(),
-    choicesForSupport = node('div', 'flow-support-choices');
-  root.append(
-    node('h3', '', 'What are you struggling with?'),
-    node(
-      'p',
-      'field-hint',
-      'Choose only the areas you want help with. You can choose several, change your mind, or begin without selecting any.',
-    ),
-    choicesForSupport,
-  );
-  for (const [key, label] of [
-    ['balance', 'Challenge–Skill Balance'],
-    ['goals', 'Clear Goal and Feedback'],
-    ['judgment', 'Step Out of Self-Judgment'],
-    ['attention', 'Protect Your Attention'],
-  ]) {
-    const choice = button(label, () => {
-      if (selected.has(key)) selected.delete(key);
-      else selected.add(key);
-      flow.supportAreas = [...selected];
-      onChange();
-      for (const [area, section] of sections) {
-        section.hidden = !selected.has(area);
-        section.open = selected.has(area);
-      }
-      for (const b of choicesForSupport.children)
-        b.setAttribute('aria-pressed', String(selected.has(b.dataset.area)));
-      if (!selected.has('judgment')) {
+  function section(title, key) {
+    const d = node('details', 'flow-part focus-advice');
+    d.dataset.supportArea = key;
+    d.open = false;
+    d.append(node('summary', '', title));
+    root.append(d);
+    d.addEventListener('toggle', () => {
+      if (key === 'judgment' && !d.open) {
         breathingAt = null;
         timerUntil = null;
       }
     });
-    choice.dataset.area = key;
-    choice.setAttribute('aria-pressed', String(selected.has(key)));
-    choicesForSupport.append(choice);
-  }
-  function section(title, key) {
-    const d = node('details', 'flow-part');
-    d.dataset.supportArea = key;
-    d.hidden = !selected.has(key);
-    d.open = selected.has(key);
-    d.append(node('summary', '', title));
-    sections.set(key, d);
-    root.append(d);
     return d;
   }
-  const balance = section('Challenge–Skill Balance · Find a way into the task', 'balance'),
+  const balance = section('How can this feel more engaging or manageable?', 'balance'),
     choices = node('div', 'flow-options');
   const interest = node('div'),
     access = node('div');
@@ -168,16 +125,57 @@ export function createFlowPreparation({
     onChange();
   });
   syncBalance();
-  const goal = section('Clear Goal and Feedback · Choose a target you can act on', 'goals');
+  const goal = section('What would count as progress?', 'goals');
   goal.append(
     node(
       'p',
       '',
-      'Let your note do the planning. Name one useful outcome, one small next action, and a simple sign of progress. A rough attempt, a test, a decision, or a clearer question can be enough.',
+      'Choose a sign of progress and one small action. A rough attempt or clearer understanding can count.',
     ),
-    button('Back to my note', onBack),
   );
-  const permission = section('Step Out of Self-Judgment · Let yourself attempt it', 'judgment');
+  const progressChoices = node('div', 'flow-options');
+  const progress = field(
+    goal,
+    'Progress I want to see',
+    flow.evidence,
+    (value) => {
+      flow.evidence = value;
+      onChange();
+    },
+    { rows: 1 },
+  );
+  progress.parentElement.hidden = !flow.evidence.trim();
+  for (const [label, starter] of [
+    ['A rough version', 'A rough version of…'],
+    ['One finished piece', 'One finished piece of…'],
+    ['A decision', 'A decision about…'],
+    ['Something tested', 'Test whether…'],
+    ['A clearer understanding', 'A clearer understanding of…'],
+    ['My own', ''],
+  ])
+    progressChoices.append(
+      button(label, () => {
+        progress.parentElement.hidden = false;
+        if (!flow.evidence.trim() && starter) {
+          flow.evidence = progress.value = starter;
+          onChange();
+        }
+        progress.focus();
+      }),
+    );
+  goal.insertBefore(progressChoices, progress.parentElement);
+  field(
+    goal,
+    'What is the smallest action that would move that forward?',
+    flow.steps[0].action,
+    (value) => {
+      if (flow.steps[0].action !== value) flow.steps[0].done = false;
+      flow.steps[0].action = value;
+      onChange();
+    },
+    { rows: 1, max: 2000 },
+  );
+  const permission = section('What are you giving yourself permission to try?', 'judgment');
   const fear = field(permission, 'What are you afraid might happen?', flow.fear, (v) => {
     flow.fear = v;
     onChange();
@@ -345,16 +343,9 @@ export function createFlowPreparation({
         node('p', 'flow-warmup-timer'),
       );
     }
-    if (flow.warmup)
-      warmup.append(
-        button(returnToSession ? 'Return to session' : 'I’ve started—begin session', onBegin),
-      );
   }
   renderWarmup();
-  const attention = section(
-    'Protect Your Attention · Give the task somewhere to unfold',
-    'attention',
-  );
+  const attention = section('What would help protect your attention?', 'attention');
   attention.append(
     button('Choose / open Focus Audio', onAudio),
     node(
@@ -394,11 +385,6 @@ export function createFlowPreparation({
     flow.hideClock = v;
     onChange();
   });
-  const footer = node('div', 'flow-preparation-actions focus-commitment');
-  const begin = button(returnToSession ? 'Return to session' : 'Begin Focus', onBegin);
-  begin.className = 'primary';
-  footer.append(button(returnToSession ? 'Back to session' : 'Back to Focus setup', onBack), begin);
-  root.append(footer);
   function tick() {
     const circle = warmup.querySelector('.flow-breath-circle'),
       label = warmup.querySelector('.flow-breath-instruction');
@@ -494,7 +480,7 @@ export function preparationReference(flow, onEdit) {
     ['Protect Your Attention', [['Parked distractions', flow.parked]]],
   ];
   if (flow.outcome.trim()) groups[1][1].unshift(['Earlier outcome', flow.outcome]);
-  if (flow.evidence.trim()) groups[1][1].push(['Earlier evidence of progress', flow.evidence]);
+  if (flow.evidence.trim()) groups[1][1].push(['Progress I want to see', flow.evidence]);
   for (const answer of flow.evidenceExtra || [])
     if (answer.trim()) groups[1][1].push(['Earlier evidence of progress', answer]);
   for (const step of flow.steps)
