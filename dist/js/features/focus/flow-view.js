@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=34bd393decd8';
-import { typeChips } from '../notes/note-types.js?v=34bd393decd8';
+import { node } from '../../shared/dom.js?v=f99b8ac250a9';
+import { typeChips } from '../notes/note-types.js?v=f99b8ac250a9';
 import {
   ACCESS,
   INTEREST,
@@ -7,8 +7,8 @@ import {
   BREATHS,
   RECOVERY_CHOICES,
   ACKNOWLEDGMENTS,
-} from './flow-model.js?v=34bd393decd8';
-import { breathingFrame } from '../activities/model.js?v=34bd393decd8';
+} from './flow-model.js?v=f99b8ac250a9';
+import { breathingFrame } from '../activities/model.js?v=f99b8ac250a9';
 const button = (text, action) => {
   const b = node('button', 'secondary', text);
   b.type = 'button';
@@ -79,7 +79,7 @@ function outcomeCategories(flow, onChange, categories, onTagsChange) {
 export function refreshOutcomeCategories(root) {
   root.querySelectorAll('.flow-outcome-tags').forEach((host) => categoryPickers.get(host)?.());
 }
-export function compactFlow(flow, { onChange, categories, mantra, onTagsChange }) {
+export function compactFlow(flow, { onChange, categories, onTagsChange }) {
   const root = node('section', 'flow-compact');
   root.append(node('h2', '', 'Your focus plan'));
   root.append(
@@ -101,8 +101,6 @@ export function compactFlow(flow, { onChange, categories, mantra, onTagsChange }
   );
   root.append(outcomeCategories(flow, onChange, categories, onTagsChange));
   root.append(planRows(flow, onChange));
-  if (mantra !== undefined)
-    root.append(node('p', 'flow-commitment-preview', `Commitment: ${mantra}`));
   return root;
 }
 export function planRows(flow, onChange, withSuggestions = false) {

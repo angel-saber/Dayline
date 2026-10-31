@@ -125,7 +125,6 @@ test('blank compact fields are immediately editable and helper suggestions, step
     const compact = compactFlow(flow, {
       onChange: change,
       categories: { project: 'Project' },
-      mantra: 'My commitment',
     });
     document.body.append(compact);
     for (const label of ['Outcome', 'Evidence of progress', 'Next action'])
