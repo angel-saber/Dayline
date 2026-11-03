@@ -4830,6 +4830,26 @@ button.slot-time .now-badge {
   font-weight: 600;
 }
 
+/* Card starts share the exact proportional axis used by precise-time clicks. */
+.slot.precise-layout > .slot-time {
+  height: var(--interval-height);
+}
+.slot.precise-layout > .slot-notes {
+  position: relative;
+  display: block;
+  height: calc(var(--interval-height) + 36px);
+}
+.slot.precise-layout > .slot-notes > .entry {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+.slot.precise-layout > .slot-notes > .slot-add {
+  position: absolute;
+  top: calc(var(--interval-height) + 8px);
+  left: 0;
+}
+
 
 :root[data-layout='astronaut'] body {
   background-image:
