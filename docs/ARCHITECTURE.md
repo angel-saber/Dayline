@@ -589,3 +589,11 @@ act as switchable choices with pressed states; optional validated progressChoice
 and progressDrafts fields retain each choice's edited answer, so switching does
 not overwrite another answer. The third question is What’s making you hesitate?,
 with worry suggestions before the fear/permission inputs rather than after them.
+
+Daily's `daily/timeline-layout.js` positions timed note starts against each
+interval's proportional gutter, rather than stacking every time at its start.
+Measured body heights expand the interval to prevent overlap; simultaneous notes
+stack at the same anchor. ResizeObserver recalculates after content/width changes,
+and observers are disconnected before timeline replacement. Editors temporarily
+use normal flow to preserve stable typing; closing restores time alignment.
+All-day notes remain outside this layout. No stored note times are rewritten.

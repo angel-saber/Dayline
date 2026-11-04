@@ -1,9 +1,9 @@
-import { validFormat } from './formatting/format.js?v=a5e287120672';
-import { validTasks, lineRange } from './formatting/tasks.js?v=a5e287120672';
-import { validBullets } from './formatting/bullets.js?v=a5e287120672';
-import { validIndents } from './formatting/indents.js?v=a5e287120672';
-import { replaceText } from './editor-state.js?v=a5e287120672';
-import { richBody } from '../sharing/share-format.js?v=a5e287120672';
+import { validFormat } from './formatting/format.js?v=151c18869303';
+import { validTasks, lineRange } from './formatting/tasks.js?v=151c18869303';
+import { validBullets } from './formatting/bullets.js?v=151c18869303';
+import { validIndents } from './formatting/indents.js?v=151c18869303';
+import { replaceText } from './editor-state.js?v=151c18869303';
+import { richBody } from '../sharing/share-format.js?v=151c18869303';
 
 export const NOTE_CLIPBOARD = 'application/x-dayline-note+json';
 const LIMIT = 1000000;
