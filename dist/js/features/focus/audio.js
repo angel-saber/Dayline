@@ -1,2 +1,2 @@
 // Compatibility export; the standalone audio feature owns playback.
-export { FocusAudio } from '../focus-audio/audio.js?v=151c18869303';
+export { FocusAudio } from '../focus-audio/audio.js?v=e010dd455f61';

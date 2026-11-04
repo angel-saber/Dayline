@@ -597,3 +597,10 @@ stack at the same anchor. ResizeObserver recalculates after content/width change
 and observers are disconnected before timeline replacement. Editors temporarily
 use normal flow to preserve stable typing; closing restores time alignment.
 All-day notes remain outside this layout. No stored note times are rewritten.
+
+`features/day-adjust/` owns the optional Adjust my day experiment: a pure schedule
+preview/apply model and a collapsed Daily UI. The app adapter handles existing
+note editing, persistence, and Undo. Preview snapshots protect affected days from
+stale writes; only explicit Apply changes schedules. The device-local visibility
+switch does not change shared settings or note schemas. See
+`ADJUST_MY_DAY_EXPERIMENT.md` for scope, limitations and the preserved rollback ref.

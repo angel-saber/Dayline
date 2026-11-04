@@ -4850,6 +4850,70 @@ button.slot-time .now-badge {
   left: 0;
 }
 
+.day-adjust {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  margin: 16px 0;
+  padding: 14px;
+  background: var(--white);
+}
+.day-adjust > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.day-adjust-body {
+  display: grid;
+  gap: 12px;
+  padding-top: 12px;
+}
+.day-adjust-body p {
+  margin: 0;
+}
+.day-adjust-actions,
+.day-adjust-fields {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.day-adjust-fields label {
+  display: grid;
+  gap: 6px;
+  flex: 1 1 150px;
+}
+.day-adjust-fields input {
+  width: 100%;
+  min-width: 0;
+}
+.day-adjust button {
+  white-space: normal;
+  text-align: left;
+}
+.day-adjust-actions [aria-pressed='true'] {
+  outline: 2px solid var(--green);
+  outline-offset: 1px;
+}
+.day-adjust-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+}
+.day-adjust-note label {
+  overflow-wrap: anywhere;
+}
+.day-adjust-note input {
+  margin-right: 8px;
+}
+.day-adjust-preview {
+  display: grid;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+.day-adjust-message:empty {
+  display: none;
+}
+
 
 :root[data-layout='astronaut'] body {
   background-image:
