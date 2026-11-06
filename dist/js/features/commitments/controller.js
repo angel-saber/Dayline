@@ -1,0 +1,581 @@
+import {
+  readAwakeHours,
+  awakeMinutes,
+  isAwake,
+  commitmentAllocation,
+  assertCommitmentBudget,
+  AWAKE_HOURS_EVENT,
+  AWAKE_HOURS_KEY,
+} from '../settings/awake-hours.js?v=c8e108356247';
+import { readTiming } from '../focus/timing.js?v=c8e108356247';
+import { dayKey } from '../../shared/dates.js?v=c8e108356247';
+import { bucket } from '../../shared/schedule.js?v=c8e108356247';
+import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=c8e108356247';
+import {
+  COMMITMENT_STATE_KEY,
+  DURATION_PRESETS,
+  suggestedPracticeBreak,
+  newCommitmentState,
+  readCommitmentState,
+  validCommitmentState,
+  commitmentDone,
+  evaluateGame,
+  toggleGame,
+  acknowledgePenalty,
+  changeItems,
+  pendingCommitments,
+} from './game.js?v=c8e108356247';
+import { node } from '../../shared/dom.js?v=c8e108356247';
+import {
+  COMMITMENTS_KEY,
+  SUGGESTIONS,
+  validCommitments,
+  practiceProgress,
+} from './model.js?v=c8e108356247';
+function button(text, action, kind = 'secondary') {
+  const b = node('button', kind, text);
+  b.type = 'button';
+  b.addEventListener('click', action);
+  return b;
+}
+export function setupCommitments({
+  getState,
+  startPractice,
+  notify = () => {},
+  openAwakeSettings = () => {},
+  canNotify = () => true,
+  storage = localStorage,
+  now = () => new Date(),
+}) {
+  const launch = document.querySelector('#launch-commitments'),
+    dialog = node('dialog', 'shortcuts-panel commitments-panel');
+  dialog.id = 'commitments-panel';
+  dialog.setAttribute('aria-labelledby', 'commitments-heading');
+  document.body.append(dialog);
+  launch.setAttribute('aria-controls', dialog.id);
+  launch.setAttribute('aria-haspopup', 'dialog');
+  launch.setAttribute('aria-expanded', 'false');
+  const header = node('div', 'shortcuts-header'),
+    heading = node('h2', '', 'Daily Commitments');
+  heading.id = 'commitments-heading';
+  function close() {
+    dialog.close();
+  }
+  header.append(heading, button('Close', close));
+  const status = node('p', 'field-hint');
+  status.setAttribute('role', 'status');
+  const list = node('div', 'commitments-list'),
+    form = node('form', 'shortcut-form'),
+    formTitle = node('h3', '', 'Add a daily practice');
+  const suggestions = node('div', 'commitment-suggestions');
+  const titleLabel = node('label', '', 'Habit'),
+    title = node('input');
+  title.type = 'text';
+  title.required = true;
+  title.maxLength = 100;
+  title.setAttribute('aria-label', 'Habit name');
+  titleLabel.append(title);
+  const minuteLabel = node('label', '', 'Daily focus minutes'),
+    minutes = node('input');
+  minutes.type = 'number';
+  minutes.min = '2';
+  minutes.max = '1440';
+  minutes.step = '1';
+  minutes.required = true;
+  minutes.value = '30';
+  minutes.setAttribute('aria-label', 'Daily focus minutes');
+  minuteLabel.append(minutes);
+  for (const text of SUGGESTIONS)
+    suggestions.append(
+      button(text, () => {
+        title.value = text;
+        title.focus();
+      }),
+    );
+  const presets = node('div', 'commitment-suggestions');
+  const breakLabel = node('label', '', 'Optional break minutes (0 means no break)'),
+    breakMinutes = node('input');
+  breakMinutes.type = 'number';
+  breakMinutes.min = '0';
+  breakMinutes.max = '120';
+  breakMinutes.step = '1';
+  breakMinutes.value = '5';
+  breakMinutes.setAttribute('aria-label', 'Commitment break minutes');
+  breakLabel.append(breakMinutes);
+  const breakHint = node(
+    'p',
+    'field-hint',
+    'Suggested breaks are starting points, not standards: short practices need no preset break; 25–30 min → 5, 45–60 → 10, 90–120 → 15. Set any break from 0–120 minutes.',
+  );
+  for (const duration of DURATION_PRESETS)
+    presets.append(
+      button(`${duration} min`, () => {
+        minutes.value = String(duration);
+        breakMinutes.value = String(suggestedPracticeBreak(duration));
+      }),
+    );
+  const capacity = node('section', 'commitment-capacity');
+  const gamePanel = node('section', 'commitment-game');
+  const gameLabel = node('label'),
+    gameToggle = node('input');
+  gameToggle.type = 'checkbox';
+  gameToggle.setAttribute('aria-label', 'Commitment game mode');
+  gameLabel.append(gameToggle, document.createTextNode('Optional game mode'));
+  const pingLabel = node('label'),
+    pingToggle = node('input');
+  pingToggle.type = 'checkbox';
+  pingToggle.setAttribute('aria-label', 'Suggest commitments in empty intervals');
+  pingLabel.append(
+    pingToggle,
+    document.createTextNode(
+      'Suggest pending commitments in empty intervals (requires notifications)',
+    ),
+  );
+  const save = node('button', 'primary', 'Add commitment');
+  save.type = 'submit';
+  const cancel = button('Cancel edit', reset);
+  cancel.hidden = true;
+  form.append(
+    formTitle,
+    node(
+      'p',
+      'field-hint',
+      'Choose a suggestion or write your own. Show up for the practice; no specific outcome required.',
+    ),
+    suggestions,
+    titleLabel,
+    presets,
+    minuteLabel,
+    breakLabel,
+    breakHint,
+    save,
+    cancel,
+  );
+  dialog.append(
+    header,
+    node(
+      'p',
+      '',
+      'A little time, every day. Tap a habit to begin its Focus Session. The timer sounds when your practice block ends. You can finish early whenever needed.',
+    ),
+    node(
+      'p',
+      'field-hint',
+      'This list is saved in this browser. Finished sessions are saved in your notes and can sync with your account.',
+    ),
+    status,
+    pingLabel,
+    gameLabel,
+    capacity,
+    gamePanel,
+    list,
+    form,
+  );
+  let commitmentState = newCommitmentState(),
+    loadedRaw = null;
+  const rawToken = () =>
+    storage.getItem(COMMITMENT_STATE_KEY) ?? 'legacy:' + storage.getItem(COMMITMENTS_KEY);
+  let items = [],
+    editing = null,
+    unreadable = false,
+    returnFocus = null;
+  function read() {
+    try {
+      commitmentState = readCommitmentState(storage);
+      loadedRaw = rawToken();
+      items = commitmentState.items;
+      unreadable = false;
+      save.disabled = false;
+    } catch {
+      unreadable = true;
+      save.disabled = true;
+      status.textContent = 'Saved commitments could not be read. They have not been overwritten.';
+    }
+  }
+  function reset() {
+    editing = null;
+    title.value = '';
+    minutes.value = '30';
+    breakMinutes.value = '5';
+    formTitle.textContent = 'Add a daily practice';
+    save.textContent = 'Add commitment';
+    cancel.hidden = true;
+  }
+  function persist(next) {
+    try {
+      if (unreadable)
+        throw Error('Saved commitments could not be read. They have not been overwritten.');
+      if (rawToken() !== loadedRaw)
+        throw Error('Commitments changed in another tab. Reopen this list before saving.');
+      if (Array.isArray(next))
+        assertCommitmentBudget(items, next, readAwakeHours(storage), readTiming(storage));
+      const validated = validCommitmentState(
+        Array.isArray(next) ? changeItems(commitmentState, next) : next,
+      );
+      storage.setItem(COMMITMENT_STATE_KEY, JSON.stringify(validated));
+      loadedRaw = rawToken();
+      commitmentState = validated;
+      items = validated.items;
+      return true;
+    } catch (e) {
+      status.textContent = 'Could not save commitments. ' + e.message;
+      return false;
+    }
+  }
+  function settle() {
+    if (unreadable) return;
+    const today = dayKey(),
+      game = commitmentState.game;
+    if (!game.enabled || game.pending || (game.nextDate >= today && game.snapshots[today])) return;
+    const evaluated = evaluateGame(commitmentState, getState().days);
+    if (JSON.stringify(evaluated) !== JSON.stringify(commitmentState)) {
+      if (persist(evaluated)) {
+        launch.textContent = commitmentState.game.pending
+          ? 'Daily Commitments · !'
+          : 'Daily Commitments';
+        launch.title = commitmentState.game.pending
+          ? 'One game adjustment is waiting for acknowledgment'
+          : 'Daily Commitments';
+      }
+    }
+  }
+  gameToggle.onchange = () => {
+    if (persist(toggleGame(commitmentState, gameToggle.checked))) render();
+  };
+  pingToggle.onchange = () => {
+    if (persist({ ...commitmentState, pingEnabled: pingToggle.checked })) render();
+  };
+  function render() {
+    settle();
+    gameToggle.checked = commitmentState.game.enabled;
+    pingToggle.checked = commitmentState.pingEnabled;
+    capacity.replaceChildren(
+      node(
+        'p',
+        '',
+        `Daily allocation: ${commitmentAllocation(items, readTiming(storage))} / ${awakeMinutes(readAwakeHours(storage))} awake minutes, including configured breaks.`,
+      ),
+      button('Adjust Awake Hours', () => {
+        close();
+        openAwakeSettings();
+      }),
+    );
+    gamePanel.replaceChildren();
+    const game = commitmentState.game;
+    launch.textContent = game.pending ? 'Daily Commitments · !' : 'Daily Commitments';
+    launch.title = game.pending
+      ? 'One game adjustment is waiting for acknowledgment'
+      : 'Daily Commitments';
+    launch.setAttribute(
+      'aria-label',
+      game.pending ? 'Daily Commitments: one game adjustment waiting' : 'Daily Commitments',
+    );
+    if (game.enabled) {
+      gamePanel.append(
+        node(
+          'p',
+          '',
+          `Commitment limit: ${game.cap} · Completed days toward the next slot: ${game.wins}/7. Days settle after midnight.`,
+        ),
+        node(
+          'p',
+          'field-hint',
+          'Seven consecutive completed days unlock one slot. Two consecutive incomplete days request one adjustment. No further penalties accumulate until you acknowledge it. The next run starts today after acknowledgment.',
+        ),
+      );
+      if (game.pending) {
+        gamePanel.append(
+          node(
+            'p',
+            '',
+            items.length > 1
+              ? 'One adjustment is waiting: choose a commitment to remove below.'
+              : 'One adjustment is waiting: reduce your last commitment by 5 minutes, down to a 2-minute minimum.',
+          ),
+        );
+        if (items.length <= 1)
+          gamePanel.append(
+            button(
+              items[0]?.minutes > 2
+                ? 'Acknowledge & reduce by 5 minutes'
+                : 'Acknowledge · minimum already reached',
+              () => {
+                if (persist(acknowledgePenalty(commitmentState, null))) {
+                  reset();
+                  render();
+                }
+              },
+            ),
+          );
+      }
+    }
+    list.replaceChildren();
+    if (!items.length) list.append(node('p', 'field-hint', 'Add your first practice below.'));
+    for (const item of items) {
+      const row = node('section', 'commitment-row');
+      const total = practiceProgress(getState().days, item.id);
+      const done = commitmentDone(commitmentState, item, dayKey(), getState().days);
+      const manual = commitmentState.marks[dayKey()]?.includes(item.id);
+      row.classList.toggle('commitment-done', done);
+      const mark = () => {
+        if (done && !manual) return;
+        const next = structuredClone(commitmentState),
+          date = dayKey();
+        const ids = new Set(next.marks[date] || []);
+        ids.has(item.id) ? ids.delete(item.id) : ids.add(item.id);
+        next.marks[date] = [...ids];
+        if (persist(next)) render();
+      };
+      let pointer = null,
+        swiped = false;
+      row.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0 || e.target.closest('.commitment-controls')) return;
+        pointer = { id: e.pointerId, x: e.clientX, y: e.clientY };
+      });
+      row.addEventListener('pointercancel', () => {
+        pointer = null;
+      });
+      row.addEventListener('pointerup', (e) => {
+        if (!pointer || e.pointerId !== pointer.id) return;
+        const dx = e.clientX - pointer.x,
+          dy = e.clientY - pointer.y;
+        pointer = null;
+        if (dx >= 60 && dx > Math.abs(dy) * 1.4) {
+          swiped = true;
+          e.preventDefault();
+          mark();
+        }
+      });
+      row.addEventListener(
+        'click',
+        (e) => {
+          if (swiped) {
+            swiped = false;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+          }
+        },
+        true,
+      );
+      const start = button(
+        item.title,
+        () => {
+          close();
+          startPractice(item);
+        },
+        'secondary commitment-start',
+      );
+      start.setAttribute('aria-label', `Start ${item.minutes}-minute practice: ${item.title}`);
+      row.append(
+        start,
+        ...(done ? [node('strong', '', 'Done today')] : []),
+        node(
+          'p',
+          'field-hint',
+          `${item.minutes} min daily · Today: ${Math.floor(total / 60000)} min recorded`,
+        ),
+      );
+      const controls = node('div', 'inline commitment-controls');
+      const doneButton = button(
+        done ? (manual ? 'Undo done' : 'Completed by practice') : 'Mark done',
+        mark,
+      );
+      doneButton.disabled = done && !manual;
+      controls.append(doneButton);
+      if (game.enabled && game.pending && items.length > 1)
+        controls.append(
+          button('Confirm removal for game adjustment', () => {
+            if (persist(acknowledgePenalty(commitmentState, item.id))) {
+              reset();
+              render();
+            }
+          }),
+        );
+      controls.append(
+        button('Edit', () => {
+          editing = item.id;
+          title.value = item.title;
+          minutes.value = String(item.minutes);
+          breakMinutes.value = String(item.breakMinutes ?? suggestedPracticeBreak(item.minutes));
+          formTitle.textContent = 'Edit daily practice';
+          save.textContent = 'Save commitment';
+          cancel.hidden = false;
+          title.focus();
+        }),
+        button('Remove', () => {
+          if (commitmentState.game.pending) {
+            status.textContent =
+              'Use the game adjustment confirmation, or disable game mode first.';
+            return;
+          }
+          if (persist(items.filter((v) => v.id !== item.id))) {
+            if (editing === item.id) reset();
+            render();
+            status.textContent = 'Commitment removed. Saved notes and session reports were kept.';
+          }
+        }),
+      );
+      row.append(controls);
+      list.append(row);
+    }
+  }
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (editing && !items.some((v) => v.id === editing)) {
+      status.textContent =
+        'This commitment changed in another tab. Reopen the list before editing.';
+      return;
+    }
+    const item = {
+      id: editing || crypto.randomUUID(),
+      title: title.value,
+      minutes: Number(minutes.value),
+      breakMinutes: Number(breakMinutes.value),
+    };
+    if (item.minutes < 2) {
+      status.textContent = 'Choose at least 2 practice minutes.';
+      return;
+    }
+    if (commitmentState.game.pending) {
+      status.textContent = 'Acknowledge the waiting game adjustment, or disable game mode first.';
+      return;
+    }
+    if (persist(editing ? items.map((v) => (v.id === editing ? item : v)) : [...items, item])) {
+      reset();
+      render();
+      status.textContent = 'Daily commitment saved.';
+    }
+  });
+  function open() {
+    if ([...document.querySelectorAll('dialog[open]')].length) return;
+    returnFocus = document.activeElement;
+    read();
+    render();
+    dialog.showModal();
+    launch.setAttribute('aria-expanded', 'true');
+  }
+  launch.addEventListener('click', open);
+  dialog.addEventListener('close', () => {
+    launch.setAttribute('aria-expanded', 'false');
+    returnFocus?.isConnected && returnFocus.focus({ preventScroll: true });
+  });
+  dialog.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    close();
+  });
+  let backdrop = false;
+  function outside(event) {
+    const r = dialog.getBoundingClientRect();
+    return (
+      event.target === dialog &&
+      (event.clientX < r.left ||
+        event.clientX > r.right ||
+        event.clientY < r.top ||
+        event.clientY > r.bottom)
+    );
+  }
+  dialog.addEventListener('pointerdown', (e) => {
+    backdrop = e.button === 0 && outside(e);
+  });
+  dialog.addEventListener('pointercancel', () => {
+    backdrop = false;
+  });
+  dialog.addEventListener('click', (e) => {
+    const dismiss = backdrop && outside(e);
+    backdrop = false;
+    if (dismiss) close();
+  });
+  window.addEventListener('storage', (event) => {
+    if (event.key === COMMITMENTS_KEY || event.key === COMMITMENT_STATE_KEY || event.key === null) {
+      read();
+      reset();
+      render();
+    }
+  });
+  window.addEventListener('dayline:account', () => {
+    if (dialog.open) close();
+    reset();
+  });
+  window.addEventListener('dayline:notes-changed', () => {
+    if (dialog.open) render();
+  });
+  window.addEventListener(AWAKE_HOURS_EVENT, () => {
+    if (dialog.open) render();
+  });
+  read();
+  render();
+  function checkPings() {
+    if (!canNotify() || unreadable) return;
+    let latest;
+    try {
+      latest = rawToken();
+    } catch {
+      return;
+    }
+    if (latest !== loadedRaw) {
+      read();
+      if (dialog.open) render();
+    }
+    settle();
+    const state = getState(),
+      settings = state.settings || {};
+    if (unreadable || !commitmentState.pingEnabled || !settings.notifications || !items.length)
+      return;
+    const instant = now(),
+      date = dayKey(instant),
+      minute = instant.getHours() * 60 + instant.getMinutes(),
+      slot = bucket(minute, settings.interval);
+    const token = `${date}:${slot}:${settings.interval}`;
+    if (commitmentState.lastPing === token) return;
+    try {
+      if (storage.getItem('dayline.focus.v1')) return;
+      const rest = JSON.parse(storage.getItem('dayline.focus-break.v1') || 'null');
+      if (rest?.until > instant.getTime()) return;
+    } catch {
+      return;
+    }
+    if (!isAwake(minute, readAwakeHours(storage))) return;
+    const empty = !(state.days[date] || []).some(
+      (n) => !n.weekly && !n.yearly && !n.allDay && bucket(n.minute, settings.interval) === slot,
+    );
+    const pending = pendingCommitments(commitmentState, state.days, date);
+    if (!persist({ ...commitmentState, lastPing: token })) return;
+    if (
+      empty &&
+      pending.length &&
+      dailySlotVisible(slot, settings.interval, availableHours(settings))
+    )
+      notify(
+        {
+          title: 'Time for a Daily Commitment?',
+          text: `This interval is free. Try ${pending[0].title} for ${pending[0].minutes} minutes, or choose another commitment.`,
+        },
+        'dayline-commitment:' + token,
+      );
+  }
+  const pingTimer = setInterval(checkPings, 1000);
+  pingTimer?.unref?.();
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) checkPings();
+  });
+  return {
+    open,
+    recordPractice(practice, start, end) {
+      if (unreadable || !Number.isFinite(start) || !Number.isFinite(end)) return false;
+      const item = items.find((v) => v.id === practice.id);
+      if (!item || end - start < Math.max(item.minutes, practice.minutes) * 60000) return false;
+      const date = dayKey(new Date(start));
+      if (commitmentState.marks[date]?.includes(item.id)) return true;
+      const next = structuredClone(commitmentState);
+      next.marks[date] = [...(next.marks[date] || []), item.id];
+      const saved = persist(next);
+      if (saved && dialog.open) render();
+      return saved;
+    },
+    checkPings,
+    destroy() {
+      clearInterval(pingTimer);
+      dialog.remove();
+    },
+  };
+}

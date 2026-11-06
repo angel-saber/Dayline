@@ -1,20 +1,29 @@
 import {
+  readTiming,
+  sessionTiming,
+  flowtimeBreak,
+  workDeadline,
+  timerDue,
+} from './timing.js?v=c8e108356247';
+import { timingControls } from './timing-view.js?v=c8e108356247';
+import {
   createFlowPreparation,
   recoverySection,
   preparationReference,
-} from './flow-view.js?v=e010dd455f61';
-import { newFlow, newRecovery } from './flow-model.js?v=e010dd455f61';
-import { setupBreakTimer } from './break-timer.js?v=e010dd455f61';
-import { chooseRepeatScope } from '../repeating/scope.js?v=e010dd455f61';
-import { node } from '../../shared/dom.js?v=e010dd455f61';
-import { indentLevel } from '../notes/formatting/indents.js?v=e010dd455f61';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=e010dd455f61';
-import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=e010dd455f61';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=e010dd455f61';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=e010dd455f61';
+} from './flow-view.js?v=c8e108356247';
+import { newFlow, newRecovery } from './flow-model.js?v=c8e108356247';
+import { setupBreakTimer } from './break-timer.js?v=c8e108356247';
+import { chooseRepeatScope } from '../repeating/scope.js?v=c8e108356247';
+import { node } from '../../shared/dom.js?v=c8e108356247';
+import { indentLevel } from '../notes/formatting/indents.js?v=c8e108356247';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=c8e108356247';
+import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=c8e108356247';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=c8e108356247';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=c8e108356247';
 import {
   focusIntervalNotes,
   newFocus,
+  newPracticeFocus,
   advanceFocus,
   commitFocus,
   findFocusNote,
@@ -22,10 +31,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=e010dd455f61';
-import { createNoteEditor } from '../notes/note-editor.js?v=e010dd455f61';
-import { renderFormatted } from '../notes/formatting/format.js?v=e010dd455f61';
-import { noteTasks } from '../notes/formatting/tasks.js?v=e010dd455f61';
+} from './model.js?v=c8e108356247';
+import { createNoteEditor } from '../notes/note-editor.js?v=c8e108356247';
+import { renderFormatted } from '../notes/formatting/format.js?v=c8e108356247';
+import { noteTasks } from '../notes/formatting/tasks.js?v=c8e108356247';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {
@@ -46,6 +55,9 @@ export function setupFocus(api) {
   let flowView = null;
   const breakTimer = setupBreakTimer({
     canShow: () => !document.querySelector('#planner')?.hidden,
+    onComplete: (sound) => {
+      if (sound) api.ringTimer?.('Break complete');
+    },
   });
   let notesSignature = '',
     session = null,
@@ -148,6 +160,9 @@ export function setupFocus(api) {
       p.title = entry.title || '';
       p.text = entry.text;
       p.noteId = entry.id;
+    } else if (p.practiceNoteId) {
+      // Retain the practice snapshot if its source note was removed.
+      return;
     } else if (p === session.pages.at(-1)) {
       p.title = '';
       p.text = '';
@@ -236,14 +251,16 @@ export function setupFocus(api) {
     const addHost = node('div', 'focus-add-note');
     heading.append(
       node('h2', '', voice('focus.noteHeading')),
-      button('Add a note', () => editNote(addHost)),
+      ...(session.practice ? [] : [button('Add a note', () => editNote(addHost))]),
     );
     section.append(
       heading,
       node(
         'p',
         'focus-interval-label',
-        `${p.date} · ${timeLabel(p.minute, api.getState().settings.clock)} – ${timeLabel(Math.min(1440, p.minute + (p.interval || session.interval)), api.getState().settings.clock)}`,
+        session.practice
+          ? `${session.practice.minutes}-minute daily practice · consistency over outcomes`
+          : `${p.date} · ${timeLabel(p.minute, api.getState().settings.clock)} – ${timeLabel(Math.min(1440, p.minute + (p.interval || session.interval)), api.getState().settings.clock)}`,
       ),
     );
     if (choices.length > 1)
@@ -383,6 +400,12 @@ export function setupFocus(api) {
     }
   }
   function beginFocus() {
+    for (const input of session.timing?.mode === 'timed'
+      ? dialog.querySelectorAll('.focus-timing-controls input')
+      : []) {
+      if (input.reportValidity && !input.reportValidity()) return;
+    }
+    if (session.timing?.sound) api.primeTimerSound?.();
     const mantra = dialog.querySelector('.focus-mantra-input');
     if (!session.mantra.trim()) {
       mantra?.setCustomValidity('Choose or write a mantra first.');
@@ -450,7 +473,8 @@ export function setupFocus(api) {
     base(voice('focus.preparationHeading'));
     const fields = node('div', 'focus-prep-fields');
     fields.append(node('p', 'focus-lead', voice('focus.preparationIntro')), noteSection());
-    fields.append(helpSections());
+    session.timing ||= sessionTiming(readTiming());
+    fields.append(timingControls(session.timing, save), helpSections());
     const commitment = node('section', 'focus-commitment');
     commitment.append(node('h2', '', voice('focus.commitmentHeading')));
     const mantra = node('textarea', 'focus-mantra-input');
@@ -514,6 +538,11 @@ export function setupFocus(api) {
       },
     );
     stats.append(clockToggle);
+    if (session.timing?.mode === 'timed' || session.practice) {
+      const target = node('p', 'practice-time-target');
+      target.setAttribute('role', 'status');
+      stats.append(target);
+    }
     dialog.append(stats);
     const pages = node('div', 'focus-page-nav');
     const previous = button('← Previous interval', () => {
@@ -630,15 +659,35 @@ export function setupFocus(api) {
     dialog.append(interruptions, button('Finish session', finish, 'primary focus-finish'));
     tickLabels();
   }
-  function finish() {
+  function finish(at = null, timedOut = false) {
+    const endAt = Math.min(
+      Number.isFinite(at) ? at : Date.now(),
+      workDeadline(session) ?? Infinity,
+    );
     syncOutcomeTags();
     flushNote();
-    advanceFocus(session, api.getState(), Date.now());
-    session.endedAt = Math.max(session.startedAt, Date.now());
+    advanceFocus(session, api.getState(), Math.max(session.startedAt, endAt - 1));
+    session.endedAt = Math.max(session.startedAt, endAt);
     session.phase = 'reflect';
+    const timing = session.timing || sessionTiming(readTiming());
     session.recovery ||= newRecovery(session.endedAt - session.startedAt);
+    session.recovery.minutes =
+      timing.mode === 'timed'
+        ? timing.breakMinutes
+        : flowtimeBreak(session.endedAt - session.startedAt, timing);
+    if (timedOut) timing.alerted = true;
+    if (timing.mode === 'timed' && timing.autoBreak && !timing.breakStarted) {
+      timing.breakStarted = true;
+      session.recovery.startTimer = false;
+      breakTimer.start(timing.breakMinutes, session.endedAt, timing.sound);
+    }
     api.fadeAudio?.()?.catch?.((e) => api.toast(e.message));
-    save();
+    if (
+      save() &&
+      session.practice &&
+      session.endedAt - session.startedAt >= session.practice.minutes * 60000
+    )
+      api.recordCommitmentCompletion?.(session.practice, session.startedAt, session.endedAt);
     render();
   }
   function reflect() {
@@ -669,7 +718,12 @@ export function setupFocus(api) {
       dialog.append(field);
     }
     session.recovery ||= newRecovery(session.endedAt - session.startedAt);
-    dialog.append(recoverySection(session.recovery, save));
+    const recoveryView = recoverySection(session.recovery, save);
+    if (session.timing?.breakStarted) {
+      recoveryView.querySelector('[aria-label^="Start the suggested"]')?.parentElement.remove();
+      recoveryView.append(node('p', 'focus-recovery-break'));
+    }
+    dialog.append(recoveryView);
     const controls = node('div', 'inline');
     const saveButton = button('Save reflection & close', () => complete(false), 'primary'),
       skip = button('Skip reflection & close', () => complete(true));
@@ -685,9 +739,17 @@ export function setupFocus(api) {
         return;
       }
       if (saved) {
+        if (
+          session.practice &&
+          session.endedAt - session.startedAt >= session.practice.minutes * 60000
+        )
+          api.recordCommitmentCompletion?.(session.practice, session.startedAt, session.endedAt);
         const recovery = session.recovery;
         clear();
-        if (recovery.startTimer) breakTimer.start(recovery.minutes);
+        if (recovery.startTimer) {
+          if (readTiming().sound) api.primeTimerSound?.();
+          breakTimer.start(recovery.minutes, Date.now(), readTiming().sound);
+        }
         dialog.close();
         buttons();
         api.refresh();
@@ -768,12 +830,14 @@ export function setupFocus(api) {
     }
     if (!session) {
       session = newFocus(api.getState(), Date.now(), crypto.randomUUID(), owner);
+      session.timing = sessionTiming(readTiming());
       session.mantra = focusMantras(MANTRAS)[0];
     }
     open();
   }
   function open() {
     if (!session) return;
+    if (session.timing?.sound) api.primeTimerSound?.();
     api.flushEditor();
     session.owner = owner;
     advanceFocus(session, api.getState(), Date.now());
@@ -824,10 +888,28 @@ export function setupFocus(api) {
     if (elapsedNode) elapsedNode.textContent = 'Session · ' + durationLabel(elapsed);
     const position = dialog.querySelector('.focus-live-position');
     if (position)
-      position.textContent =
-        session.viewIndex === session.pages.length - 1
+      position.textContent = session.practice
+        ? 'Daily practice · ' + session.practice.title
+        : session.viewIndex === session.pages.length - 1
           ? 'Current interval'
           : 'Reviewing an earlier interval';
+    const target = dialog.querySelector('.practice-time-target');
+    const deadline = workDeadline(session);
+    if (target && deadline !== null) {
+      const remaining = Math.max(0, deadline - Date.now());
+      target.textContent = `Time remaining · ${durationLabel(remaining)}`;
+      target.hidden = !!session.flow?.hideClock;
+    }
+    const breakLabel = dialog.querySelector('.focus-recovery-break');
+    if (breakLabel) {
+      const remaining = breakTimer.remaining();
+      breakLabel.textContent =
+        remaining === null
+          ? 'Break timer dismissed.'
+          : remaining > 0
+            ? `Break · ${durationLabel(remaining)}`
+            : 'Break complete · return when ready';
+    }
     const idea = dialog.querySelector('.focus-inspiration');
     if (idea)
       idea.textContent =
@@ -838,7 +920,16 @@ export function setupFocus(api) {
   }
   function tick() {
     if (!session) return;
-    if (session.owner === owner && session.phase !== 'reflect') {
+    if (
+      session.owner === owner &&
+      !document.querySelector('#planner')?.hidden &&
+      timerDue(session, Date.now())
+    ) {
+      const ring = session.timing.sound;
+      finish(workDeadline(session), true);
+      if (ring) api.ringTimer?.('Focus time is up');
+    }
+    if (!session.practice && session.owner === owner && session.phase !== 'reflect') {
       const slot = api.getState(),
         last = session.pages.at(-1).key;
       // Flush an open note before changing its interval page.
@@ -888,6 +979,61 @@ export function setupFocus(api) {
   window.addEventListener('dayline:notes-changed', refreshNotes);
   buttons();
   return {
+    startPractice(practice) {
+      api.flushEditor();
+      let stored;
+      try {
+        stored = localStorage.getItem(KEY);
+      } catch {
+        api.toast('Focus storage is unavailable. No practice was started.');
+        return false;
+      }
+      if (unreadable || session || stored) {
+        api.toast('Finish your existing Focus Session before starting a daily practice.');
+        start();
+        return false;
+      }
+      const now = Date.now();
+      session = newPracticeFocus(
+        api.getState(),
+        practice,
+        now,
+        crypto.randomUUID(),
+        crypto.randomUUID(),
+        owner,
+      );
+      session.timing = sessionTiming(readTiming(), practice.minutes);
+      if (practice.breakMinutes !== undefined) {
+        session.timing.autoBreak = practice.breakMinutes > 0;
+        if (practice.breakMinutes > 0) session.timing.breakMinutes = practice.breakMinutes;
+      }
+      if (session.timing.sound) api.primeTimerSound?.();
+      session.mantra = focusMantras(MANTRAS)[0];
+      commitFocus(session, api.getState(), now);
+      if (!save()) {
+        session = null;
+        api.toast('Could not save the Focus draft. No practice was started.');
+        buttons();
+        return false;
+      }
+      if (!api.createPracticeNote(session.pages[0])) {
+        try {
+          localStorage.removeItem(KEY);
+        } catch {
+          api.toast(
+            'The practice note could not be saved. A recoverable Focus draft remains in this browser.',
+          );
+        }
+        session = null;
+        buttons();
+        return false;
+      }
+      breakTimer.stop();
+      render();
+      if (!dialog.open) dialog.showModal();
+      buttons();
+      return true;
+    },
     refresh() {
       buttons();
       refreshNotes();

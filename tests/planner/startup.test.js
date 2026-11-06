@@ -1069,6 +1069,52 @@ test('the assembled planner starts, switches views/personalities, edits settings
       'Family celebration',
     );
 
+    // Daily Commitments starts a pinned practice without hijacking an existing session.
+    document.querySelector('#daily-tab').click();
+    document.querySelector('#launch-commitments').click();
+    const habitWindow = document.querySelector('#commitments-panel');
+    assert.ok(habitWindow.open);
+    [...habitWindow.querySelectorAll('.commitment-suggestions button')]
+      .find((b) => b.textContent === 'Read')
+      .click();
+    assert.equal(habitWindow.querySelector('[aria-label="Daily focus minutes"]').value, '30');
+    habitWindow
+      .querySelector('form')
+      .dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+    assert.equal(JSON.parse(local.getItem('dayline.commitment-state.v1')).items[0].title, 'Read');
+    assert.equal(local.getItem('dayline.focus.v1'), null);
+    const beforeFailedPractice = local.getItem('dayline.v1');
+    const originalSetItem = local.setItem;
+    local.setItem = (key, value) => {
+      if (key === 'dayline.focus.v1') throw Error('Storage full');
+      originalSetItem(key, value);
+    };
+    habitWindow.querySelector('.commitment-start').click();
+    assert.equal(local.getItem('dayline.v1'), beforeFailedPractice);
+    assert.equal(local.getItem('dayline.focus.v1'), null);
+    local.setItem = originalSetItem;
+    document.querySelector('#launch-commitments').click();
+    habitWindow.querySelector('.commitment-start').click();
+    const practiceDraft = JSON.parse(local.getItem('dayline.focus.v1'));
+    assert.equal(practiceDraft.practice.title, 'Read');
+    assert.equal(practiceDraft.phase, 'active');
+    assert.equal(practiceDraft.practice.minutes, 30);
+    assert.ok(document.querySelector('.focus-window').open);
+    assert.match(document.querySelector('.focus-window').textContent, /30-minute daily practice/);
+    const practiceNote = JSON.parse(local.getItem('dayline.v1')).days[today].find(
+      (n) => n.id === practiceDraft.pages[0].noteId,
+    );
+    assert.equal(practiceNote.title, 'Read');
+    [...document.querySelector('.focus-window').querySelectorAll('button')]
+      .find((b) => b.textContent === 'Minimize')
+      .click();
+    document.querySelector('#launch-commitments').click();
+    const notesBeforeSecondStart = local.getItem('dayline.v1');
+    habitWindow.querySelector('.commitment-start').click();
+    assert.equal(JSON.parse(local.getItem('dayline.focus.v1')).id, practiceDraft.id);
+    assert.equal(local.getItem('dayline.v1'), notesBeforeSecondStart);
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
     assert.deepEqual(network, []);
   } finally {
     for (const [name, descriptor] of previous) {

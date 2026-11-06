@@ -570,10 +570,10 @@ They are not migrated or erased when their forms are removed. Note category
 changes can quietly refresh the session snapshot and any open note editor.
 
 Finish freezes work time and fades Focus Audio without changing audio preferences.
-Reflection remains optional. Recovery displays a suggested 3/5/10/15-minute break
+Reflection remains optional. Recovery displays a suggested 5/8/10/15-minute break
 at 25/50/90-minute work thresholds, with brief recovery and acknowledgment notes
 rather than editable duration or answer buttons. Celebration and a timer for the
-suggested break are optional; both start only after successful report saving.
+suggested break are optional; celebration and manually chosen recovery timers start after successful report saving; configured timed-session breaks may start when work ends.
 Older saved recovery answers remain preserved. Reports stay excluded from shares
 by default.
 
@@ -604,3 +604,120 @@ note editing, persistence, and Undo. Preview snapshots protect affected days fro
 stale writes; only explicit Apply changes schedules. The device-local visibility
 switch does not change shared settings or note schemas. See
 `ADJUST_MY_DAY_EXPERIMENT.md` for scope, limitations and the preserved rollback ref.
+
+## Daily Commitments
+
+`features/commitments/` owns a device-local, validated habit list, retaining
+`dayline.daily-commitments.v1` as its legacy source and using the versioned
+`dayline.commitment-state.v1` envelope for new edits and history. The launcher sits above Shortcuts and below the
+favorite activity dock, inside the planner so it stays hidden before sign-in or
+guest entry. Suggested/custom names and 1–1440 minute targets default to 30.
+Malformed storage is retained without overwriting; failed writes retain drafts.
+The list is browser-local like Shortcuts, not part of account sync or note backups.
+
+Selecting a habit launches the existing Focus controller directly in active mode
+with its normal personality mantra. A pinned practice note is saved through the
+existing account/guest persistence boundary. Optional validated `practice` metadata
+in Focus drafts/reports records the habit ID, title and target; a matching page
+marker keeps that note in view across interval changes and midnight. Other notes
+are never pulled into practice and existing sessions must be finished first.
+Elapsed time uses wall-clock time; reaching the target ends timed work with a completion sound, but never auto-completes a note or requires an outcome. Standard
+minimize, audio, interruptions, reflection and report saving remain shared.
+Reports preserve actual duration and practice metadata through note sync/backups.
+Today’s recorded minutes use saved report overlap with local-day boundaries,
+deduplicated by session ID. Active/unsaved time is not counted in the list.
+Editing/removing a habit leaves past notes and reports unchanged. Reload older
+tabs before editing notes containing this new report metadata.
+
+### Focus timing and Flowtime preferences
+
+`focus/timing.js` validates device-local `dayline.focus-timing.v1` preferences and
+session snapshots. Regular preparation offers timed or untimed work, with work
+and break lengths editable for that session. Daily Commitments always launch timed
+work using the habit's minutes. Settings owns default mode, work/break lengths,
+automatic timed breaks, completion sounds and three ascending Flowtime boundaries
+with four suggested break durations. Defaults follow the original Flowtime post:
+[The Flowtime Technique](https://medium.com/@UrgentPigeon/the-flowtime-technique-7685101bd191),
+5/8/10/15 minutes at 25/50/90-minute boundaries; the source calls these suggestions,
+not rules. Existing saved recovery minutes remain readable.
+
+Timed work uses a wall-clock deadline, including when minimized. On expiry it
+freezes the work report at that deadline, enters reflection, fades Focus Audio,
+marks the alert handled and sounds the shared reminder media player. Gesture-based
+priming uses that same player, independently of planned-note notification toggles.
+Default automatic breaks start from the work end timestamp, not the time a delayed
+tab wakes. Manual early finishes use their actual end. No new work session starts
+automatically. Untimed work never expires and uses its snapshot's Flowtime settings
+when the user finishes. Breaks remain optional and can be ended early.
+
+`break-timer.js` persists the deadline, sound choice and completion flag, and avoids
+replaying an already handled completion on reload. It can continue after report
+saving/closing. The reflection view also shows its countdown while the native
+Focus dialog is open. Session/report `timing` metadata is optional and validated;
+legacy drafts/reports stay compatible. Preferences are browser-local and apply to
+new sessions; note reports continue through existing account sync and backups.
+Browser audio permissions, tab suspension, device sleep and a closed page can delay
+or prevent sounds. Settings includes an explicit Focus sound test. There is no
+service worker or claim of guaranteed alarms while Dayline is closed.
+
+### Night ordering and commitment game mode
+
+`daily/night-order.js` keeps the device-local `dayline.daily-order.v1` preference.
+Night-first rotates interval display around an evening/custom start, retaining
+all-day notes first and all original date/time/entry identities. Earlier hours
+remain on the same selected calendar date, explicitly noted on Daily/Settings;
+this is not an overnight date migration or a change to notification timestamps.
+
+Commitment presets are 2/5/10/15/25/30/45/60/90/120 minutes. New custom durations
+start at 2 minutes; legacy 1-minute report metadata remains readable. Optional
+per-habit `breakMinutes` supports 0 (no automatic break) through 120, overriding
+the generic Focus break preference. Preset breaks are labeled suggestions, not
+universal standards. Existing habit IDs and saved reports are preserved.
+
+`commitments/game.js` owns validated local history and game rules. On the first
+successful edit/completion, the original array at `dayline.daily-commitments.v1`
+is retained, while `dayline.commitment-state.v1` becomes the authoritative atomic
+envelope for items, manual completion marks, reminders and game state. Reading
+falls back to the old list without writing. Corrupt data is retained, failed
+writes keep drafts, and stale-tab edits are rejected. This browser-local state is
+not synced or added to note backups; ordinary session notes/reports still are.
+
+Swipe right or Mark done records completion without fabricating work duration,
+Focus reports or note edits. Undo done reverses manual completion; recorded work
+can independently fulfill the daily target. A completed timed practice credits
+the calendar day it started, including midnight-spanning sessions. Report-based
+minute totals retain their actual local-day overlap and deduplicate session IDs.
+
+Game mode is voluntary and not an anti-cheat system. Starting cap is max(3, current
+count). Days settle after local midnight. All commitments must be complete for a
+day to count; seven consecutive complete days add one slot (up to the 100-item
+list bound). A missed day resets the success run. Two consecutive missed days
+create exactly one pending adjustment: choose and confirm a deletion when there
+are multiple habits, otherwise reduce the last habit by five minutes down to two.
+Nothing is auto-deleted. While pending, evaluation freezes; acknowledgment resets
+evaluation to today so missed days during an absence never stack consequences.
+At the two-minute floor, acknowledgment resets the run without further reduction.
+A confirmed deletion lowers the slot cap by one, preserving other unused earned slots; a duration reduction does not remove another slot. New slots can be earned again. No
+habits means no successes or failures. Disabling game mode ends its current run.
+
+Empty-interval suggestions use existing notification permission/sound paths,
+respect the global notifications setting, hidden-hours choices, a local opt-out,
+current pending habits, and active Focus/break suppression. Only the current
+interval is checked, once per date/start/interval token, with no catch-up burst.
+Any timed note makes the interval occupied, even if completed. System notification
+clicks open Daily Commitments. The page must remain open; browser suspension still
+limits delivery. History, suggestions and game rules add no backend or paid service.
+
+### Awake Hours capacity
+
+`settings/awake-hours.js` stores a separate device-local wake/sleep range in
+`dayline.awake-hours.v1`, independent of Available Hours. Daytime and overnight
+ranges are supported; equal endpoints represent 24 hours. The default is 07:00
+to 23:00 (960 minutes). Commitment allocation sums practice minutes plus each
+configured optional break, using the Focus default for legacy habits without a
+break override. Additions or increases beyond awake capacity are rejected with
+an explicit route to Awake Hours or an invitation to shorten existing habits.
+Existing over-budget lists survive; reducing/removing habits remains possible
+without first satisfying the entire deficit. Changing Awake Hours never deletes
+or alters commitments. Game slot limits and awake-minute capacity both apply.
+The empty-interval suggester also stays silent outside Awake Hours.
