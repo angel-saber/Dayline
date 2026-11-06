@@ -1,15 +1,15 @@
-import { validTiming } from './timing.js?v=a6ca893d82ed';
-import { validCommitment } from '../commitments/model.js?v=a6ca893d82ed';
-import { newFlow, validFlow, validRecovery } from './flow-model.js?v=a6ca893d82ed';
-import { noteTags } from '../notes/note-types.js?v=a6ca893d82ed';
+import { validTiming, sessionTiming, TIMING_DEFAULTS } from './timing.js?v=f7bbc01b5bdc';
+import { validCommitment } from '../commitments/model.js?v=f7bbc01b5bdc';
+import { newFlow, validFlow, validRecovery } from './flow-model.js?v=f7bbc01b5bdc';
+import { noteTags } from '../notes/note-types.js?v=f7bbc01b5bdc';
 import {
   dayKey,
   parseDay,
   offsetDay,
   bucket,
   slots,
-} from '../../shared/schedule.js?v=a6ca893d82ed';
-import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=a6ca893d82ed';
+} from '../../shared/schedule.js?v=f7bbc01b5bdc';
+import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=f7bbc01b5bdc';
 export const MANTRAS = PERSONALITY_MANTRAS.zen;
 export const INSPIRATION = VOICE_QUOTES.zen;
 export function intervalAt(at, interval) {
@@ -342,10 +342,24 @@ export function durationLabel(ms) {
   return h ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`;
 }
 
-export function newPracticeFocus(state, practice, now, id, noteId, owner) {
+export function newPracticeFocus(
+  state,
+  practice,
+  now,
+  id,
+  noteId,
+  owner,
+  preferences = TIMING_DEFAULTS,
+) {
   const session = newFocus(state, now, id, owner);
   session.practice = validCommitment(practice);
-  session.flow = newFlow();
+  session.timing = sessionTiming(preferences, session.practice.minutes);
+  if (session.practice.breakMinutes !== undefined) {
+    session.timing.autoBreak = session.practice.breakMinutes > 0;
+    if (session.practice.breakMinutes > 0)
+      session.timing.breakMinutes = session.practice.breakMinutes;
+  }
+  session.flow = newFlow(session.practice.tags || []);
   const p = session.pages[0];
   const d = new Date(now);
   p.minute = d.getHours() * 60 + d.getMinutes();

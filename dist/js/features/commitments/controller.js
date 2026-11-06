@@ -1,3 +1,4 @@
+import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=f7bbc01b5bdc';
 import {
   readAwakeHours,
   awakeMinutes,
@@ -6,11 +7,11 @@ import {
   assertCommitmentBudget,
   AWAKE_HOURS_EVENT,
   AWAKE_HOURS_KEY,
-} from '../settings/awake-hours.js?v=a6ca893d82ed';
-import { readTiming } from '../focus/timing.js?v=a6ca893d82ed';
-import { dayKey } from '../../shared/dates.js?v=a6ca893d82ed';
-import { bucket } from '../../shared/schedule.js?v=a6ca893d82ed';
-import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=a6ca893d82ed';
+} from '../settings/awake-hours.js?v=f7bbc01b5bdc';
+import { readTiming } from '../focus/timing.js?v=f7bbc01b5bdc';
+import { dayKey } from '../../shared/dates.js?v=f7bbc01b5bdc';
+import { bucket } from '../../shared/schedule.js?v=f7bbc01b5bdc';
+import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=f7bbc01b5bdc';
 import {
   COMMITMENT_STATE_KEY,
   DURATION_PRESETS,
@@ -24,14 +25,14 @@ import {
   acknowledgePenalty,
   changeItems,
   pendingCommitments,
-} from './game.js?v=a6ca893d82ed';
-import { node } from '../../shared/dom.js?v=a6ca893d82ed';
+} from './game.js?v=f7bbc01b5bdc';
+import { node } from '../../shared/dom.js?v=f7bbc01b5bdc';
 import {
   COMMITMENTS_KEY,
   SUGGESTIONS,
   validCommitments,
   practiceProgress,
-} from './model.js?v=a6ca893d82ed';
+} from './model.js?v=f7bbc01b5bdc';
 function button(text, action, kind = 'secondary') {
   const b = node('button', kind, text);
   b.type = 'button';
@@ -69,6 +70,22 @@ export function setupCommitments({
   const list = node('div', 'commitments-list'),
     form = node('form', 'shortcut-form'),
     formTitle = node('h3', '', 'Add a daily practice');
+  const tagHost = node('div', 'commitment-category-picker');
+  let tagPicker = null;
+  function renderTagPicker(value = []) {
+    const state = getState();
+    const days = {
+      ...state.days,
+      'commitment-categories': items.map((item) => ({ tags: item.tags || [] })),
+    };
+    tagPicker = typeChips(
+      value,
+      'Categories',
+      () => {},
+      categoryOptions(days, state.settings?.tags),
+    );
+    tagHost.replaceChildren(tagPicker.element);
+  }
   const suggestions = node('div', 'commitment-suggestions');
   const titleLabel = node('label', '', 'Habit'),
     title = node('input');
@@ -146,6 +163,7 @@ export function setupCommitments({
     ),
     suggestions,
     titleLabel,
+    tagHost,
     presets,
     minuteLabel,
     breakLabel,
@@ -210,6 +228,7 @@ export function setupCommitments({
     title.value = '';
     minutes.value = '30';
     breakMinutes.value = '5';
+    renderTagPicker([]);
     formTitle.textContent = 'Add a daily practice';
     save.textContent = 'Add commitment';
     cancel.hidden = true;
@@ -408,6 +427,11 @@ export function setupCommitments({
           `${item.minutes} min daily${item.breakMinutes ? ` · ${item.breakMinutes} min break` : ''} · Today: ${Math.floor(total / 60000)} min recorded`,
         ),
       );
+      const badges = tagBadges(item);
+      if (badges) {
+        badges.classList.add('commitment-card-tags');
+        row.append(badges);
+      }
       const controls = node('div', 'inline commitment-controls');
       const doneButton = button(
         done ? (manual ? 'Undo done' : 'Completed by practice') : 'Mark done',
@@ -440,6 +464,7 @@ export function setupCommitments({
         button('Edit', () => {
           editing = item.id;
           title.value = item.title;
+          renderTagPicker(item.tags || []);
           minutes.value = String(item.minutes);
           breakMinutes.value = String(item.breakMinutes ?? suggestedPracticeBreak(item.minutes));
           formTitle.textContent = 'Edit daily practice';
@@ -479,6 +504,7 @@ export function setupCommitments({
       title: title.value,
       minutes: Number(minutes.value),
       breakMinutes: Number(breakMinutes.value),
+      tags: tagPicker?.value || [],
     };
     if (item.minutes < 2) {
       status.textContent = 'Choose at least 2 practice minutes.';
@@ -498,6 +524,7 @@ export function setupCommitments({
     if ([...document.querySelectorAll('dialog[open]')].length) return;
     returnFocus = document.activeElement;
     read();
+    renderTagPicker(tagPicker?.value || []);
     render();
     dialog.showModal();
     launch.setAttribute('aria-expanded', 'true');
@@ -553,6 +580,7 @@ export function setupCommitments({
     if (dialog.open) render();
   });
   read();
+  renderTagPicker([]);
   render();
   function checkPings() {
     if (!canNotify() || unreadable) return;

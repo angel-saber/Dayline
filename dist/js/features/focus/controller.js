@@ -4,22 +4,22 @@ import {
   flowtimeBreak,
   workDeadline,
   timerDue,
-} from './timing.js?v=a6ca893d82ed';
-import { timingControls } from './timing-view.js?v=a6ca893d82ed';
+} from './timing.js?v=f7bbc01b5bdc';
+import { timingControls } from './timing-view.js?v=f7bbc01b5bdc';
 import {
   createFlowPreparation,
   recoverySection,
   preparationReference,
-} from './flow-view.js?v=a6ca893d82ed';
-import { newFlow, newRecovery } from './flow-model.js?v=a6ca893d82ed';
-import { setupBreakTimer } from './break-timer.js?v=a6ca893d82ed';
-import { chooseRepeatScope } from '../repeating/scope.js?v=a6ca893d82ed';
-import { node } from '../../shared/dom.js?v=a6ca893d82ed';
-import { indentLevel } from '../notes/formatting/indents.js?v=a6ca893d82ed';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=a6ca893d82ed';
-import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=a6ca893d82ed';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=a6ca893d82ed';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=a6ca893d82ed';
+} from './flow-view.js?v=f7bbc01b5bdc';
+import { newFlow, newRecovery } from './flow-model.js?v=f7bbc01b5bdc';
+import { setupBreakTimer } from './break-timer.js?v=f7bbc01b5bdc';
+import { chooseRepeatScope } from '../repeating/scope.js?v=f7bbc01b5bdc';
+import { node } from '../../shared/dom.js?v=f7bbc01b5bdc';
+import { indentLevel } from '../notes/formatting/indents.js?v=f7bbc01b5bdc';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=f7bbc01b5bdc';
+import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=f7bbc01b5bdc';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=f7bbc01b5bdc';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=f7bbc01b5bdc';
 import {
   focusIntervalNotes,
   newFocus,
@@ -31,10 +31,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=a6ca893d82ed';
-import { createNoteEditor } from '../notes/note-editor.js?v=a6ca893d82ed';
-import { renderFormatted } from '../notes/formatting/format.js?v=a6ca893d82ed';
-import { noteTasks } from '../notes/formatting/tasks.js?v=a6ca893d82ed';
+} from './model.js?v=f7bbc01b5bdc';
+import { createNoteEditor } from '../notes/note-editor.js?v=f7bbc01b5bdc';
+import { renderFormatted } from '../notes/formatting/format.js?v=f7bbc01b5bdc';
+import { noteTasks } from '../notes/formatting/tasks.js?v=f7bbc01b5bdc';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {
@@ -988,49 +988,61 @@ export function setupFocus(api) {
         api.toast('Focus storage is unavailable. No practice was started.');
         return false;
       }
-      if (unreadable || session || stored) {
+      let canRetarget = false;
+      try {
+        const saved = stored ? validFocusDraft(JSON.parse(stored)) : null;
+        canRetarget =
+          session?.phase === 'prepare' &&
+          session.owner === owner &&
+          (!saved ||
+            (saved.id === session.id && saved.owner === owner && saved.phase === 'prepare'));
+      } catch {
+        /* Unreadable drafts retain the existing recovery path. */
+      }
+      if (unreadable || ((session || stored) && !canRetarget)) {
         api.toast('Finish your existing Focus Session before starting a daily practice.');
         start();
         return false;
+      }
+      flushNote();
+      const previous = session ? structuredClone(session) : null;
+      function restorePrevious() {
+        session = previous;
+        try {
+          if (stored) localStorage.setItem(KEY, stored);
+          else localStorage.removeItem(KEY);
+        } catch {
+          api.toast('Focus draft storage could not be restored. Keep this tab open.');
+        }
+        buttons();
       }
       const now = Date.now();
       session = newPracticeFocus(
         api.getState(),
         practice,
         now,
-        crypto.randomUUID(),
+        previous?.id || crypto.randomUUID(),
         crypto.randomUUID(),
         owner,
+        readTiming(),
       );
-      session.timing = sessionTiming(readTiming(), practice.minutes);
-      if (practice.breakMinutes !== undefined) {
-        session.timing.autoBreak = practice.breakMinutes > 0;
-        if (practice.breakMinutes > 0) session.timing.breakMinutes = practice.breakMinutes;
-      }
+      if (previous?.flow) session.flow = previous.flow;
       if (session.timing.sound) api.primeTimerSound?.();
-      session.mantra = focusMantras(MANTRAS)[0];
+      session.mantra = previous?.mantra?.trim() || focusMantras(MANTRAS)[0];
       commitFocus(session, api.getState(), now);
       if (!save()) {
-        session = null;
+        restorePrevious();
         api.toast('Could not save the Focus draft. No practice was started.');
-        buttons();
         return false;
       }
-      if (!api.createPracticeNote(session.pages[0])) {
-        try {
-          localStorage.removeItem(KEY);
-        } catch {
-          api.toast(
-            'The practice note could not be saved. A recoverable Focus draft remains in this browser.',
-          );
-        }
-        session = null;
-        buttons();
+      if (!api.createPracticeNote(session.pages[0], session.practice)) {
+        restorePrevious();
         return false;
       }
       breakTimer.stop();
       render();
       if (!dialog.open) dialog.showModal();
+      dialog.scrollTop = 0;
       buttons();
       return true;
     },

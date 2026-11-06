@@ -735,3 +735,22 @@ screens and retains the active personality's paper/ink shell; card controls avoi
 theme surface classes that would cover their colors. Native keyboard controls,
 focus outlines, right-swipe completion and reduced-motion support remain intact.
 No schema, habit IDs, game rules, timing, quota or reminder behavior changes.
+
+Selecting a practice configures its duration and optional break in the pure
+`newPracticeFocus` constructor, so generic Focus defaults cannot replace the
+habit target. A preparation owned by this tab that has not started can adopt the
+selected commitment while retaining its authored mantra/help answers. Active,
+reflecting, foreign or unreadable drafts keep the existing protection/recovery
+path. Failed draft/note saves restore the previous unstarted preparation. A
+successful practice-note creation switches the planner to today's Daily view and
+shows its hours, even when launched from another date or Monthly. The note is
+written at the launch minute and grouped into that current interval; existing
+notes remain unchanged.
+
+Daily Commitment creation/editing reuses the shared multi-category chip picker,
+including enabled default tags and existing/custom categories. Optional validated
+`tags` remain on the local habit and its game snapshots. Compact badges appear on
+practice cards. New session notes and preparation context copy the selected tags,
+and optional practice report metadata preserves them through existing note sync
+and backups. Untagged legacy habits remain valid. Changing a habit's tags affects
+future sessions; existing notes keep their own independent tags.
