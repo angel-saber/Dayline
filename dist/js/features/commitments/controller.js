@@ -1,10 +1,10 @@
-import { node } from '../../shared/dom.js?v=3039d17efbd9';
+import { node } from '../../shared/dom.js?v=3714ce3e8e59';
 import {
   COMMITMENTS_KEY,
   SUGGESTIONS,
   validCommitments,
   practiceProgress,
-} from './model.js?v=3039d17efbd9';
+} from './model.js?v=3714ce3e8e59';
 function button(text, action, kind = 'secondary') {
   const b = node('button', kind, text);
   b.type = 'button';
@@ -79,7 +79,7 @@ export function setupCommitments({ getState, startPractice, storage = localStora
     node(
       'p',
       '',
-      'A little time, every day. Tap a habit to begin its Focus Session. Finish whenever you need; the time target is a guide.',
+      'A little time, every day. Tap a habit to begin its Focus Session. The timer sounds when your practice block ends. You can finish early whenever needed.',
     ),
     node(
       'p',

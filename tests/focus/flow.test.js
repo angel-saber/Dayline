@@ -81,10 +81,10 @@ test('preparation copies initial tags without aliasing, preserves old drafts, va
 });
 test('break defaults use exact session boundaries and retain legacy duration compatibility', () => {
   for (const [m, n] of [
-    [0, 3],
-    [24.99, 3],
-    [25, 5],
-    [49.99, 5],
+    [0, 5],
+    [24.99, 5],
+    [25, 8],
+    [49.99, 8],
     [50, 10],
     [89.99, 10],
     [90, 15],

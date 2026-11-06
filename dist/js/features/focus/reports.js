@@ -1,6 +1,6 @@
-import { flowLines, recoveryLines } from './flow-model.js?v=3039d17efbd9';
-import { node } from '../../shared/dom.js?v=3039d17efbd9';
-import { durationLabel } from './model.js?v=3039d17efbd9';
+import { flowLines, recoveryLines } from './flow-model.js?v=3714ce3e8e59';
+import { node } from '../../shared/dom.js?v=3714ce3e8e59';
+import { durationLabel } from './model.js?v=3714ce3e8e59';
 
 export function renderFocusReports(container, reports = []) {
   for (const report of reports) {
@@ -14,6 +14,16 @@ export function renderFocusReports(container, reports = []) {
     details.append(
       node('summary', '', `Focus session · ${when} · ${durationLabel(report.durationMs)}`),
     );
+    if (report.timing)
+      details.append(
+        node(
+          'p',
+          'field-hint',
+          report.timing.mode === 'timed'
+            ? `Timed session · ${report.timing.workMinutes} min work · ${report.timing.breakMinutes} min break`
+            : 'Untimed session · Flowtime break guidance',
+        ),
+      );
     if (report.practice)
       details.append(
         node(

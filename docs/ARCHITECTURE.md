@@ -570,10 +570,10 @@ They are not migrated or erased when their forms are removed. Note category
 changes can quietly refresh the session snapshot and any open note editor.
 
 Finish freezes work time and fades Focus Audio without changing audio preferences.
-Reflection remains optional. Recovery displays a suggested 3/5/10/15-minute break
+Reflection remains optional. Recovery displays a suggested 5/8/10/15-minute break
 at 25/50/90-minute work thresholds, with brief recovery and acknowledgment notes
 rather than editable duration or answer buttons. Celebration and a timer for the
-suggested break are optional; both start only after successful report saving.
+suggested break are optional; celebration and manually chosen recovery timers start after successful report saving; configured timed-session breaks may start when work ends.
 Older saved recovery answers remain preserved. Reports stay excluded from shares
 by default.
 
@@ -620,11 +620,41 @@ existing account/guest persistence boundary. Optional validated `practice` metad
 in Focus drafts/reports records the habit ID, title and target; a matching page
 marker keeps that note in view across interval changes and midnight. Other notes
 are never pulled into practice and existing sessions must be finished first.
-Elapsed time uses wall-clock time; reaching the target offers a gentle finish
-message, never auto-stops, auto-completes a note or requires an outcome. Standard
+Elapsed time uses wall-clock time; reaching the target ends timed work with a completion sound, but never auto-completes a note or requires an outcome. Standard
 minimize, audio, interruptions, reflection and report saving remain shared.
 Reports preserve actual duration and practice metadata through note sync/backups.
 Today’s recorded minutes use saved report overlap with local-day boundaries,
 deduplicated by session ID. Active/unsaved time is not counted in the list.
 Editing/removing a habit leaves past notes and reports unchanged. Reload older
 tabs before editing notes containing this new report metadata.
+
+### Focus timing and Flowtime preferences
+
+`focus/timing.js` validates device-local `dayline.focus-timing.v1` preferences and
+session snapshots. Regular preparation offers timed or untimed work, with work
+and break lengths editable for that session. Daily Commitments always launch timed
+work using the habit's minutes. Settings owns default mode, work/break lengths,
+automatic timed breaks, completion sounds and three ascending Flowtime boundaries
+with four suggested break durations. Defaults follow the original Flowtime post:
+[The Flowtime Technique](https://medium.com/@UrgentPigeon/the-flowtime-technique-7685101bd191),
+5/8/10/15 minutes at 25/50/90-minute boundaries; the source calls these suggestions,
+not rules. Existing saved recovery minutes remain readable.
+
+Timed work uses a wall-clock deadline, including when minimized. On expiry it
+freezes the work report at that deadline, enters reflection, fades Focus Audio,
+marks the alert handled and sounds the shared reminder media player. Gesture-based
+priming uses that same player, independently of planned-note notification toggles.
+Default automatic breaks start from the work end timestamp, not the time a delayed
+tab wakes. Manual early finishes use their actual end. No new work session starts
+automatically. Untimed work never expires and uses its snapshot's Flowtime settings
+when the user finishes. Breaks remain optional and can be ended early.
+
+`break-timer.js` persists the deadline, sound choice and completion flag, and avoids
+replaying an already handled completion on reload. It can continue after report
+saving/closing. The reflection view also shows its countdown while the native
+Focus dialog is open. Session/report `timing` metadata is optional and validated;
+legacy drafts/reports stay compatible. Preferences are browser-local and apply to
+new sessions; note reports continue through existing account sync and backups.
+Browser audio permissions, tab suspension, device sleep and a closed page can delay
+or prevent sounds. Settings includes an explicit Focus sound test. There is no
+service worker or claim of guaranteed alarms while Dayline is closed.

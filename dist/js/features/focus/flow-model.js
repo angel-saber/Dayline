@@ -1,4 +1,5 @@
-import { validTags, categoryLabel } from '../notes/note-types.js?v=3039d17efbd9';
+import { flowtimeBreak } from './timing.js?v=3714ce3e8e59';
+import { validTags, categoryLabel } from '../notes/note-types.js?v=3714ce3e8e59';
 export const BREATHS = [
   ['possibility', 'perfection'],
   ['courage', 'judgment'],
@@ -155,8 +156,7 @@ export function validFlow(value) {
   return result;
 }
 export function suggestedBreak(durationMs) {
-  const minutes = Math.max(0, durationMs) / 60000;
-  return minutes < 25 ? 3 : minutes < 50 ? 5 : minutes < 90 ? 10 : 15;
+  return flowtimeBreak(durationMs);
 }
 export function newRecovery(durationMs) {
   return {

@@ -1114,6 +1114,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.equal(JSON.parse(local.getItem('dayline.focus.v1')).id, practiceDraft.id);
     assert.equal(local.getItem('dayline.v1'), notesBeforeSecondStart);
 
+    await new Promise((resolve) => setTimeout(resolve, 0));
     assert.deepEqual(network, []);
   } finally {
     for (const [name, descriptor] of previous) {

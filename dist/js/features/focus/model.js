@@ -1,14 +1,15 @@
-import { validCommitment } from '../commitments/model.js?v=3039d17efbd9';
-import { newFlow, validFlow, validRecovery } from './flow-model.js?v=3039d17efbd9';
-import { noteTags } from '../notes/note-types.js?v=3039d17efbd9';
+import { validTiming } from './timing.js?v=3714ce3e8e59';
+import { validCommitment } from '../commitments/model.js?v=3714ce3e8e59';
+import { newFlow, validFlow, validRecovery } from './flow-model.js?v=3714ce3e8e59';
+import { noteTags } from '../notes/note-types.js?v=3714ce3e8e59';
 import {
   dayKey,
   parseDay,
   offsetDay,
   bucket,
   slots,
-} from '../../shared/schedule.js?v=3039d17efbd9';
-import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=3039d17efbd9';
+} from '../../shared/schedule.js?v=3714ce3e8e59';
+import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=3714ce3e8e59';
 export const MANTRAS = PERSONALITY_MANTRAS.zen;
 export const INSPIRATION = VOICE_QUOTES.zen;
 export function intervalAt(at, interval) {
@@ -191,6 +192,7 @@ export function focusReport(session) {
       ...session.pages.map((p) => ({ date: p.date, minute: p.minute, text: p.log })),
     ],
     reflection: { ...session.reflection },
+    ...(session.timing ? { timing: validTiming(session.timing) } : {}),
     ...(session.practice ? { practice: validCommitment(session.practice) } : {}),
     ...(session.flow ? { flow: validFlow(session.flow) } : {}),
     ...(session.recovery ? { recovery: validRecovery(session.recovery) } : {}),
@@ -237,6 +239,7 @@ export function validFocusReports(value) {
       durationMs: r.durationMs,
       mantra: r.mantra,
       logs,
+      ...(r.timing !== undefined ? { timing: validTiming(r.timing) } : {}),
       ...(r.practice !== undefined ? { practice: validCommitment(r.practice) } : {}),
       ...(r.flow !== undefined ? { flow: validFlow(r.flow) } : {}),
       ...(r.recovery !== undefined ? { recovery: validRecovery(r.recovery) } : {}),
@@ -316,6 +319,7 @@ export function validFocusDraft(s) {
     )
       throw new Error('Invalid focus interval page.');
   }
+  if (s.timing !== undefined) s.timing = validTiming(s.timing);
   if (s.practice !== undefined) {
     s.practice = validCommitment(s.practice);
     if (

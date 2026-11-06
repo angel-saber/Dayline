@@ -4967,6 +4967,29 @@ body.month-dragging .commitments-launch {
   }
 }
 
+.focus-timing-fields,
+.focus-timing-settings {
+  display: grid;
+  gap: 12px;
+}
+.focus-timing-fields label,
+.focus-timing-settings label {
+  display: grid;
+  gap: 6px;
+}
+.focus-timing-fields label:has(input[type='checkbox']),
+.focus-timing-settings label:has(input[type='checkbox']) {
+  display: flex;
+  align-items: center;
+}
+.focus-timing-controls [aria-pressed='true'] {
+  outline: 2px solid var(--green);
+  outline-offset: 1px;
+}
+.focus-timing-fields[hidden] {
+  display: none;
+}
+
 
 :root[data-layout='astronaut'] body {
   background-image:
