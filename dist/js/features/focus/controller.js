@@ -1,25 +1,25 @@
 import {
   readTiming,
   sessionTiming,
-  flowtimeBreak,
   workDeadline,
   timerDue,
-} from './timing.js?v=f7bbc01b5bdc';
-import { timingControls } from './timing-view.js?v=f7bbc01b5bdc';
+  sessionBreakSuggestion,
+} from './timing.js?v=ecc045743344';
+import { timingControls } from './timing-view.js?v=ecc045743344';
 import {
   createFlowPreparation,
   recoverySection,
   preparationReference,
-} from './flow-view.js?v=f7bbc01b5bdc';
-import { newFlow, newRecovery } from './flow-model.js?v=f7bbc01b5bdc';
-import { setupBreakTimer } from './break-timer.js?v=f7bbc01b5bdc';
-import { chooseRepeatScope } from '../repeating/scope.js?v=f7bbc01b5bdc';
-import { node } from '../../shared/dom.js?v=f7bbc01b5bdc';
-import { indentLevel } from '../notes/formatting/indents.js?v=f7bbc01b5bdc';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=f7bbc01b5bdc';
-import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=f7bbc01b5bdc';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=f7bbc01b5bdc';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=f7bbc01b5bdc';
+} from './flow-view.js?v=ecc045743344';
+import { newFlow, newRecovery } from './flow-model.js?v=ecc045743344';
+import { setupBreakTimer } from './break-timer.js?v=ecc045743344';
+import { chooseRepeatScope } from '../repeating/scope.js?v=ecc045743344';
+import { node } from '../../shared/dom.js?v=ecc045743344';
+import { indentLevel } from '../notes/formatting/indents.js?v=ecc045743344';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=ecc045743344';
+import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=ecc045743344';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=ecc045743344';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=ecc045743344';
 import {
   focusIntervalNotes,
   newFocus,
@@ -31,10 +31,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=f7bbc01b5bdc';
-import { createNoteEditor } from '../notes/note-editor.js?v=f7bbc01b5bdc';
-import { renderFormatted } from '../notes/formatting/format.js?v=f7bbc01b5bdc';
-import { noteTasks } from '../notes/formatting/tasks.js?v=f7bbc01b5bdc';
+} from './model.js?v=ecc045743344';
+import { createNoteEditor } from '../notes/note-editor.js?v=ecc045743344';
+import { renderFormatted } from '../notes/formatting/format.js?v=ecc045743344';
+import { noteTasks } from '../notes/formatting/tasks.js?v=ecc045743344';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {
@@ -259,7 +259,7 @@ export function setupFocus(api) {
         'p',
         'focus-interval-label',
         session.practice
-          ? `${session.practice.minutes}-minute daily practice · consistency over outcomes`
+          ? `${session.practice.minutes}-minute daily practice target · finish when you are ready`
           : `${p.date} · ${timeLabel(p.minute, api.getState().settings.clock)} – ${timeLabel(Math.min(1440, p.minute + (p.interval || session.interval)), api.getState().settings.clock)}`,
       ),
     );
@@ -662,7 +662,7 @@ export function setupFocus(api) {
   function finish(at = null, timedOut = false) {
     const endAt = Math.min(
       Number.isFinite(at) ? at : Date.now(),
-      workDeadline(session) ?? Infinity,
+      session.practice ? Infinity : (workDeadline(session) ?? Infinity),
     );
     syncOutcomeTags();
     flushNote();
@@ -671,15 +671,12 @@ export function setupFocus(api) {
     session.phase = 'reflect';
     const timing = session.timing || sessionTiming(readTiming());
     session.recovery ||= newRecovery(session.endedAt - session.startedAt);
-    session.recovery.minutes =
-      timing.mode === 'timed'
-        ? timing.breakMinutes
-        : flowtimeBreak(session.endedAt - session.startedAt, timing);
+    session.recovery.minutes = sessionBreakSuggestion({ ...session, timing });
     if (timedOut) timing.alerted = true;
     if (timing.mode === 'timed' && timing.autoBreak && !timing.breakStarted) {
       timing.breakStarted = true;
       session.recovery.startTimer = false;
-      breakTimer.start(timing.breakMinutes, session.endedAt, timing.sound);
+      breakTimer.start(session.recovery.minutes, session.endedAt, timing.sound);
     }
     api.fadeAudio?.()?.catch?.((e) => api.toast(e.message));
     if (
@@ -897,7 +894,10 @@ export function setupFocus(api) {
     const deadline = workDeadline(session);
     if (target && deadline !== null) {
       const remaining = Math.max(0, deadline - Date.now());
-      target.textContent = `Time remaining · ${durationLabel(remaining)}`;
+      target.textContent =
+        session.practice && remaining === 0
+          ? `Target reached · ${durationLabel(Math.max(0, Date.now() - deadline))} overtime. Finish when ready; your break will reflect actual time worked.`
+          : `Time remaining · ${durationLabel(remaining)}`;
       target.hidden = !!session.flow?.hideClock;
     }
     const breakLabel = dialog.querySelector('.focus-recovery-break');
@@ -926,8 +926,17 @@ export function setupFocus(api) {
       timerDue(session, Date.now())
     ) {
       const ring = session.timing.sound;
-      finish(workDeadline(session), true);
-      if (ring) api.ringTimer?.('Focus time is up');
+      if (session.practice) {
+        session.timing.alerted = true;
+        if (save())
+          api.recordCommitmentCompletion?.(
+            session.practice,
+            session.startedAt,
+            workDeadline(session),
+          );
+        api.toast('Practice target reached. Keep going if you are in flow, or finish for a break.');
+      } else finish(workDeadline(session), true);
+      if (ring) api.ringTimer?.(session.practice ? 'Practice target reached' : 'Focus time is up');
     }
     if (!session.practice && session.owner === owner && session.phase !== 'reflect') {
       const slot = api.getState(),

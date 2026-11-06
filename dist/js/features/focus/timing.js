@@ -79,3 +79,13 @@ export function timerDue(session, now) {
     session.phase === 'active' && deadline !== null && now >= deadline && !session.timing.alerted
   );
 }
+
+export function sessionBreakSuggestion(session) {
+  const timing = session.timing || TIMING_DEFAULTS;
+  const duration = Math.max(0, (session.endedAt ?? Date.now()) - session.startedAt);
+  const overtime =
+    session.practice && timing.mode === 'timed' && duration > timing.workMinutes * 60000;
+  return timing.mode === 'untimed' || overtime
+    ? flowtimeBreak(duration, timing)
+    : timing.breakMinutes;
+}

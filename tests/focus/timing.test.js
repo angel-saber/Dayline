@@ -10,6 +10,7 @@ import {
   flowtimeBreak,
   workDeadline,
   timerDue,
+  sessionBreakSuggestion,
 } from '../../dist/js/features/focus/timing.js';
 import { timingControls, setupTimingSettings } from '../../dist/js/features/focus/timing-view.js';
 import {
@@ -126,7 +127,7 @@ function harness(run) {
     }
   }
 }
-test('Daily practice times out once at its exact deadline, sounds, starts the configured break, and break completion does not repeat on reload', () =>
+test('Daily practice sounds once at its target, keeps overtime, and starts its adjusted break on actual finish without duplicate alerts', () =>
   harness(({ document, storage, callbacks, setNow, now }) => {
     const state = { version: 1, settings: { interval: 60, clock: '24' }, days: {} };
     let primed = 0;
@@ -147,7 +148,7 @@ test('Daily practice times out once at its exact deadline, sounds, starts the co
         return true;
       },
     });
-    assert.equal(api.startPractice({ id: 'habit', title: 'Read', minutes: 1 }), true);
+    assert.equal(api.startPractice({ id: 'habit', title: 'Read', minutes: 30 }), true);
     assert.equal(primed, 1);
     let draft = JSON.parse(storage.getItem('dayline.focus.v1'));
     assert.equal(draft.timing.mode, 'timed');
@@ -155,19 +156,27 @@ test('Daily practice times out once at its exact deadline, sounds, starts the co
     setNow(end + 10000);
     for (const fn of callbacks) fn();
     draft = JSON.parse(storage.getItem('dayline.focus.v1'));
-    assert.equal(draft.phase, 'reflect');
-    assert.equal(draft.endedAt, end);
+    assert.equal(draft.phase, 'active');
+    assert.equal(draft.endedAt, null);
     assert.equal(draft.timing.alerted, true);
-    assert.equal(draft.recovery.minutes, 5);
-    assert.equal(draft.timing.breakStarted, true);
+    assert.equal(draft.recovery, undefined);
+    assert.equal(draft.timing.breakStarted, false);
     assert.deepEqual(validFocusDraft(structuredClone(draft)), draft);
-    assert.deepEqual(sounds, ['Focus time is up']);
-    assert.equal(JSON.parse(storage.getItem(BREAK_KEY)).until, end + 5 * 60000);
+    assert.deepEqual(sounds, ['Practice target reached']);
+    assert.equal(storage.getItem(BREAK_KEY), null);
+    assert.match(document.querySelector('.practice-time-target').textContent, /overtime/);
     for (const fn of callbacks) fn();
     assert.equal(sounds.length, 1);
-    setNow(end + 5 * 60000);
+    const stopped = end + 30 * 60000;
+    setNow(stopped);
+    document.querySelector('.focus-finish').click();
+    draft = JSON.parse(storage.getItem('dayline.focus.v1'));
+    assert.equal(draft.endedAt, stopped);
+    assert.equal(draft.recovery.minutes, 10);
+    assert.equal(JSON.parse(storage.getItem(BREAK_KEY)).until, stopped + 10 * 60000);
+    setNow(stopped + 10 * 60000);
     for (const fn of callbacks) fn();
-    assert.deepEqual(sounds, ['Focus time is up', 'Break complete']);
+    assert.deepEqual(sounds, ['Practice target reached', 'Break complete']);
     const reloaded = setupBreakTimer({ storage, now, onComplete: () => sounds.push('duplicate') });
     reloaded.tick();
     assert.equal(sounds.length, 2);
@@ -279,3 +288,24 @@ test('choosing a commitment retargets an unstarted preparation with its own dura
     assert.equal(selected.pages[0].title, 'Read');
     assert.equal(created.length, 1);
   }));
+
+test('overtime commitment break suggestions use actual work duration and customized Flowtime preferences', () => {
+  const base = {
+    practice: { id: 'read', title: 'Read', minutes: 30 },
+    timing: sessionTiming(TIMING_DEFAULTS, 30),
+    startedAt: 1000,
+  };
+  assert.equal(sessionBreakSuggestion({ ...base, endedAt: 1000 + 30 * 60000 }), 5);
+  assert.equal(sessionBreakSuggestion({ ...base, endedAt: 1000 + 35 * 60000 }), 8);
+  assert.equal(sessionBreakSuggestion({ ...base, endedAt: 1000 + 60 * 60000 }), 10);
+  assert.equal(sessionBreakSuggestion({ ...base, endedAt: 1000 + 100 * 60000 }), 15);
+  const custom = {
+    ...base,
+    timing: { ...base.timing, flowThresholds: [15, 45, 75], flowBreaks: [3, 7, 12, 20] },
+  };
+  assert.equal(sessionBreakSuggestion({ ...custom, endedAt: 1000 + 60 * 60000 }), 12);
+  assert.equal(
+    sessionBreakSuggestion({ ...base, practice: undefined, endedAt: 1000 + 60 * 60000 }),
+    5,
+  );
+});

@@ -6,7 +6,7 @@ import {
   categoryValue,
   categoryOptions,
   collectTagSettings,
-} from './note-types.js?v=f7bbc01b5bdc';
+} from './note-types.js?v=ecc045743344';
 export function changeCustomTag(days, config, oldTag, name = null) {
   const settings = collectTagSettings(config, days);
   if (!oldTag.startsWith('custom:') || !settings.custom.includes(oldTag))
