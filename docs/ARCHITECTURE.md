@@ -721,3 +721,17 @@ Existing over-budget lists survive; reducing/removing habits remains possible
 without first satisfying the entire deficit. Changing Awake Hours never deletes
 or alters commitments. Game slot limits and awake-minute capacity both apply.
 The empty-interval suggester also stays silent outside Awake Hours.
+
+### Commitment card presentation
+
+The commitment drawer uses a card-first presentation inspired by colorful editorial
+list interfaces: large practice titles, stable ID-derived pastel cards, compact
+duration/progress labels and an accessible circular completion button. Completed
+cards move below pending cards without changing stored order. Edit/remove live in
+native details menus; editing expands the separate Add a practice composer.
+Preferences/game controls start collapsed, opening when an adjustment needs
+attention. Budget guidance stays visible. The drawer is full-screen on narrow
+screens and retains the active personality's paper/ink shell; card controls avoid
+theme surface classes that would cover their colors. Native keyboard controls,
+focus outlines, right-swipe completion and reduced-motion support remain intact.
+No schema, habit IDs, game rules, timing, quota or reminder behavior changes.
