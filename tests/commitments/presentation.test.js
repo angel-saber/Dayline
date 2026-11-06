@@ -59,6 +59,19 @@ test('card-first view keeps setup collapsed, exposes accessible completion/menu 
       color,
     );
     assert.match(dialog.querySelector('.commitment-list-heading').textContent, /1 \/ 2 complete/);
+    document.querySelector('#launch-commitments').click();
+    const currentMenu = dialog.querySelector('[data-commitment-id="b"] .commitment-card-menu');
+    [...currentMenu.querySelectorAll('button')].find((b) => b.textContent === 'Edit').click();
+    const draftInput = dialog.querySelector('[aria-label="Habit name"]');
+    draftInput.value = 'Keep this unsaved draft';
+    document.documentElement.dataset.layout = 'builder';
+    window.dispatchEvent(new window.Event('dayline:appearance'));
+    assert.notEqual(
+      dialog.querySelector('[data-commitment-id="a"]').style.getPropertyValue('--commitment-card'),
+      color,
+    );
+    assert.equal(dialog.querySelector('[aria-label="Habit name"]'), draftInput);
+    assert.equal(draftInput.value, 'Keep this unsaved draft');
   } finally {
     api?.destroy();
     for (const [k, d] of old) {

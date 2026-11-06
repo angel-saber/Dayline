@@ -1,3 +1,4 @@
+import { writeCommitmentAccount } from '../../dist/js/features/commitments/account-state.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseHTML } from 'linkedom';
@@ -183,6 +184,47 @@ test('over-budget additions show Awake Hours guidance and a direct settings rout
       rest.value = '0';
       submit();
       assert.equal(readCommitmentState(storage).items.length, 2);
+    } finally {
+      api.destroy();
+    }
+  }));
+
+test('signed-in lists import device habits only on explicit action and switching accounts never uploads a guest list automatically', () =>
+  harness(({ window, document, storage }) => {
+    let account = 'account-a',
+      days = {},
+      writes = 0;
+    const api = setupCommitments({
+      getState: () => ({ days, settings: {} }),
+      getAccountId: () => account,
+      startPractice() {},
+      storage,
+      saveAccountState(value, expected) {
+        days = writeCommitmentAccount(days, value, expected);
+        writes++;
+        return true;
+      },
+    });
+    try {
+      assert.equal(document.querySelectorAll('.commitment-row').length, 0);
+      assert.equal(writes, 0);
+      const importButton = [...document.querySelectorAll('button')].find(
+        (b) => b.textContent === 'Add this device’s commitments to my account',
+      );
+      assert.ok(importButton);
+      importButton.click();
+      assert.equal(writes, 1);
+      assert.equal(document.querySelectorAll('.commitment-row').length, 1);
+      assert.equal(JSON.parse(storage.getItem('dayline.daily-commitments.v1'))[0].id, 'a');
+      account = 'account-b';
+      days = {};
+      window.dispatchEvent(new window.Event('dayline:account'));
+      assert.equal(document.querySelectorAll('.commitment-row').length, 0);
+      assert.equal(writes, 1);
+      account = null;
+      window.dispatchEvent(new window.Event('dayline:account'));
+      assert.equal(document.querySelectorAll('.commitment-row').length, 1);
+      assert.equal(writes, 1);
     } finally {
       api.destroy();
     }

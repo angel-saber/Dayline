@@ -1,6 +1,17 @@
-import { renderScore } from './music.js?v=ecc045743344';
+import { renderScore } from './music.js?v=70187e0ed5b2';
 // Approved Gamer copy. Saved user commitments and notes are never rewritten.
 export default {
+  commitmentPalette: {
+    cards: [
+      { background: '#4d3674', ink: '#f0dcff' },
+      { background: '#193f52', ink: '#b8efff' },
+      { background: '#3f4523', ink: '#e6f2b0' },
+      { background: '#594525', ink: '#ffe4a7' },
+      { background: '#513049', ink: '#ffd4ed' },
+      { background: '#254d44', ink: '#bff3da' },
+    ],
+    completed: { background: '#282136', ink: '#bfb0d4' },
+  },
   id: 'gamer',
   name: 'Gamer',
   effects: 'mastery',

@@ -5115,7 +5115,7 @@ body.month-dragging .commitments-launch {
   border: 0;
   border-radius: 7px;
   background: var(--commitment-card, #8fc5e8);
-  color: #172125;
+  color: var(--commitment-card-ink, #172125);
   transition:
     opacity 160ms ease,
     transform 160ms ease;
@@ -5146,7 +5146,7 @@ body.month-dragging .commitments-launch {
   font-size: 10px;
   line-height: 1.5;
   letter-spacing: 0.035em;
-  opacity: 0.75;
+  opacity: 1;
 }
 .commitment-row > strong {
   position: absolute;
@@ -5168,10 +5168,10 @@ body.month-dragging .commitments-launch {
   width: 36px;
   height: 36px;
   padding: 0;
-  border: 1.5px solid #17212570;
+  border: 1.5px solid color-mix(in srgb, var(--commitment-card-ink, #172125) 55%, transparent);
   border-radius: 50%;
   background: transparent;
-  color: #172125;
+  color: var(--commitment-card-ink, #172125);
   font-size: 0;
 }
 .commitment-complete::after {
@@ -5184,8 +5184,8 @@ body.month-dragging .commitments-launch {
   opacity: 1;
 }
 .commitment-complete[aria-pressed='true'] {
-  background: #172125;
-  color: #fff;
+  background: var(--commitment-card-ink, #172125);
+  color: var(--commitment-card, #fff);
 }
 .commitment-complete:disabled {
   opacity: 1;
@@ -5193,7 +5193,8 @@ body.month-dragging .commitments-launch {
 }
 .commitments-panel .commitment-row.commitment-done {
   opacity: 1;
-  background: #d5d8d2;
+  background: var(--commitment-done-card, #d5d8d2);
+  color: var(--commitment-done-ink, #172125);
 }
 .commitment-done .commitment-start {
   text-decoration: line-through;
@@ -5240,8 +5241,8 @@ body.month-dragging .commitments-launch {
   margin: 0 20px 16px;
   max-width: calc(100% - 40px);
   font-size: 11px;
-  color: #172125;
-  border: 1px solid #17212570;
+  color: var(--commitment-card-ink, #172125);
+  border: 1px solid currentColor;
 }
 .commitment-composer {
   margin-top: 16px;
