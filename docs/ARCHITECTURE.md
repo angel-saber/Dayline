@@ -621,7 +621,7 @@ existing account/guest persistence boundary. Optional validated `practice` metad
 in Focus drafts/reports records the habit ID, title and target; a matching page
 marker keeps that note in view across interval changes and midnight. Other notes
 are never pulled into practice and existing sessions must be finished first.
-Elapsed time uses wall-clock time; reaching the target ends timed work with a completion sound, but never auto-completes a note or requires an outcome. Standard
+Elapsed time uses wall-clock time; reaching the target sounds once and allows overtime until Finish, without auto-completing the note or requiring an outcome. Standard
 minimize, audio, interruptions, reflection and report saving remain shared.
 Reports preserve actual duration and practice metadata through note sync/backups.
 Today’s recorded minutes use saved report overlap with local-day boundaries,
@@ -641,7 +641,7 @@ with four suggested break durations. Defaults follow the original Flowtime post:
 5/8/10/15 minutes at 25/50/90-minute boundaries; the source calls these suggestions,
 not rules. Existing saved recovery minutes remain readable.
 
-Timed work uses a wall-clock deadline, including when minimized. On expiry it
+Regular timed Focus uses a wall-clock deadline, including when minimized. On expiry it
 freezes the work report at that deadline, enters reflection, fades Focus Audio,
 marks the alert handled and sounds the shared reminder media player. Gesture-based
 priming uses that same player, independently of planned-note notification toggles.
@@ -754,3 +754,12 @@ practice cards. New session notes and preparation context copy the selected tags
 and optional practice report metadata preserves them through existing note sync
 and backups. Untagged legacy habits remain valid. Changing a habit's tags affects
 future sessions; existing notes keep their own independent tags.
+
+Daily Commitment targets are cues rather than forced stops: reaching the target
+persists its handled alert, sounds once and credits completion, while work and
+its interruption log remain active. The UI shows overtime. Finish records actual
+work duration; if it exceeds the planned target, `sessionBreakSuggestion` uses the
+session's customized Flowtime bands rather than its original fixed break. Automatic
+breaks begin at the actual finish and use that adjusted duration. At/before target,
+the configured break is retained. Regular timed Focus keeps its existing hard-stop
+behavior. Saved reports distinguish planned work from the actual suggested break.
