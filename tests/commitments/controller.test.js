@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseHTML } from 'linkedom';
 import { setupCommitments } from '../../dist/js/features/commitments/controller.js';
+import { COMMITMENT_STATE_KEY } from '../../dist/js/features/commitments/game.js';
 import { COMMITMENTS_KEY } from '../../dist/js/features/commitments/model.js';
 test('custom duration edits keep IDs, failed writes retain drafts, removing habits keeps reports, corrupt storage is never replaced', () => {
   const { window, document } = parseHTML(
@@ -48,17 +49,18 @@ test('custom duration edits keep IDs, failed writes retain drafts, removing habi
     assert.equal(title.value, 'My custom practice');
     fail = false;
     submit();
-    const first = JSON.parse(values.get(COMMITMENTS_KEY))[0];
+    const first = JSON.parse(values.get(COMMITMENT_STATE_KEY)).items[0];
     assert.equal(first.minutes, 15);
     click('Edit');
     minutes.value = '45';
     submit();
-    const edited = JSON.parse(values.get(COMMITMENTS_KEY))[0];
+    const edited = JSON.parse(values.get(COMMITMENT_STATE_KEY)).items[0];
     assert.equal(edited.id, first.id);
     assert.equal(edited.minutes, 45);
     click('Remove');
-    assert.deepEqual(JSON.parse(values.get(COMMITMENTS_KEY)), []);
+    assert.deepEqual(JSON.parse(values.get(COMMITMENT_STATE_KEY)).items, []);
     assert.equal(state.days['2026-11-05'][0].text, 'Keep report');
+    values.delete(COMMITMENT_STATE_KEY);
     values.set(COMMITMENTS_KEY, 'corrupt');
     document.querySelector('#launch-commitments').click();
     title.value = 'Another';

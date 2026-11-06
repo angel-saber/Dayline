@@ -4,22 +4,22 @@ import {
   flowtimeBreak,
   workDeadline,
   timerDue,
-} from './timing.js?v=3714ce3e8e59';
-import { timingControls } from './timing-view.js?v=3714ce3e8e59';
+} from './timing.js?v=c8e108356247';
+import { timingControls } from './timing-view.js?v=c8e108356247';
 import {
   createFlowPreparation,
   recoverySection,
   preparationReference,
-} from './flow-view.js?v=3714ce3e8e59';
-import { newFlow, newRecovery } from './flow-model.js?v=3714ce3e8e59';
-import { setupBreakTimer } from './break-timer.js?v=3714ce3e8e59';
-import { chooseRepeatScope } from '../repeating/scope.js?v=3714ce3e8e59';
-import { node } from '../../shared/dom.js?v=3714ce3e8e59';
-import { indentLevel } from '../notes/formatting/indents.js?v=3714ce3e8e59';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=3714ce3e8e59';
-import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=3714ce3e8e59';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=3714ce3e8e59';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=3714ce3e8e59';
+} from './flow-view.js?v=c8e108356247';
+import { newFlow, newRecovery } from './flow-model.js?v=c8e108356247';
+import { setupBreakTimer } from './break-timer.js?v=c8e108356247';
+import { chooseRepeatScope } from '../repeating/scope.js?v=c8e108356247';
+import { node } from '../../shared/dom.js?v=c8e108356247';
+import { indentLevel } from '../notes/formatting/indents.js?v=c8e108356247';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=c8e108356247';
+import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=c8e108356247';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=c8e108356247';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=c8e108356247';
 import {
   focusIntervalNotes,
   newFocus,
@@ -31,10 +31,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=3714ce3e8e59';
-import { createNoteEditor } from '../notes/note-editor.js?v=3714ce3e8e59';
-import { renderFormatted } from '../notes/formatting/format.js?v=3714ce3e8e59';
-import { noteTasks } from '../notes/formatting/tasks.js?v=3714ce3e8e59';
+} from './model.js?v=c8e108356247';
+import { createNoteEditor } from '../notes/note-editor.js?v=c8e108356247';
+import { renderFormatted } from '../notes/formatting/format.js?v=c8e108356247';
+import { noteTasks } from '../notes/formatting/tasks.js?v=c8e108356247';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {
@@ -682,7 +682,12 @@ export function setupFocus(api) {
       breakTimer.start(timing.breakMinutes, session.endedAt, timing.sound);
     }
     api.fadeAudio?.()?.catch?.((e) => api.toast(e.message));
-    save();
+    if (
+      save() &&
+      session.practice &&
+      session.endedAt - session.startedAt >= session.practice.minutes * 60000
+    )
+      api.recordCommitmentCompletion?.(session.practice, session.startedAt, session.endedAt);
     render();
   }
   function reflect() {
@@ -734,6 +739,11 @@ export function setupFocus(api) {
         return;
       }
       if (saved) {
+        if (
+          session.practice &&
+          session.endedAt - session.startedAt >= session.practice.minutes * 60000
+        )
+          api.recordCommitmentCompletion?.(session.practice, session.startedAt, session.endedAt);
         const recovery = session.recovery;
         clear();
         if (recovery.startTimer) {
@@ -993,6 +1003,10 @@ export function setupFocus(api) {
         owner,
       );
       session.timing = sessionTiming(readTiming(), practice.minutes);
+      if (practice.breakMinutes !== undefined) {
+        session.timing.autoBreak = practice.breakMinutes > 0;
+        if (practice.breakMinutes > 0) session.timing.breakMinutes = practice.breakMinutes;
+      }
       if (session.timing.sound) api.primeTimerSound?.();
       session.mantra = focusMantras(MANTRAS)[0];
       commitFocus(session, api.getState(), now);

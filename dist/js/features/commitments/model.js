@@ -25,7 +25,17 @@ export function validCommitment(value) {
     value.minutes > 1440
   )
     throw Error('Choose a habit name and a whole number of minutes from 1 to 1440.');
-  return { id: value.id, title: value.title.trim(), minutes: value.minutes };
+  if (
+    value.breakMinutes !== undefined &&
+    (!Number.isInteger(value.breakMinutes) || value.breakMinutes < 0 || value.breakMinutes > 120)
+  )
+    throw Error('Choose 0–120 break minutes.');
+  return {
+    id: value.id,
+    title: value.title.trim(),
+    minutes: value.minutes,
+    ...(value.breakMinutes !== undefined ? { breakMinutes: value.breakMinutes } : {}),
+  };
 }
 export function validCommitments(value) {
   if (!Array.isArray(value) || value.length > 100) throw Error('Save up to 100 daily commitments.');

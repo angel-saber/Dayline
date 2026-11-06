@@ -1081,7 +1081,7 @@ test('the assembled planner starts, switches views/personalities, edits settings
     habitWindow
       .querySelector('form')
       .dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
-    assert.equal(JSON.parse(local.getItem('dayline.daily-commitments.v1'))[0].title, 'Read');
+    assert.equal(JSON.parse(local.getItem('dayline.commitment-state.v1')).items[0].title, 'Read');
     assert.equal(local.getItem('dayline.focus.v1'), null);
     const beforeFailedPractice = local.getItem('dayline.v1');
     const originalSetItem = local.setItem;

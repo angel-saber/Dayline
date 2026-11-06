@@ -607,8 +607,9 @@ switch does not change shared settings or note schemas. See
 
 ## Daily Commitments
 
-`features/commitments/` owns a device-local, validated habit list in
-`dayline.daily-commitments.v1`. The launcher sits above Shortcuts and below the
+`features/commitments/` owns a device-local, validated habit list, retaining
+`dayline.daily-commitments.v1` as its legacy source and using the versioned
+`dayline.commitment-state.v1` envelope for new edits and history. The launcher sits above Shortcuts and below the
 favorite activity dock, inside the planner so it stays hidden before sign-in or
 guest entry. Suggested/custom names and 1–1440 minute targets default to 30.
 Malformed storage is retained without overwriting; failed writes retain drafts.
@@ -658,3 +659,65 @@ new sessions; note reports continue through existing account sync and backups.
 Browser audio permissions, tab suspension, device sleep and a closed page can delay
 or prevent sounds. Settings includes an explicit Focus sound test. There is no
 service worker or claim of guaranteed alarms while Dayline is closed.
+
+### Night ordering and commitment game mode
+
+`daily/night-order.js` keeps the device-local `dayline.daily-order.v1` preference.
+Night-first rotates interval display around an evening/custom start, retaining
+all-day notes first and all original date/time/entry identities. Earlier hours
+remain on the same selected calendar date, explicitly noted on Daily/Settings;
+this is not an overnight date migration or a change to notification timestamps.
+
+Commitment presets are 2/5/10/15/25/30/45/60/90/120 minutes. New custom durations
+start at 2 minutes; legacy 1-minute report metadata remains readable. Optional
+per-habit `breakMinutes` supports 0 (no automatic break) through 120, overriding
+the generic Focus break preference. Preset breaks are labeled suggestions, not
+universal standards. Existing habit IDs and saved reports are preserved.
+
+`commitments/game.js` owns validated local history and game rules. On the first
+successful edit/completion, the original array at `dayline.daily-commitments.v1`
+is retained, while `dayline.commitment-state.v1` becomes the authoritative atomic
+envelope for items, manual completion marks, reminders and game state. Reading
+falls back to the old list without writing. Corrupt data is retained, failed
+writes keep drafts, and stale-tab edits are rejected. This browser-local state is
+not synced or added to note backups; ordinary session notes/reports still are.
+
+Swipe right or Mark done records completion without fabricating work duration,
+Focus reports or note edits. Undo done reverses manual completion; recorded work
+can independently fulfill the daily target. A completed timed practice credits
+the calendar day it started, including midnight-spanning sessions. Report-based
+minute totals retain their actual local-day overlap and deduplicate session IDs.
+
+Game mode is voluntary and not an anti-cheat system. Starting cap is max(3, current
+count). Days settle after local midnight. All commitments must be complete for a
+day to count; seven consecutive complete days add one slot (up to the 100-item
+list bound). A missed day resets the success run. Two consecutive missed days
+create exactly one pending adjustment: choose and confirm a deletion when there
+are multiple habits, otherwise reduce the last habit by five minutes down to two.
+Nothing is auto-deleted. While pending, evaluation freezes; acknowledgment resets
+evaluation to today so missed days during an absence never stack consequences.
+At the two-minute floor, acknowledgment resets the run without further reduction.
+A confirmed deletion lowers the slot cap by one, preserving other unused earned slots; a duration reduction does not remove another slot. New slots can be earned again. No
+habits means no successes or failures. Disabling game mode ends its current run.
+
+Empty-interval suggestions use existing notification permission/sound paths,
+respect the global notifications setting, hidden-hours choices, a local opt-out,
+current pending habits, and active Focus/break suppression. Only the current
+interval is checked, once per date/start/interval token, with no catch-up burst.
+Any timed note makes the interval occupied, even if completed. System notification
+clicks open Daily Commitments. The page must remain open; browser suspension still
+limits delivery. History, suggestions and game rules add no backend or paid service.
+
+### Awake Hours capacity
+
+`settings/awake-hours.js` stores a separate device-local wake/sleep range in
+`dayline.awake-hours.v1`, independent of Available Hours. Daytime and overnight
+ranges are supported; equal endpoints represent 24 hours. The default is 07:00
+to 23:00 (960 minutes). Commitment allocation sums practice minutes plus each
+configured optional break, using the Focus default for legacy habits without a
+break override. Additions or increases beyond awake capacity are rejected with
+an explicit route to Awake Hours or an invitation to shorten existing habits.
+Existing over-budget lists survive; reducing/removing habits remains possible
+without first satisfying the entire deficit. Changing Awake Hours never deletes
+or alters commitments. Game slot limits and awake-minute capacity both apply.
+The empty-interval suggester also stays silent outside Awake Hours.

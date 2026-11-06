@@ -2984,3 +2984,34 @@ body.month-dragging .commitments-launch {
 .focus-timing-fields[hidden] {
   display: none;
 }
+
+.commitment-row {
+  touch-action: pan-y;
+}
+.commitment-done .commitment-start {
+  opacity: 0.7;
+}
+.commitment-game {
+  border: 1px solid var(--line);
+  padding: 12px;
+  border-radius: 8px;
+}
+.commitment-game:empty {
+  display: none;
+}
+.commitment-controls {
+  flex-wrap: wrap;
+}
+
+.awake-hours-fields {
+  display: grid;
+  gap: 12px;
+}
+.awake-hours-fields label {
+  display: grid;
+  gap: 6px;
+}
+.commitment-capacity {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}

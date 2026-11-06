@@ -1,4 +1,4 @@
-import { renderScore } from './music.js?v=3714ce3e8e59';
+import { renderScore } from './music.js?v=c8e108356247';
 // Original authored personality. User notes and saved commitments are never rewritten.
 export default {
   renderScore,
