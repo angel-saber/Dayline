@@ -1,9 +1,10 @@
+import { commitmentColors } from './colors.js?v=70187e0ed5b2';
 import {
   commitmentRecords,
   commitmentToken,
   importDeviceCommitments,
-} from './account-state.js?v=3a3bc36f0539';
-import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=3a3bc36f0539';
+} from './account-state.js?v=70187e0ed5b2';
+import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=70187e0ed5b2';
 import {
   readAwakeHours,
   awakeMinutes,
@@ -12,11 +13,11 @@ import {
   assertCommitmentBudget,
   AWAKE_HOURS_EVENT,
   AWAKE_HOURS_KEY,
-} from '../settings/awake-hours.js?v=3a3bc36f0539';
-import { readTiming } from '../focus/timing.js?v=3a3bc36f0539';
-import { dayKey } from '../../shared/dates.js?v=3a3bc36f0539';
-import { bucket } from '../../shared/schedule.js?v=3a3bc36f0539';
-import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=3a3bc36f0539';
+} from '../settings/awake-hours.js?v=70187e0ed5b2';
+import { readTiming } from '../focus/timing.js?v=70187e0ed5b2';
+import { dayKey } from '../../shared/dates.js?v=70187e0ed5b2';
+import { bucket } from '../../shared/schedule.js?v=70187e0ed5b2';
+import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=70187e0ed5b2';
 import {
   COMMITMENT_STATE_KEY,
   DURATION_PRESETS,
@@ -30,14 +31,14 @@ import {
   acknowledgePenalty,
   changeItems,
   pendingCommitments,
-} from './game.js?v=3a3bc36f0539';
-import { node } from '../../shared/dom.js?v=3a3bc36f0539';
+} from './game.js?v=70187e0ed5b2';
+import { node } from '../../shared/dom.js?v=70187e0ed5b2';
 import {
   COMMITMENTS_KEY,
   SUGGESTIONS,
   validCommitments,
   practiceProgress,
-} from './model.js?v=3a3bc36f0539';
+} from './model.js?v=70187e0ed5b2';
 function button(text, action, kind = 'secondary') {
   const b = node('button', kind, text);
   b.type = 'button';
@@ -184,6 +185,11 @@ export function setupCommitments({
   const preferences = node('details', 'commitment-preferences');
   preferences.append(
     node('summary', '', 'Preferences & game mode'),
+    node(
+      'p',
+      'field-hint',
+      'Card colors follow your saved list order, repeating through the active personality’s palette.',
+    ),
     node(
       'p',
       'field-hint',
@@ -478,10 +484,11 @@ export function setupCommitments({
       )) {
       const row = node('section', 'commitment-row');
       row.dataset.commitmentId = item.id;
-      const colors = ['#f0bf58', '#8fc5e8', '#e9a9a9', '#aed0b2', '#c5b5df', '#edb48c'];
-      let hash = 0;
-      for (const char of item.id) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
-      row.style.setProperty('--commitment-card', colors[hash % colors.length]);
+      const colors = commitmentColors(items.indexOf(item));
+      row.style.setProperty('--commitment-card', colors.background);
+      row.style.setProperty('--commitment-card-ink', colors.ink);
+      row.style.setProperty('--commitment-done-card', colors.completedBackground);
+      row.style.setProperty('--commitment-done-ink', colors.completedInk);
       const total = practiceProgress(getState().days, item.id);
       const done = commitmentDone(commitmentState, item, dayKey(), getState().days);
       const manual = commitmentState.marks[dayKey()]?.includes(item.id);
@@ -706,6 +713,9 @@ export function setupCommitments({
       }
       read();
     }
+    if (dialog.open) render();
+  });
+  window.addEventListener('dayline:appearance', () => {
     if (dialog.open) render();
   });
   window.addEventListener(AWAKE_HOURS_EVENT, () => {

@@ -1,6 +1,17 @@
-import { renderScore } from './music.js?v=3a3bc36f0539';
+import { renderScore } from './music.js?v=70187e0ed5b2';
 // Authored personality data only; never rewrite user notes or saved commitments.
 export default {
+  commitmentPalette: {
+    cards: [
+      { background: '#ddc8a1', ink: '#34291b' },
+      { background: '#d4bca5', ink: '#34251c' },
+      { background: '#c4cec0', ink: '#28342b' },
+      { background: '#c7cbd8', ink: '#292d3a' },
+      { background: '#d5c1cb', ink: '#3d2731' },
+      { background: '#e5d7c2', ink: '#3b3023' },
+    ],
+    completed: { background: '#d8d0c4', ink: '#5a5146' },
+  },
   renderScore,
   effects: null,
   id: 'founder',

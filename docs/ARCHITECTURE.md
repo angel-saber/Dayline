@@ -724,7 +724,7 @@ The empty-interval suggester also stays silent outside Awake Hours.
 ### Commitment card presentation
 
 The commitment drawer uses a card-first presentation inspired by colorful editorial
-list interfaces: large practice titles, stable ID-derived pastel cards, compact
+list interfaces: large practice titles, coordinated personality-palette cards, compact
 duration/progress labels and an accessible circular completion button. Completed
 cards move below pending cards without changing stored order. Edit/remove live in
 native details menus; editing expands the separate Add a practice composer.
@@ -790,3 +790,11 @@ interval notification tokens remain device-local to avoid hourly account writes.
 Tests exercise two independent SyncEngine clients and a separate owner against a
 revision-aware test server. Production account/device delivery requires deployment
 and a signed-in device check; no live user data or database migrations are run.
+
+Commitment palettes are authored in each personality profile and read through the
+shared registry. `commitments/colors.js` cycles six coordinated colors in saved
+list order, rather than hashing IDs. Sorting completed cards below pending ones
+never changes that sequence position. Completed cards use the active personality's
+muted palette. Appearance changes recolor an open list without replacing composer
+fields or changing data. Palette tests enforce unique profile palettes and at least
+4.5:1 foreground/background contrast for both pending and completed text.

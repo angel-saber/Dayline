@@ -1,5 +1,5 @@
-import { selectedLines } from './bullets.js?v=3a3bc36f0539';
-import { editTasks, validTasks } from './tasks.js?v=3a3bc36f0539';
+import { selectedLines } from './bullets.js?v=70187e0ed5b2';
+import { editTasks, validTasks } from './tasks.js?v=70187e0ed5b2';
 export const MAX_INDENT = 8;
 export const indentLevel = (indents = [], start) =>
   indents.find((item) => item.start === start)?.level || 0;

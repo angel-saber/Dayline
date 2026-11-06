@@ -1,6 +1,17 @@
-import { renderScore } from './music.js?v=3a3bc36f0539';
+import { renderScore } from './music.js?v=70187e0ed5b2';
 // Original authored personality. User notes and saved commitments are never rewritten.
 export default {
+  commitmentPalette: {
+    cards: [
+      { background: '#18364f', ink: '#b9e1ff' },
+      { background: '#27304e', ink: '#d0d8ff' },
+      { background: '#35304e', ink: '#ded2ff' },
+      { background: '#21444b', ink: '#b2eee8' },
+      { background: '#3f3546', ink: '#efd2ee' },
+      { background: '#404153', ink: '#eeedff' },
+    ],
+    completed: { background: '#222c3c', ink: '#a2b5ce' },
+  },
   renderScore,
   effects: 'orbital',
   effectLabels: {

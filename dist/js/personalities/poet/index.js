@@ -1,6 +1,17 @@
-import { renderScore } from './music.js?v=3a3bc36f0539';
+import { renderScore } from './music.js?v=70187e0ed5b2';
 // Original copy for creative practice; user writing is never restyled or rewritten.
 export default {
+  commitmentPalette: {
+    cards: [
+      { background: '#4a2934', ink: '#f4c8c9' },
+      { background: '#363247', ink: '#e6d7fa' },
+      { background: '#273c47', ink: '#bddce9' },
+      { background: '#3c3f33', ink: '#dedfc2' },
+      { background: '#4c3929', ink: '#f3d5b2' },
+      { background: '#3b2940', ink: '#edc8ed' },
+    ],
+    completed: { background: '#2a2831', ink: '#b4a5b6' },
+  },
   id: 'poet',
   name: 'Poet',
   effects: null,
