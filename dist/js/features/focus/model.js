@@ -1,15 +1,15 @@
-import { validTiming, sessionTiming, TIMING_DEFAULTS } from './timing.js?v=00369c7627f6';
-import { validCommitment } from '../commitments/model.js?v=00369c7627f6';
-import { newFlow, validFlow, validRecovery } from './flow-model.js?v=00369c7627f6';
-import { noteTags } from '../notes/note-types.js?v=00369c7627f6';
+import { validTiming, sessionTiming, TIMING_DEFAULTS } from './timing.js?v=f7bbc01b5bdc';
+import { validCommitment } from '../commitments/model.js?v=f7bbc01b5bdc';
+import { newFlow, validFlow, validRecovery } from './flow-model.js?v=f7bbc01b5bdc';
+import { noteTags } from '../notes/note-types.js?v=f7bbc01b5bdc';
 import {
   dayKey,
   parseDay,
   offsetDay,
   bucket,
   slots,
-} from '../../shared/schedule.js?v=00369c7627f6';
-import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=00369c7627f6';
+} from '../../shared/schedule.js?v=f7bbc01b5bdc';
+import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=f7bbc01b5bdc';
 export const MANTRAS = PERSONALITY_MANTRAS.zen;
 export const INSPIRATION = VOICE_QUOTES.zen;
 export function intervalAt(at, interval) {
@@ -359,7 +359,7 @@ export function newPracticeFocus(
     if (session.practice.breakMinutes > 0)
       session.timing.breakMinutes = session.practice.breakMinutes;
   }
-  session.flow = newFlow();
+  session.flow = newFlow(session.practice.tags || []);
   const p = session.pages[0];
   const d = new Date(now);
   p.minute = d.getHours() * 60 + d.getMinutes();

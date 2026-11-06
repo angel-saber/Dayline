@@ -3324,3 +3324,18 @@ body.month-dragging .commitments-launch {
     transition: none;
   }
 }
+
+.commitment-category-picker .note-type-picker {
+  margin: 4px 0;
+}
+.commitments-panel .commitment-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  padding: 0 20px 18px;
+  color: inherit;
+}
+.commitments-panel .commitment-card-tags .note-type-badge {
+  font-size: 10px;
+  color: inherit;
+}

@@ -1,6 +1,6 @@
-import { node } from '../../shared/dom.js?v=00369c7627f6';
-import { ACCESS, INTEREST, PERMISSIONS, BREATHS } from './flow-model.js?v=00369c7627f6';
-import { breathingFrame } from '../activities/model.js?v=00369c7627f6';
+import { node } from '../../shared/dom.js?v=f7bbc01b5bdc';
+import { ACCESS, INTEREST, PERMISSIONS, BREATHS } from './flow-model.js?v=f7bbc01b5bdc';
+import { breathingFrame } from '../activities/model.js?v=f7bbc01b5bdc';
 const button = (text, action) => {
   const b = node('button', 'secondary', text);
   b.type = 'button';

@@ -746,3 +746,11 @@ successful practice-note creation switches the planner to today's Daily view and
 shows its hours, even when launched from another date or Monthly. The note is
 written at the launch minute and grouped into that current interval; existing
 notes remain unchanged.
+
+Daily Commitment creation/editing reuses the shared multi-category chip picker,
+including enabled default tags and existing/custom categories. Optional validated
+`tags` remain on the local habit and its game snapshots. Compact badges appear on
+practice cards. New session notes and preparation context copy the selected tags,
+and optional practice report metadata preserves them through existing note sync
+and backups. Untagged legacy habits remain valid. Changing a habit's tags affects
+future sessions; existing notes keep their own independent tags.

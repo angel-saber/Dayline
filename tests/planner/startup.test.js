@@ -1080,6 +1080,8 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.equal(habitWindow.querySelector('[aria-label="Daily focus minutes"]').value, '30');
     habitWindow.querySelector('[aria-label="Daily focus minutes"]').value = '45';
     habitWindow.querySelector('[aria-label="Commitment break minutes"]').value = '7';
+    habitWindow.querySelector('.commitment-category-picker [data-note-type="project"]').click();
+    habitWindow.querySelector('.commitment-category-picker [data-note-type="personal"]').click();
     habitWindow
       .querySelector('form')
       .dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
@@ -1112,6 +1114,9 @@ test('the assembled planner starts, switches views/personalities, edits settings
       (n) => n.id === practiceDraft.pages[0].noteId,
     );
     assert.equal(practiceNote.title, 'Read');
+    assert.deepEqual(practiceNote.tags, ['project', 'personal']);
+    assert.deepEqual(practiceDraft.practice.tags, ['project', 'personal']);
+    assert.deepEqual(practiceDraft.flow.tags, ['project', 'personal']);
     const launchedAt = new Date(practiceDraft.startedAt);
     assert.equal(practiceNote.minute, launchedAt.getHours() * 60 + launchedAt.getMinutes());
     assert.ok(document.querySelector(`#timeline .entry[data-id="${practiceNote.id}"]`));

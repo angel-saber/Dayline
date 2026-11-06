@@ -1,3 +1,4 @@
+import { validTags } from '../notes/note-types.js?v=f7bbc01b5bdc';
 export const COMMITMENTS_KEY = 'dayline.daily-commitments.v1';
 export const SUGGESTIONS = [
   'Exercise',
@@ -34,6 +35,7 @@ export function validCommitment(value) {
     id: value.id,
     title: value.title.trim(),
     minutes: value.minutes,
+    ...(value.tags !== undefined ? { tags: validTags(value.tags) } : {}),
     ...(value.breakMinutes !== undefined ? { breakMinutes: value.breakMinutes } : {}),
   };
 }

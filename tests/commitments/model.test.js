@@ -81,3 +81,14 @@ test('practice stays pinned across intervals and midnight, retains live edits, a
   commitFocus(normal, state, at);
   assert.equal(advanceFocus(normal, state, at + 40 * 60000), true);
 });
+
+test('commitment categories validate, retain multiple/default/custom tags and initialize practice context', () => {
+  const tagged = { ...practice, tags: ['project', 'personal', 'custom:Creative'] };
+  assert.deepEqual(validCommitment(tagged).tags, tagged.tags);
+  assert.throws(() => validCommitment({ ...practice, tags: ['project', 'project'] }));
+  assert.throws(() => validCommitment({ ...practice, tags: ['invalid'] }));
+  const session = newPracticeFocus(state, tagged, at, 'tag-session', 'tag-note', 'owner');
+  assert.deepEqual(session.flow.tags, tagged.tags);
+  assert.deepEqual(session.practice.tags, tagged.tags);
+  assert.notEqual(session.flow.tags, tagged.tags);
+});
