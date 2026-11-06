@@ -1,15 +1,15 @@
-import { validTiming } from './timing.js?v=a6ca893d82ed';
-import { validCommitment } from '../commitments/model.js?v=a6ca893d82ed';
-import { newFlow, validFlow, validRecovery } from './flow-model.js?v=a6ca893d82ed';
-import { noteTags } from '../notes/note-types.js?v=a6ca893d82ed';
+import { validTiming, sessionTiming, TIMING_DEFAULTS } from './timing.js?v=00369c7627f6';
+import { validCommitment } from '../commitments/model.js?v=00369c7627f6';
+import { newFlow, validFlow, validRecovery } from './flow-model.js?v=00369c7627f6';
+import { noteTags } from '../notes/note-types.js?v=00369c7627f6';
 import {
   dayKey,
   parseDay,
   offsetDay,
   bucket,
   slots,
-} from '../../shared/schedule.js?v=a6ca893d82ed';
-import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=a6ca893d82ed';
+} from '../../shared/schedule.js?v=00369c7627f6';
+import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=00369c7627f6';
 export const MANTRAS = PERSONALITY_MANTRAS.zen;
 export const INSPIRATION = VOICE_QUOTES.zen;
 export function intervalAt(at, interval) {
@@ -342,9 +342,23 @@ export function durationLabel(ms) {
   return h ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`;
 }
 
-export function newPracticeFocus(state, practice, now, id, noteId, owner) {
+export function newPracticeFocus(
+  state,
+  practice,
+  now,
+  id,
+  noteId,
+  owner,
+  preferences = TIMING_DEFAULTS,
+) {
   const session = newFocus(state, now, id, owner);
   session.practice = validCommitment(practice);
+  session.timing = sessionTiming(preferences, session.practice.minutes);
+  if (session.practice.breakMinutes !== undefined) {
+    session.timing.autoBreak = session.practice.breakMinutes > 0;
+    if (session.practice.breakMinutes > 0)
+      session.timing.breakMinutes = session.practice.breakMinutes;
+  }
   session.flow = newFlow();
   const p = session.pages[0];
   const d = new Date(now);

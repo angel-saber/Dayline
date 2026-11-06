@@ -1,5 +1,5 @@
-import { dayKey, offsetDay } from '../../shared/dates.js?v=a6ca893d82ed';
-import { rescheduleNote } from '../daily/reschedule.js?v=a6ca893d82ed';
+import { dayKey, offsetDay } from '../../shared/dates.js?v=00369c7627f6';
+import { rescheduleNote } from '../daily/reschedule.js?v=00369c7627f6';
 export const EXPERIMENT_KEY = 'dayline.adjust-my-day.enabled.v1';
 export function enabled(storage = globalThis.localStorage) {
   try {

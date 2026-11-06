@@ -1,5 +1,5 @@
-import { flowtimeBreak } from './timing.js?v=a6ca893d82ed';
-import { validTags, categoryLabel } from '../notes/note-types.js?v=a6ca893d82ed';
+import { flowtimeBreak } from './timing.js?v=00369c7627f6';
+import { validTags, categoryLabel } from '../notes/note-types.js?v=00369c7627f6';
 export const BREATHS = [
   ['possibility', 'perfection'],
   ['courage', 'judgment'],

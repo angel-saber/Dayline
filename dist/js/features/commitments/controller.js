@@ -6,11 +6,11 @@ import {
   assertCommitmentBudget,
   AWAKE_HOURS_EVENT,
   AWAKE_HOURS_KEY,
-} from '../settings/awake-hours.js?v=a6ca893d82ed';
-import { readTiming } from '../focus/timing.js?v=a6ca893d82ed';
-import { dayKey } from '../../shared/dates.js?v=a6ca893d82ed';
-import { bucket } from '../../shared/schedule.js?v=a6ca893d82ed';
-import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=a6ca893d82ed';
+} from '../settings/awake-hours.js?v=00369c7627f6';
+import { readTiming } from '../focus/timing.js?v=00369c7627f6';
+import { dayKey } from '../../shared/dates.js?v=00369c7627f6';
+import { bucket } from '../../shared/schedule.js?v=00369c7627f6';
+import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=00369c7627f6';
 import {
   COMMITMENT_STATE_KEY,
   DURATION_PRESETS,
@@ -24,14 +24,14 @@ import {
   acknowledgePenalty,
   changeItems,
   pendingCommitments,
-} from './game.js?v=a6ca893d82ed';
-import { node } from '../../shared/dom.js?v=a6ca893d82ed';
+} from './game.js?v=00369c7627f6';
+import { node } from '../../shared/dom.js?v=00369c7627f6';
 import {
   COMMITMENTS_KEY,
   SUGGESTIONS,
   validCommitments,
   practiceProgress,
-} from './model.js?v=a6ca893d82ed';
+} from './model.js?v=00369c7627f6';
 function button(text, action, kind = 'secondary') {
   const b = node('button', kind, text);
   b.type = 'button';

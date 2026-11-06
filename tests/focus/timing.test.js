@@ -99,6 +99,10 @@ function harness(run) {
     this.open = false;
   };
   window.HTMLElement.prototype.focus = function () {};
+  window.HTMLElement.prototype.setCustomValidity = function () {};
+  window.HTMLElement.prototype.reportValidity = function () {
+    return true;
+  };
   Object.defineProperty(window.HTMLSelectElement.prototype, 'value', {
     configurable: true,
     get() {
@@ -228,4 +232,50 @@ test('untimed Focus never expires and uses its customized Flowtime snapshot when
       document.querySelector('.focus-window').textContent,
       /Suggested break: about 9 minutes/,
     );
+  }));
+
+test('choosing a commitment retargets an unstarted preparation with its own duration and restores the old draft on note-save failure', () =>
+  harness(({ document, window, storage }) => {
+    const state = { version: 1, settings: { interval: 60, clock: '24' }, days: {} };
+    let failNote = true;
+    const created = [];
+    storage.setItem(
+      TIMING_KEY,
+      JSON.stringify({ ...TIMING_DEFAULTS, workMinutes: 60, breakMinutes: 10, sound: false }),
+    );
+    const api = setupFocus({
+      getState: () => state,
+      flushEditor() {},
+      toast() {},
+      refresh() {},
+      createPracticeNote(p) {
+        if (failNote) return false;
+        created.push(structuredClone(p));
+        state.days[p.date] = [
+          { id: p.noteId, title: p.title, text: p.text, minute: p.minute, done: false },
+        ];
+        return true;
+      },
+    });
+    document.querySelector('#launch-focus').click();
+    const mantra = document.querySelector('.focus-mantra-input');
+    mantra.value = 'Keep showing up';
+    mantra.dispatchEvent(new window.Event('input'));
+    api.minimize();
+    const original = JSON.parse(storage.getItem('dayline.focus.v1'));
+    assert.equal(original.phase, 'prepare');
+    const habit = { id: 'practice', title: 'Read', minutes: 15, breakMinutes: 0 };
+    assert.equal(api.startPractice(habit), false);
+    assert.deepEqual(JSON.parse(storage.getItem('dayline.focus.v1')), original);
+    assert.equal(created.length, 0);
+    failNote = false;
+    assert.equal(api.startPractice(habit), true);
+    const selected = JSON.parse(storage.getItem('dayline.focus.v1'));
+    assert.equal(selected.phase, 'active');
+    assert.equal(selected.timing.workMinutes, 15);
+    assert.equal(selected.timing.mode, 'timed');
+    assert.equal(selected.timing.autoBreak, false);
+    assert.equal(selected.mantra, 'Keep showing up');
+    assert.equal(selected.pages[0].title, 'Read');
+    assert.equal(created.length, 1);
   }));

@@ -1078,6 +1078,8 @@ test('the assembled planner starts, switches views/personalities, edits settings
       .find((b) => b.textContent === 'Read')
       .click();
     assert.equal(habitWindow.querySelector('[aria-label="Daily focus minutes"]').value, '30');
+    habitWindow.querySelector('[aria-label="Daily focus minutes"]').value = '45';
+    habitWindow.querySelector('[aria-label="Commitment break minutes"]').value = '7';
     habitWindow
       .querySelector('form')
       .dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
@@ -1093,18 +1095,26 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.equal(local.getItem('dayline.v1'), beforeFailedPractice);
     assert.equal(local.getItem('dayline.focus.v1'), null);
     local.setItem = originalSetItem;
+    document.querySelector('#monthly-tab').click();
     document.querySelector('#launch-commitments').click();
     habitWindow.querySelector('.commitment-start').click();
     const practiceDraft = JSON.parse(local.getItem('dayline.focus.v1'));
     assert.equal(practiceDraft.practice.title, 'Read');
     assert.equal(practiceDraft.phase, 'active');
-    assert.equal(practiceDraft.practice.minutes, 30);
+    assert.equal(practiceDraft.practice.minutes, 45);
+    assert.equal(practiceDraft.timing.mode, 'timed');
+    assert.equal(practiceDraft.timing.workMinutes, 45);
+    assert.equal(practiceDraft.timing.breakMinutes, 7);
+    assert.equal(document.querySelector('#daily-view').hidden, false);
     assert.ok(document.querySelector('.focus-window').open);
-    assert.match(document.querySelector('.focus-window').textContent, /30-minute daily practice/);
+    assert.match(document.querySelector('.focus-window').textContent, /45-minute daily practice/);
     const practiceNote = JSON.parse(local.getItem('dayline.v1')).days[today].find(
       (n) => n.id === practiceDraft.pages[0].noteId,
     );
     assert.equal(practiceNote.title, 'Read');
+    const launchedAt = new Date(practiceDraft.startedAt);
+    assert.equal(practiceNote.minute, launchedAt.getHours() * 60 + launchedAt.getMinutes());
+    assert.ok(document.querySelector(`#timeline .entry[data-id="${practiceNote.id}"]`));
     [...document.querySelector('.focus-window').querySelectorAll('button')]
       .find((b) => b.textContent === 'Minimize')
       .click();
