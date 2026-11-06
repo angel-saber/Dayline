@@ -604,3 +604,27 @@ note editing, persistence, and Undo. Preview snapshots protect affected days fro
 stale writes; only explicit Apply changes schedules. The device-local visibility
 switch does not change shared settings or note schemas. See
 `ADJUST_MY_DAY_EXPERIMENT.md` for scope, limitations and the preserved rollback ref.
+
+## Daily Commitments
+
+`features/commitments/` owns a device-local, validated habit list in
+`dayline.daily-commitments.v1`. The launcher sits above Shortcuts and below the
+favorite activity dock, inside the planner so it stays hidden before sign-in or
+guest entry. Suggested/custom names and 1–1440 minute targets default to 30.
+Malformed storage is retained without overwriting; failed writes retain drafts.
+The list is browser-local like Shortcuts, not part of account sync or note backups.
+
+Selecting a habit launches the existing Focus controller directly in active mode
+with its normal personality mantra. A pinned practice note is saved through the
+existing account/guest persistence boundary. Optional validated `practice` metadata
+in Focus drafts/reports records the habit ID, title and target; a matching page
+marker keeps that note in view across interval changes and midnight. Other notes
+are never pulled into practice and existing sessions must be finished first.
+Elapsed time uses wall-clock time; reaching the target offers a gentle finish
+message, never auto-stops, auto-completes a note or requires an outcome. Standard
+minimize, audio, interruptions, reflection and report saving remain shared.
+Reports preserve actual duration and practice metadata through note sync/backups.
+Today’s recorded minutes use saved report overlap with local-day boundaries,
+deduplicated by session ID. Active/unsaved time is not counted in the list.
+Editing/removing a habit leaves past notes and reports unchanged. Reload older
+tabs before editing notes containing this new report metadata.

@@ -1,13 +1,14 @@
-import { newFlow, validFlow, validRecovery } from './flow-model.js?v=e010dd455f61';
-import { noteTags } from '../notes/note-types.js?v=e010dd455f61';
+import { validCommitment } from '../commitments/model.js?v=3039d17efbd9';
+import { newFlow, validFlow, validRecovery } from './flow-model.js?v=3039d17efbd9';
+import { noteTags } from '../notes/note-types.js?v=3039d17efbd9';
 import {
   dayKey,
   parseDay,
   offsetDay,
   bucket,
   slots,
-} from '../../shared/schedule.js?v=e010dd455f61';
-import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=e010dd455f61';
+} from '../../shared/schedule.js?v=3039d17efbd9';
+import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=3039d17efbd9';
 export const MANTRAS = PERSONALITY_MANTRAS.zen;
 export const INSPIRATION = VOICE_QUOTES.zen;
 export function intervalAt(at, interval) {
@@ -26,6 +27,10 @@ export function findFocusNote(days, id, date) {
   return null;
 }
 export function focusIntervalNotes(state, page) {
+  if (page.practiceNoteId) {
+    const found = findFocusNote(state.days, page.practiceNoteId, page.date);
+    return found ? [found.entry] : [];
+  }
   return (state.days[page.date] || [])
     .filter(
       (entry) =>
@@ -76,6 +81,7 @@ export function newFocus(state, now, id, owner) {
   };
 }
 export function advanceFocus(session, state, now) {
+  if (session.practice) return false;
   if (session.phase === 'reflect' || session.endedAt) return false;
   const slot = intervalAt(now, state.settings.interval),
     last = session.pages.at(-1);
@@ -185,6 +191,7 @@ export function focusReport(session) {
       ...session.pages.map((p) => ({ date: p.date, minute: p.minute, text: p.log })),
     ],
     reflection: { ...session.reflection },
+    ...(session.practice ? { practice: validCommitment(session.practice) } : {}),
     ...(session.flow ? { flow: validFlow(session.flow) } : {}),
     ...(session.recovery ? { recovery: validRecovery(session.recovery) } : {}),
   };
@@ -230,6 +237,7 @@ export function validFocusReports(value) {
       durationMs: r.durationMs,
       mantra: r.mantra,
       logs,
+      ...(r.practice !== undefined ? { practice: validCommitment(r.practice) } : {}),
       ...(r.flow !== undefined ? { flow: validFlow(r.flow) } : {}),
       ...(r.recovery !== undefined ? { recovery: validRecovery(r.recovery) } : {}),
       reflection: {
@@ -308,6 +316,16 @@ export function validFocusDraft(s) {
     )
       throw new Error('Invalid focus interval page.');
   }
+  if (s.practice !== undefined) {
+    s.practice = validCommitment(s.practice);
+    if (
+      s.pages.length !== 1 ||
+      s.pages[0].practiceNoteId !== s.pages[0].noteId ||
+      !s.pages[0].noteId
+    )
+      throw Error('Invalid practice session page.');
+  } else if (s.pages.some((p) => p.practiceNoteId !== undefined))
+    throw Error('Invalid practice session marker.');
   if (s.flow !== undefined) s.flow = validFlow(s.flow);
   if (s.recovery !== undefined) s.recovery = validRecovery(s.recovery);
   return s;
@@ -318,4 +336,17 @@ export function durationLabel(ms) {
     m = Math.floor((seconds % 3600) / 60),
     s = seconds % 60;
   return h ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`;
+}
+
+export function newPracticeFocus(state, practice, now, id, noteId, owner) {
+  const session = newFocus(state, now, id, owner);
+  session.practice = validCommitment(practice);
+  session.flow = newFlow();
+  const p = session.pages[0];
+  const d = new Date(now);
+  p.minute = d.getHours() * 60 + d.getMinutes();
+  p.noteId = p.practiceNoteId = noteId;
+  p.title = session.practice.title;
+  p.text = `Daily practice · ${session.practice.minutes} minutes\nShow up for the practice. No specific outcome required.`;
+  return session;
 }

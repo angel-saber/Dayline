@@ -2908,3 +2908,56 @@ button.slot-time .now-badge {
 .day-adjust-message:empty {
   display: none;
 }
+
+.commitments-launch {
+  position: fixed;
+  left: max(24px, env(safe-area-inset-left));
+  bottom: calc(151px + env(safe-area-inset-bottom));
+  z-index: 8;
+  max-width: min(190px, calc(45vw - 24px));
+  white-space: normal;
+  text-align: left;
+}
+.activity-favorites-dock {
+  bottom: calc(231px + env(safe-area-inset-bottom));
+}
+.bulk-mode .commitments-launch {
+  bottom: calc(266px + env(safe-area-inset-bottom));
+}
+.bulk-mode .activity-favorites-dock {
+  bottom: calc(346px + env(safe-area-inset-bottom));
+}
+body.month-dragging .commitments-launch {
+  pointer-events: none;
+}
+.commitments-panel {
+  overflow-y: auto;
+}
+.commitment-row {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.commitment-start {
+  width: 100%;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.commitment-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.commitment-suggestions button {
+  white-space: normal;
+}
+.practice-time-target {
+  flex-basis: 100%;
+}
+@media (max-width: 600px) {
+  .commitments-launch {
+    left: max(16px, env(safe-area-inset-left));
+    max-width: calc(45vw - 24px);
+    font-size: 12px;
+    padding: 12px 14px;
+  }
+}

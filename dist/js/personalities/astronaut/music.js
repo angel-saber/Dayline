@@ -1,4 +1,4 @@
-import { scoreTools } from '../score-tools.js?v=e010dd455f61';
+import { scoreTools } from '../score-tools.js?v=3039d17efbd9';
 // Orbital Drift: suspended harmony, patient signals and a soft, shared pulse.
 export function renderScore(data, rate) {
   if (!data.length || rate <= 0) return;

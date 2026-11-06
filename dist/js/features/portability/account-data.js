@@ -1,6 +1,6 @@
-import { validState } from '../../shared/storage.js?v=e010dd455f61';
-import { validateAccountId } from '../../shared/account-id.js?v=e010dd455f61';
-import { validatePreferences } from '../accounts/preferences-sync.js?v=e010dd455f61';
+import { validState } from '../../shared/storage.js?v=3039d17efbd9';
+import { validateAccountId } from '../../shared/account-id.js?v=3039d17efbd9';
+import { validatePreferences } from '../accounts/preferences-sync.js?v=3039d17efbd9';
 
 // A migration format, not a session, identity proof, or purchase receipt.
 // Explicitly pick fields; never serialize an auth/provider response wholesale.

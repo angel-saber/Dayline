@@ -2,19 +2,20 @@ import {
   createFlowPreparation,
   recoverySection,
   preparationReference,
-} from './flow-view.js?v=e010dd455f61';
-import { newFlow, newRecovery } from './flow-model.js?v=e010dd455f61';
-import { setupBreakTimer } from './break-timer.js?v=e010dd455f61';
-import { chooseRepeatScope } from '../repeating/scope.js?v=e010dd455f61';
-import { node } from '../../shared/dom.js?v=e010dd455f61';
-import { indentLevel } from '../notes/formatting/indents.js?v=e010dd455f61';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=e010dd455f61';
-import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=e010dd455f61';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=e010dd455f61';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=e010dd455f61';
+} from './flow-view.js?v=3039d17efbd9';
+import { newFlow, newRecovery } from './flow-model.js?v=3039d17efbd9';
+import { setupBreakTimer } from './break-timer.js?v=3039d17efbd9';
+import { chooseRepeatScope } from '../repeating/scope.js?v=3039d17efbd9';
+import { node } from '../../shared/dom.js?v=3039d17efbd9';
+import { indentLevel } from '../notes/formatting/indents.js?v=3039d17efbd9';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=3039d17efbd9';
+import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=3039d17efbd9';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=3039d17efbd9';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=3039d17efbd9';
 import {
   focusIntervalNotes,
   newFocus,
+  newPracticeFocus,
   advanceFocus,
   commitFocus,
   findFocusNote,
@@ -22,10 +23,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=e010dd455f61';
-import { createNoteEditor } from '../notes/note-editor.js?v=e010dd455f61';
-import { renderFormatted } from '../notes/formatting/format.js?v=e010dd455f61';
-import { noteTasks } from '../notes/formatting/tasks.js?v=e010dd455f61';
+} from './model.js?v=3039d17efbd9';
+import { createNoteEditor } from '../notes/note-editor.js?v=3039d17efbd9';
+import { renderFormatted } from '../notes/formatting/format.js?v=3039d17efbd9';
+import { noteTasks } from '../notes/formatting/tasks.js?v=3039d17efbd9';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {
@@ -148,6 +149,9 @@ export function setupFocus(api) {
       p.title = entry.title || '';
       p.text = entry.text;
       p.noteId = entry.id;
+    } else if (p.practiceNoteId) {
+      // Retain the practice snapshot if its source note was removed.
+      return;
     } else if (p === session.pages.at(-1)) {
       p.title = '';
       p.text = '';
@@ -236,14 +240,16 @@ export function setupFocus(api) {
     const addHost = node('div', 'focus-add-note');
     heading.append(
       node('h2', '', voice('focus.noteHeading')),
-      button('Add a note', () => editNote(addHost)),
+      ...(session.practice ? [] : [button('Add a note', () => editNote(addHost))]),
     );
     section.append(
       heading,
       node(
         'p',
         'focus-interval-label',
-        `${p.date} · ${timeLabel(p.minute, api.getState().settings.clock)} – ${timeLabel(Math.min(1440, p.minute + (p.interval || session.interval)), api.getState().settings.clock)}`,
+        session.practice
+          ? `${session.practice.minutes}-minute daily practice · consistency over outcomes`
+          : `${p.date} · ${timeLabel(p.minute, api.getState().settings.clock)} – ${timeLabel(Math.min(1440, p.minute + (p.interval || session.interval)), api.getState().settings.clock)}`,
       ),
     );
     if (choices.length > 1)
@@ -514,6 +520,11 @@ export function setupFocus(api) {
       },
     );
     stats.append(clockToggle);
+    if (session.practice) {
+      const target = node('p', 'practice-time-target');
+      target.setAttribute('role', 'status');
+      stats.append(target);
+    }
     dialog.append(stats);
     const pages = node('div', 'focus-page-nav');
     const previous = button('← Previous interval', () => {
@@ -824,10 +835,19 @@ export function setupFocus(api) {
     if (elapsedNode) elapsedNode.textContent = 'Session · ' + durationLabel(elapsed);
     const position = dialog.querySelector('.focus-live-position');
     if (position)
-      position.textContent =
-        session.viewIndex === session.pages.length - 1
+      position.textContent = session.practice
+        ? 'Daily practice · ' + session.practice.title
+        : session.viewIndex === session.pages.length - 1
           ? 'Current interval'
           : 'Reviewing an earlier interval';
+    const target = dialog.querySelector('.practice-time-target');
+    if (target && session.practice) {
+      const remaining = Math.max(0, session.practice.minutes * 60000 - elapsed);
+      const message = remaining
+        ? `Practice target: ${session.practice.minutes} min · ${Math.ceil(remaining / 60000)} min remaining`
+        : 'You made time for your practice. Finish when ready, or keep going.';
+      if (target.textContent !== message) target.textContent = message;
+    }
     const idea = dialog.querySelector('.focus-inspiration');
     if (idea)
       idea.textContent =
@@ -838,7 +858,7 @@ export function setupFocus(api) {
   }
   function tick() {
     if (!session) return;
-    if (session.owner === owner && session.phase !== 'reflect') {
+    if (!session.practice && session.owner === owner && session.phase !== 'reflect') {
       const slot = api.getState(),
         last = session.pages.at(-1).key;
       // Flush an open note before changing its interval page.
@@ -888,6 +908,54 @@ export function setupFocus(api) {
   window.addEventListener('dayline:notes-changed', refreshNotes);
   buttons();
   return {
+    startPractice(practice) {
+      api.flushEditor();
+      let stored;
+      try {
+        stored = localStorage.getItem(KEY);
+      } catch {
+        api.toast('Focus storage is unavailable. No practice was started.');
+        return false;
+      }
+      if (unreadable || session || stored) {
+        api.toast('Finish your existing Focus Session before starting a daily practice.');
+        start();
+        return false;
+      }
+      const now = Date.now();
+      session = newPracticeFocus(
+        api.getState(),
+        practice,
+        now,
+        crypto.randomUUID(),
+        crypto.randomUUID(),
+        owner,
+      );
+      session.mantra = focusMantras(MANTRAS)[0];
+      commitFocus(session, api.getState(), now);
+      if (!save()) {
+        session = null;
+        api.toast('Could not save the Focus draft. No practice was started.');
+        buttons();
+        return false;
+      }
+      if (!api.createPracticeNote(session.pages[0])) {
+        try {
+          localStorage.removeItem(KEY);
+        } catch {
+          api.toast(
+            'The practice note could not be saved. A recoverable Focus draft remains in this browser.',
+          );
+        }
+        session = null;
+        buttons();
+        return false;
+      }
+      render();
+      if (!dialog.open) dialog.showModal();
+      buttons();
+      return true;
+    },
     refresh() {
       buttons();
       refreshNotes();

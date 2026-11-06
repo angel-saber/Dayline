@@ -1,7 +1,7 @@
-import { copyRenderedNote } from './clipboard.js?v=e010dd455f61';
-import { node } from '../../shared/dom.js?v=e010dd455f61';
-import { indentLevel } from './formatting/indents.js?v=e010dd455f61';
-import { renderFormatted } from './formatting/format.js?v=e010dd455f61';
+import { copyRenderedNote } from './clipboard.js?v=3039d17efbd9';
+import { node } from '../../shared/dom.js?v=3039d17efbd9';
+import { indentLevel } from './formatting/indents.js?v=3039d17efbd9';
+import { renderFormatted } from './formatting/format.js?v=3039d17efbd9';
 const copyHandlers = new WeakMap();
 // Render line controls beside text; never nest a checkbox inside an edit button.
 export function renderNoteLines(
