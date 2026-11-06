@@ -3015,3 +3015,312 @@ body.month-dragging .commitments-launch {
   padding: 10px 0;
   border-bottom: 1px solid var(--line);
 }
+
+/* Daily Commitments: a quiet shell and bold, tactile practice cards. */
+.commitments-panel.shortcuts-panel {
+  width: min(480px, calc(100vw - 32px));
+  inset: 16px auto 16px 16px;
+  height: calc(100dvh - 32px);
+  max-height: calc(100dvh - 32px);
+  padding: 28px 24px;
+  border-radius: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  scrollbar-width: thin;
+}
+.commitment-eyebrow {
+  margin: 0 0 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  opacity: 0.55;
+}
+.commitment-header {
+  align-items: flex-start;
+}
+.commitment-header h2 {
+  max-width: 320px;
+  font-family: inherit;
+  font-size: clamp(32px, 6vw, 44px);
+  font-weight: 750;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+.commitment-close {
+  padding: 8px 0 8px 12px;
+  font-size: 12px;
+  opacity: 0.65;
+}
+.commitment-subtitle {
+  margin: 12px 0 24px;
+  opacity: 0.65;
+  font-size: 13px;
+}
+.commitment-capacity {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 0 20px;
+  border-bottom: 1px solid var(--line);
+}
+.commitment-capacity p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  opacity: 0.7;
+}
+.commitment-capacity button {
+  flex: none;
+  padding: 0;
+  max-width: 85px;
+  font-size: 11px;
+  text-align: right;
+  border: 0;
+  background: none;
+}
+.commitments-panel > [role='status']:empty {
+  display: none;
+}
+.commitments-panel > [role='status']:not(:empty) {
+  padding: 12px 0;
+  font-size: 12px;
+}
+.commitment-list-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 22px 0 12px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+.commitment-list-heading span:last-child {
+  opacity: 0.55;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+.commitments-list {
+  display: grid;
+  gap: 10px;
+}
+.commitments-panel .commitment-row {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: var(--commitment-card, #8fc5e8);
+  color: #172125;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+  box-shadow: none;
+}
+.commitments-panel .commitment-start {
+  display: block;
+  min-height: 90px;
+  margin: 0;
+  padding: 23px 106px 12px 20px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  font-size: 25px;
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  box-shadow: none;
+  text-align: left;
+}
+.commitments-panel .commitment-start:hover {
+  background: #ffffff16;
+}
+.commitment-card-meta {
+  margin: 0;
+  padding: 0 20px 20px;
+  font-size: 10px;
+  line-height: 1.5;
+  letter-spacing: 0.035em;
+  opacity: 0.75;
+}
+.commitment-row > strong {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.commitments-panel .commitment-controls {
+  position: absolute;
+  top: 18px;
+  right: 14px;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+}
+.commitment-complete {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1.5px solid #17212570;
+  border-radius: 50%;
+  background: transparent;
+  color: #172125;
+  font-size: 0;
+}
+.commitment-complete::after {
+  content: '✓';
+  font-size: 17px;
+  opacity: 0.3;
+}
+.commitment-complete:hover::after,
+.commitment-complete[aria-pressed='true']::after {
+  opacity: 1;
+}
+.commitment-complete[aria-pressed='true'] {
+  background: #172125;
+  color: #fff;
+}
+.commitment-complete:disabled {
+  opacity: 1;
+  cursor: default;
+}
+.commitments-panel .commitment-row.commitment-done {
+  opacity: 1;
+  background: #d5d8d2;
+}
+.commitment-done .commitment-start {
+  text-decoration: line-through;
+  opacity: 1;
+}
+.commitment-card-menu {
+  position: relative;
+}
+.commitment-card-menu > summary {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 36px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.commitment-card-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.commitment-menu-actions {
+  position: absolute;
+  top: 38px;
+  right: 0;
+  width: 150px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 12px 32px #0003;
+  z-index: 3;
+}
+.commitment-menu-actions button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px;
+  border: 0;
+  font-size: 12px;
+}
+.commitment-row > button {
+  margin: 0 20px 16px;
+  max-width: calc(100% - 40px);
+  font-size: 11px;
+  color: #172125;
+  border: 1px solid #17212570;
+}
+.commitment-composer {
+  margin-top: 16px;
+}
+.commitment-composer > summary {
+  padding: 17px 16px;
+  border: 1px dashed var(--line);
+  border-radius: 7px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
+}
+.commitment-composer > summary::-webkit-details-marker {
+  display: none;
+}
+.commitment-composer[open] > summary {
+  margin-bottom: 16px;
+}
+.commitment-composer form {
+  padding: 4px 0 16px;
+}
+.commitments-panel .commitment-suggestions {
+  gap: 6px;
+}
+.commitments-panel .commitment-suggestions button {
+  padding: 7px 10px;
+  font-size: 11px;
+  border-radius: 18px;
+}
+.commitment-preferences {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.commitment-preferences > summary {
+  cursor: pointer;
+  font-size: 12px;
+  opacity: 0.7;
+}
+.commitment-preferences > label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 16px 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.commitment-preferences input[type='checkbox'] {
+  flex: none;
+  margin-top: 3px;
+}
+.commitment-preferences .field-hint {
+  font-size: 11px;
+  line-height: 1.6;
+  margin-top: 16px;
+}
+.commitments-panel .commitment-game p {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.commitments-panel :focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+@media (max-width: 600px) {
+  .commitments-panel.shortcuts-panel {
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    padding: max(24px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right))
+      calc(28px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+    border: 0;
+  }
+  .commitment-header h2 {
+    font-size: 40px;
+  }
+  .commitments-panel .commitment-start {
+    font-size: 24px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .commitments-panel .commitment-row {
+    transition: none;
+  }
+}

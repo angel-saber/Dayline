@@ -1,10 +1,10 @@
-import zen from './zen/index.js?v=c8e108356247';
-import builder from './builder/index.js?v=c8e108356247';
-import founder from './founder/index.js?v=c8e108356247';
-import poet from './poet/index.js?v=c8e108356247';
-import astronaut from './astronaut/index.js?v=c8e108356247';
-import gamer from './gamer/index.js?v=c8e108356247';
-import { DEFAULT_COPY } from './default-copy.js?v=c8e108356247';
+import zen from './zen/index.js?v=a6ca893d82ed';
+import builder from './builder/index.js?v=a6ca893d82ed';
+import founder from './founder/index.js?v=a6ca893d82ed';
+import poet from './poet/index.js?v=a6ca893d82ed';
+import astronaut from './astronaut/index.js?v=a6ca893d82ed';
+import gamer from './gamer/index.js?v=a6ca893d82ed';
+import { DEFAULT_COPY } from './default-copy.js?v=a6ca893d82ed';
 
 export const PERSONALITIES = Object.freeze({ zen, builder, founder, poet, astronaut, gamer });
 export const PERSONALITY_IDS = Object.freeze(Object.keys(PERSONALITIES));

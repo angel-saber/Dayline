@@ -6,11 +6,11 @@ import {
   assertCommitmentBudget,
   AWAKE_HOURS_EVENT,
   AWAKE_HOURS_KEY,
-} from '../settings/awake-hours.js?v=c8e108356247';
-import { readTiming } from '../focus/timing.js?v=c8e108356247';
-import { dayKey } from '../../shared/dates.js?v=c8e108356247';
-import { bucket } from '../../shared/schedule.js?v=c8e108356247';
-import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=c8e108356247';
+} from '../settings/awake-hours.js?v=a6ca893d82ed';
+import { readTiming } from '../focus/timing.js?v=a6ca893d82ed';
+import { dayKey } from '../../shared/dates.js?v=a6ca893d82ed';
+import { bucket } from '../../shared/schedule.js?v=a6ca893d82ed';
+import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=a6ca893d82ed';
 import {
   COMMITMENT_STATE_KEY,
   DURATION_PRESETS,
@@ -24,14 +24,14 @@ import {
   acknowledgePenalty,
   changeItems,
   pendingCommitments,
-} from './game.js?v=c8e108356247';
-import { node } from '../../shared/dom.js?v=c8e108356247';
+} from './game.js?v=a6ca893d82ed';
+import { node } from '../../shared/dom.js?v=a6ca893d82ed';
 import {
   COMMITMENTS_KEY,
   SUGGESTIONS,
   validCommitments,
   practiceProgress,
-} from './model.js?v=c8e108356247';
+} from './model.js?v=a6ca893d82ed';
 function button(text, action, kind = 'secondary') {
   const b = node('button', kind, text);
   b.type = 'button';
@@ -55,15 +55,17 @@ export function setupCommitments({
   launch.setAttribute('aria-controls', dialog.id);
   launch.setAttribute('aria-haspopup', 'dialog');
   launch.setAttribute('aria-expanded', 'false');
-  const header = node('div', 'shortcuts-header'),
+  const header = node('div', 'shortcuts-header commitment-header'),
     heading = node('h2', '', 'Daily Commitments');
   heading.id = 'commitments-heading';
   function close() {
     dialog.close();
   }
-  header.append(heading, button('Close', close));
+  const closeButton = button('Close', close, 'commitment-close');
+  header.append(heading, closeButton);
   const status = node('p', 'field-hint');
   status.setAttribute('role', 'status');
+  const listHeading = node('div', 'commitment-list-heading');
   const list = node('div', 'commitments-list'),
     form = node('form', 'shortcut-form'),
     formTitle = node('h3', '', 'Add a daily practice');
@@ -151,25 +153,35 @@ export function setupCommitments({
     save,
     cancel,
   );
-  dialog.append(
-    header,
-    node(
-      'p',
-      '',
-      'A little time, every day. Tap a habit to begin its Focus Session. The timer sounds when your practice block ends. You can finish early whenever needed.',
-    ),
+  const composer = node('details', 'commitment-composer');
+  composer.append(node('summary', '', '＋ Add a practice'), form);
+  const preferences = node('details', 'commitment-preferences');
+  preferences.append(
+    node('summary', '', 'Preferences & game mode'),
     node(
       'p',
       'field-hint',
-      'This list is saved in this browser. Finished sessions are saved in your notes and can sync with your account.',
+      'Tap a card to start timed Focus. Swipe right or tap the check to mark it done without a session.',
     ),
-    status,
     pingLabel,
     gameLabel,
-    capacity,
     gamePanel,
+    node(
+      'p',
+      'field-hint',
+      'This list and game progress are saved in this browser. Finished sessions are saved in your notes and can sync with your account.',
+    ),
+  );
+  dialog.append(
+    node('p', 'commitment-eyebrow', 'DAYLINE / DAILY PRACTICE'),
+    header,
+    node('p', 'commitment-subtitle', 'A little time. Every day.'),
+    capacity,
+    status,
+    listHeading,
     list,
-    form,
+    composer,
+    preferences,
   );
   let commitmentState = newCommitmentState(),
     loadedRaw = null;
@@ -189,6 +201,7 @@ export function setupCommitments({
     } catch {
       unreadable = true;
       save.disabled = true;
+      composer.open = true;
       status.textContent = 'Saved commitments could not be read. They have not been overwritten.';
     }
   }
@@ -200,6 +213,7 @@ export function setupCommitments({
     formTitle.textContent = 'Add a daily practice';
     save.textContent = 'Add commitment';
     cancel.hidden = true;
+    composer.open = false;
   }
   function persist(next) {
     try {
@@ -309,10 +323,29 @@ export function setupCommitments({
           );
       }
     }
+    const completed = items.filter((item) =>
+      commitmentDone(commitmentState, item, dayKey(), getState().days),
+    ).length;
+    listHeading.replaceChildren(
+      node('span', '', 'TODAY'),
+      node('span', '', `${completed} / ${items.length} complete`),
+    );
+    if (game.pending) preferences.open = true;
     list.replaceChildren();
     if (!items.length) list.append(node('p', 'field-hint', 'Add your first practice below.'));
-    for (const item of items) {
+    for (const item of items
+      .slice()
+      .sort(
+        (a, b) =>
+          Number(commitmentDone(commitmentState, a, dayKey(), getState().days)) -
+          Number(commitmentDone(commitmentState, b, dayKey(), getState().days)),
+      )) {
       const row = node('section', 'commitment-row');
+      row.dataset.commitmentId = item.id;
+      const colors = ['#f0bf58', '#8fc5e8', '#e9a9a9', '#aed0b2', '#c5b5df', '#edb48c'];
+      let hash = 0;
+      for (const char of item.id) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+      row.style.setProperty('--commitment-card', colors[hash % colors.length]);
       const total = practiceProgress(getState().days, item.id);
       const done = commitmentDone(commitmentState, item, dayKey(), getState().days);
       const manual = commitmentState.marks[dayKey()]?.includes(item.id);
@@ -363,7 +396,7 @@ export function setupCommitments({
           close();
           startPractice(item);
         },
-        'secondary commitment-start',
+        'commitment-start',
       );
       start.setAttribute('aria-label', `Start ${item.minutes}-minute practice: ${item.title}`);
       row.append(
@@ -371,8 +404,8 @@ export function setupCommitments({
         ...(done ? [node('strong', '', 'Done today')] : []),
         node(
           'p',
-          'field-hint',
-          `${item.minutes} min daily · Today: ${Math.floor(total / 60000)} min recorded`,
+          'commitment-card-meta',
+          `${item.minutes} min daily${item.breakMinutes ? ` · ${item.breakMinutes} min break` : ''} · Today: ${Math.floor(total / 60000)} min recorded`,
         ),
       );
       const controls = node('div', 'inline commitment-controls');
@@ -380,10 +413,16 @@ export function setupCommitments({
         done ? (manual ? 'Undo done' : 'Completed by practice') : 'Mark done',
         mark,
       );
+      doneButton.className = 'commitment-complete';
+      doneButton.setAttribute(
+        'aria-label',
+        done ? (manual ? 'Undo done' : 'Completed by practice') : 'Mark done',
+      );
+      doneButton.setAttribute('aria-pressed', String(done));
       doneButton.disabled = done && !manual;
       controls.append(doneButton);
       if (game.enabled && game.pending && items.length > 1)
-        controls.append(
+        row.append(
           button('Confirm removal for game adjustment', () => {
             if (persist(acknowledgePenalty(commitmentState, item.id))) {
               reset();
@@ -391,7 +430,13 @@ export function setupCommitments({
             }
           }),
         );
-      controls.append(
+      const menu = node('details', 'commitment-card-menu'),
+        menuTitle = node('summary', '', '•••');
+      menuTitle.setAttribute('aria-label', `Manage ${item.title}`);
+      const menuActions = node('div', 'commitment-menu-actions');
+      menu.append(menuTitle, menuActions);
+      controls.append(menu);
+      menuActions.append(
         button('Edit', () => {
           editing = item.id;
           title.value = item.title;
@@ -400,6 +445,9 @@ export function setupCommitments({
           formTitle.textContent = 'Edit daily practice';
           save.textContent = 'Save commitment';
           cancel.hidden = false;
+          composer.open = true;
+          menu.open = false;
+          composer.scrollIntoView?.({ block: 'nearest' });
           title.focus();
         }),
         button('Remove', () => {
@@ -475,6 +523,8 @@ export function setupCommitments({
     );
   }
   dialog.addEventListener('pointerdown', (e) => {
+    for (const menu of dialog.querySelectorAll('.commitment-card-menu[open]'))
+      if (!menu.contains(e.target)) menu.open = false;
     backdrop = e.button === 0 && outside(e);
   });
   dialog.addEventListener('pointercancel', () => {

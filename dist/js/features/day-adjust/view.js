@@ -1,11 +1,11 @@
-import { node } from '../../shared/dom.js?v=c8e108356247';
-import { dayKey, offsetDay, timeLabel } from '../../shared/dates.js?v=c8e108356247';
+import { node } from '../../shared/dom.js?v=a6ca893d82ed';
+import { dayKey, offsetDay, timeLabel } from '../../shared/dates.js?v=a6ca893d82ed';
 import {
   availableHours,
   hourInput,
   inputMinute,
-} from '../settings/available-hours.js?v=c8e108356247';
-import { candidates, previewSchedule, enabled, EXPERIMENT_KEY } from './model.js?v=c8e108356247';
+} from '../settings/available-hours.js?v=a6ca893d82ed';
+import { candidates, previewSchedule, enabled, EXPERIMENT_KEY } from './model.js?v=a6ca893d82ed';
 const modes = [
   ['start', 'Help me start'],
   ['behind', 'I’m falling behind'],

@@ -1,4 +1,4 @@
-import { load, validState } from '../../shared/storage.js?v=c8e108356247';
+import { load, validState } from '../../shared/storage.js?v=a6ca893d82ed';
 
 const SNAPSHOT = 'dayline.device-before-signin.v1';
 export const countDeviceNotes = (state) =>
