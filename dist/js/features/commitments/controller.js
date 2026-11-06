@@ -1,4 +1,9 @@
-import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=ecc045743344';
+import {
+  commitmentRecords,
+  commitmentToken,
+  importDeviceCommitments,
+} from './account-state.js?v=3a3bc36f0539';
+import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=3a3bc36f0539';
 import {
   readAwakeHours,
   awakeMinutes,
@@ -7,11 +12,11 @@ import {
   assertCommitmentBudget,
   AWAKE_HOURS_EVENT,
   AWAKE_HOURS_KEY,
-} from '../settings/awake-hours.js?v=ecc045743344';
-import { readTiming } from '../focus/timing.js?v=ecc045743344';
-import { dayKey } from '../../shared/dates.js?v=ecc045743344';
-import { bucket } from '../../shared/schedule.js?v=ecc045743344';
-import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=ecc045743344';
+} from '../settings/awake-hours.js?v=3a3bc36f0539';
+import { readTiming } from '../focus/timing.js?v=3a3bc36f0539';
+import { dayKey } from '../../shared/dates.js?v=3a3bc36f0539';
+import { bucket } from '../../shared/schedule.js?v=3a3bc36f0539';
+import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=3a3bc36f0539';
 import {
   COMMITMENT_STATE_KEY,
   DURATION_PRESETS,
@@ -25,14 +30,14 @@ import {
   acknowledgePenalty,
   changeItems,
   pendingCommitments,
-} from './game.js?v=ecc045743344';
-import { node } from '../../shared/dom.js?v=ecc045743344';
+} from './game.js?v=3a3bc36f0539';
+import { node } from '../../shared/dom.js?v=3a3bc36f0539';
 import {
   COMMITMENTS_KEY,
   SUGGESTIONS,
   validCommitments,
   practiceProgress,
-} from './model.js?v=ecc045743344';
+} from './model.js?v=3a3bc36f0539';
 function button(text, action, kind = 'secondary') {
   const b = node('button', kind, text);
   b.type = 'button';
@@ -41,6 +46,8 @@ function button(text, action, kind = 'secondary') {
 }
 export function setupCommitments({
   getState,
+  getAccountId = () => null,
+  saveAccountState = () => false,
   startPractice,
   notify = () => {},
   openAwakeSettings = () => {},
@@ -64,6 +71,7 @@ export function setupCommitments({
   }
   const closeButton = button('Close', close, 'commitment-close');
   header.append(heading, closeButton);
+  const accountPanel = node('section', 'commitment-account-panel');
   const status = node('p', 'field-hint');
   status.setAttribute('role', 'status');
   const listHeading = node('div', 'commitment-list-heading');
@@ -187,7 +195,7 @@ export function setupCommitments({
     node(
       'p',
       'field-hint',
-      'This list and game progress are saved in this browser. Finished sessions are saved in your notes and can sync with your account.',
+      'Without an account, commitments stay in this browser. When signed in, the account list and progress sync; existing device habits can be imported separately.',
     ),
   );
   dialog.append(
@@ -195,6 +203,7 @@ export function setupCommitments({
     header,
     node('p', 'commitment-subtitle', 'A little time. Every day.'),
     capacity,
+    accountPanel,
     status,
     listHeading,
     list,
@@ -202,16 +211,26 @@ export function setupCommitments({
     preferences,
   );
   let commitmentState = newCommitmentState(),
-    loadedRaw = null;
+    loadedRaw = null,
+    loadedScope = null,
+    writing = false;
   const rawToken = () =>
-    storage.getItem(COMMITMENT_STATE_KEY) ?? 'legacy:' + storage.getItem(COMMITMENTS_KEY);
+    getAccountId()
+      ? commitmentToken(getState().days)
+      : (storage.getItem(COMMITMENT_STATE_KEY) ?? 'legacy:' + storage.getItem(COMMITMENTS_KEY));
   let items = [],
     editing = null,
     unreadable = false,
     returnFocus = null;
   function read() {
     try {
-      commitmentState = readCommitmentState(storage);
+      loadedScope = getAccountId();
+      const shared = loadedScope ? commitmentRecords(getState().days)[0] : null;
+      commitmentState = loadedScope
+        ? shared
+          ? validCommitmentState(JSON.parse(shared.text))
+          : newCommitmentState()
+        : readCommitmentState(storage);
       loadedRaw = rawToken();
       items = commitmentState.items;
       unreadable = false;
@@ -238,14 +257,22 @@ export function setupCommitments({
     try {
       if (unreadable)
         throw Error('Saved commitments could not be read. They have not been overwritten.');
-      if (rawToken() !== loadedRaw)
+      if (getAccountId() !== loadedScope || rawToken() !== loadedRaw)
         throw Error('Commitments changed in another tab. Reopen this list before saving.');
       if (Array.isArray(next))
         assertCommitmentBudget(items, next, readAwakeHours(storage), readTiming(storage));
       const validated = validCommitmentState(
         Array.isArray(next) ? changeItems(commitmentState, next) : next,
       );
-      storage.setItem(COMMITMENT_STATE_KEY, JSON.stringify(validated));
+      if (loadedScope) {
+        writing = true;
+        try {
+          if (!saveAccountState(validated, loadedRaw))
+            throw Error('Account changes could not be saved. Your draft is kept here.');
+        } finally {
+          writing = false;
+        }
+      } else storage.setItem(COMMITMENT_STATE_KEY, JSON.stringify(validated));
       loadedRaw = rawToken();
       commitmentState = validated;
       items = validated.items;
@@ -280,6 +307,96 @@ export function setupCommitments({
   };
   function render() {
     settle();
+    accountPanel.replaceChildren();
+    if (getAccountId()) {
+      accountPanel.append(
+        node(
+          'p',
+          'field-hint',
+          'Commitments, completion history and game progress sync with this account. Timer and awake-hour preferences remain device-local.',
+        ),
+      );
+      const records = commitmentRecords(getState().days);
+      if (records.length > 1) {
+        accountPanel.append(
+          node(
+            'p',
+            '',
+            'Two saved lists were kept after a sync conflict. Choose the version to continue with; the other versions remain in account backups.',
+          ),
+        );
+        for (const record of records) {
+          const version = validCommitmentState(JSON.parse(record.text));
+          accountPanel.append(
+            button(
+              `Use saved version · ${version.items.map((i) => i.title).join(', ') || 'empty list'}`,
+              () => {
+                writing = true;
+                try {
+                  if (saveAccountState(version, rawToken(), record.id)) {
+                    read();
+                    reset();
+                    render();
+                  }
+                } catch (e) {
+                  status.textContent = e.message;
+                } finally {
+                  writing = false;
+                }
+              },
+            ),
+          );
+        }
+      }
+      try {
+        const device = readCommitmentState(storage),
+          marker = 'dayline.commitment-import.v1:' + getAccountId(),
+          signature = JSON.stringify(device);
+        if (device.items.length && storage.getItem(marker) !== signature) {
+          const review = node('details');
+          review.append(
+            node(
+              'summary',
+              '',
+              `Bring over this device’s ${device.items.length} saved commitments`,
+            ),
+            node('p', 'field-hint', device.items.map((i) => i.title).join(' · ')),
+            node(
+              'p',
+              'field-hint',
+              'Add these to your account without deleting the device copy. Existing account habits are kept; conflicting versions are copied separately.',
+            ),
+          );
+          review.append(
+            button('Add this device’s commitments to my account', () => {
+              try {
+                const imported = importDeviceCommitments(commitmentState, device);
+                if (persist(imported)) {
+                  try {
+                    storage.setItem(marker, signature);
+                  } catch {}
+                  reset();
+                  render();
+                  status.textContent =
+                    'Device commitments added to your account. The original device copy was kept.';
+                }
+              } catch (e) {
+                status.textContent = e.message;
+              }
+            }),
+          );
+          accountPanel.append(review);
+        }
+      } catch {
+        accountPanel.append(
+          node(
+            'p',
+            'field-hint',
+            'A device commitment copy could not be read. It has not been overwritten.',
+          ),
+        );
+      }
+    }
     gameToggle.checked = commitmentState.game.enabled;
     pingToggle.checked = commitmentState.pingEnabled;
     capacity.replaceChildren(
@@ -571,9 +688,24 @@ export function setupCommitments({
   });
   window.addEventListener('dayline:account', () => {
     if (dialog.open) close();
+    read();
     reset();
+    render();
   });
   window.addEventListener('dayline:notes-changed', () => {
+    if (writing) return;
+    if (getAccountId() !== loadedScope) {
+      read();
+      reset();
+    } else if (getAccountId() && rawToken() !== loadedRaw) {
+      // Keep an open form draft intact; its stale-save check protects incoming changes.
+      if (dialog.open && composer.open) {
+        status.textContent =
+          'Account commitments changed. Close and reopen this list before saving your draft.';
+        return;
+      }
+      read();
+    }
     if (dialog.open) render();
   });
   window.addEventListener(AWAKE_HOURS_EVENT, () => {
@@ -590,7 +722,8 @@ export function setupCommitments({
     } catch {
       return;
     }
-    if (latest !== loadedRaw) {
+    if (getAccountId() !== loadedScope || latest !== loadedRaw) {
+      if (getAccountId() === loadedScope && getAccountId() && dialog.open && composer.open) return;
       read();
       if (dialog.open) render();
     }
@@ -604,7 +737,12 @@ export function setupCommitments({
       minute = instant.getHours() * 60 + instant.getMinutes(),
       slot = bucket(minute, settings.interval);
     const token = `${date}:${slot}:${settings.interval}`;
-    if (commitmentState.lastPing === token) return;
+    const pingKey = 'dayline.commitment-ping.v1:' + (getAccountId() || 'guest');
+    try {
+      if (commitmentState.lastPing === token || storage.getItem(pingKey) === token) return;
+    } catch {
+      return;
+    }
     try {
       if (storage.getItem('dayline.focus.v1')) return;
       const rest = JSON.parse(storage.getItem('dayline.focus-break.v1') || 'null');
@@ -617,7 +755,14 @@ export function setupCommitments({
       (n) => !n.weekly && !n.yearly && !n.allDay && bucket(n.minute, settings.interval) === slot,
     );
     const pending = pendingCommitments(commitmentState, state.days, date);
-    if (!persist({ ...commitmentState, lastPing: token })) return;
+    if (getAccountId()) {
+      try {
+        storage.setItem(pingKey, token);
+        commitmentState.lastPing = token;
+      } catch {
+        return;
+      }
+    } else if (!persist({ ...commitmentState, lastPing: token })) return;
     if (
       empty &&
       pending.length &&

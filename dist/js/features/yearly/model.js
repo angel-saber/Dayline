@@ -1,6 +1,6 @@
-import { dayKey } from '../../shared/dates.js?v=ecc045743344';
-import { validDate } from '../bulk/model.js?v=ecc045743344';
-import { weekStart } from '../monthly/weekly-model.js?v=ecc045743344';
+import { dayKey } from '../../shared/dates.js?v=3a3bc36f0539';
+import { validDate } from '../bulk/model.js?v=3a3bc36f0539';
+import { weekStart } from '../monthly/weekly-model.js?v=3a3bc36f0539';
 export const DIMENSIONS = ['work', 'health', 'learning', 'relationships', 'spirituality'];
 export const SEASONS = ['Winter', 'Spring', 'Summer', 'Fall'];
 export function validYear(year) {
@@ -23,7 +23,8 @@ export function validYearly(value) {
     updatedAt = 0,
   } = value;
   validYear(year);
-  if (kind === 'life' && year !== 1900) throw new Error('Invalid life planner anchor.');
+  if (['life', 'commitments'].includes(kind) && year !== 1900)
+    throw new Error('Invalid life planner anchor.');
   if (
     !Number.isSafeInteger(updatedAt) ||
     updatedAt < 0 ||
@@ -34,8 +35,9 @@ export function validYearly(value) {
     !Number.isInteger(quarter) ||
     quarter < 0 ||
     quarter > 4 ||
-    !['direction', 'quarter', 'intention', 'reflection', 'life'].includes(kind) ||
-    (kind === 'direction' || kind === 'reflection' || kind === 'life') !== (quarter === 0)
+    !['direction', 'quarter', 'intention', 'reflection', 'life', 'commitments'].includes(kind) ||
+    (kind === 'direction' || kind === 'reflection' || kind === 'life' || kind === 'commitments') !==
+      (quarter === 0)
   )
     throw new Error('Invalid Yearly section.');
   if (!['active', 'released'].includes(status) || !['', ...DIMENSIONS].includes(dimension))

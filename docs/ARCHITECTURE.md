@@ -613,7 +613,7 @@ switch does not change shared settings or note schemas. See
 favorite activity dock, inside the planner so it stays hidden before sign-in or
 guest entry. Suggested/custom names and 1–1440 minute targets default to 30.
 Malformed storage is retained without overwriting; failed writes retain drafts.
-The list is browser-local like Shortcuts, not part of account sync or note backups.
+Guest lists stay browser-local; signed-in lists use the account-synced envelope described below.
 
 Selecting a habit launches the existing Focus controller directly in active mode
 with its normal personality mantra. A pinned practice note is saved through the
@@ -679,8 +679,7 @@ successful edit/completion, the original array at `dayline.daily-commitments.v1`
 is retained, while `dayline.commitment-state.v1` becomes the authoritative atomic
 envelope for items, manual completion marks, reminders and game state. Reading
 falls back to the old list without writing. Corrupt data is retained, failed
-writes keep drafts, and stale-tab edits are rejected. This browser-local state is
-not synced or added to note backups; ordinary session notes/reports still are.
+writes keep drafts, and stale-tab edits are rejected. This is the guest browser-local state. Signed-in lists, marks and game history now use the account envelope described below and enter account note backups.
 
 Swipe right or Mark done records completion without fabricating work duration,
 Focus reports or note edits. Undo done reverses manual completion; recorded work
@@ -763,3 +762,31 @@ session's customized Flowtime bands rather than its original fixed break. Automa
 breaks begin at the actual finish and use that adjusted duration. At/before target,
 the configured break is retained. Regular timed Focus keeps its existing hard-stop
 behavior. Saved reports distinguish planned work from the actual suggested break.
+
+### Account-synced Daily Commitments
+
+Signed-in commitment data now uses a validated `yearly.kind: commitments` envelope
+at 1900-01-01 through the existing owner-scoped notes port. Habits, tags, completion
+marks, game state and snapshots sync together and enter ordinary account backups.
+It stays outside Daily/Monthly schedules, reminders and availability because it is
+an internal Yearly record, like the existing life planner envelope. No table, RLS,
+provider SDK or transport change is needed. Session timers/awake preferences stay
+local. Reload all devices/tabs before using this new record kind.
+
+Guest state and legacy keys are never uploaded automatically or overwritten by
+account state. A reviewed import lists this device's habits and explicitly adds
+them to the account. Empty accounts can adopt the full local history/game state;
+nonempty accounts retain their game history while importing habits, with stable
+separate copies for conflicting IDs. Original local state is kept. Signing out
+returns to the guest copy; switching accounts reads only the active account's
+note data. No credentials or provider tokens enter the commitment feature.
+
+Shared writes compare the loaded account identity and record token before saving,
+then use existing revision-aware note persistence. Concurrent singleton versions
+remain as separate records and block edits until an explicit version choice;
+unchosen versions are archived as released records and retained in backups.
+An open stale form is kept but cannot overwrite incoming account changes. Empty-
+interval notification tokens remain device-local to avoid hourly account writes.
+Tests exercise two independent SyncEngine clients and a separate owner against a
+revision-aware test server. Production account/device delivery requires deployment
+and a signed-in device check; no live user data or database migrations are run.

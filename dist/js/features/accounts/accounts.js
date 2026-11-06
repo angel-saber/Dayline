@@ -1,14 +1,14 @@
-import { cloudConfig } from './config.js?v=ecc045743344';
-import { createAccountServices } from './services.js?v=ecc045743344';
-import { takeSignInReturn } from './sign-in-return.js?v=ecc045743344';
-import { SyncEngine, mergeGuestDays, clearSyncedDrafts } from './sync.js?v=ecc045743344';
-import { load, save, validState } from '../../shared/storage.js?v=ecc045743344';
+import { cloudConfig } from './config.js?v=3a3bc36f0539';
+import { createAccountServices } from './services.js?v=3a3bc36f0539';
+import { takeSignInReturn } from './sign-in-return.js?v=3a3bc36f0539';
+import { SyncEngine, mergeGuestDays, clearSyncedDrafts } from './sync.js?v=3a3bc36f0539';
+import { load, save, validState } from '../../shared/storage.js?v=3a3bc36f0539';
 import {
   deviceNotes,
   countDeviceNotes,
   preserveDeviceNotes,
-} from './device-notes.js?v=ecc045743344';
-import { PreferencesSync, sharedPreferences } from './preferences-sync.js?v=ecc045743344';
+} from './device-notes.js?v=3a3bc36f0539';
+import { PreferencesSync, sharedPreferences } from './preferences-sync.js?v=3a3bc36f0539';
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -514,6 +514,7 @@ export function setupAccounts({
   return {
     persist,
     isSignedIn: () => !!user,
+    accountId: () => user?.id || null,
     isLoginVisible: () => viewIsLogin,
     syncStatus: () => (!user ? 'local' : engine?.pending ? 'pending' : 'synced'),
     refreshView: accountView,

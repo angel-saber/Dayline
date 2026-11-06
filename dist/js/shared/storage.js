@@ -1,20 +1,21 @@
-import { validLifeData } from '../features/yearly/life/model.js?v=ecc045743344';
-import { validYearly, validYearlySource } from '../features/yearly/model.js?v=ecc045743344';
-import { validRepeat } from '../features/repeating/series.js?v=ecc045743344';
-import { validIndents } from '../features/notes/formatting/indents.js?v=ecc045743344';
-import { validAvailableHours } from '../features/settings/available-hours.js?v=ecc045743344';
-import { validAttachments } from '../features/attachments/attachments.js?v=ecc045743344';
+import { validCommitmentState } from '../features/commitments/game.js?v=3a3bc36f0539';
+import { validLifeData } from '../features/yearly/life/model.js?v=3a3bc36f0539';
+import { validYearly, validYearlySource } from '../features/yearly/model.js?v=3a3bc36f0539';
+import { validRepeat } from '../features/repeating/series.js?v=3a3bc36f0539';
+import { validIndents } from '../features/notes/formatting/indents.js?v=3a3bc36f0539';
+import { validAvailableHours } from '../features/settings/available-hours.js?v=3a3bc36f0539';
+import { validAttachments } from '../features/attachments/attachments.js?v=3a3bc36f0539';
 import {
   validNoteType,
   validTags,
   validTagSettings,
-} from '../features/notes/note-types.js?v=ecc045743344';
-import { validGuidedReports } from '../features/activities/model.js?v=ecc045743344';
-import { validBullets } from '../features/notes/formatting/bullets.js?v=ecc045743344';
-import { validFocusReports } from '../features/focus/model.js?v=ecc045743344';
-import { DEFAULT_SETTINGS } from './schedule.js?v=ecc045743344';
-import { validFormat } from '../features/notes/formatting/format.js?v=ecc045743344';
-import { validTasks } from '../features/notes/formatting/tasks.js?v=ecc045743344';
+} from '../features/notes/note-types.js?v=3a3bc36f0539';
+import { validGuidedReports } from '../features/activities/model.js?v=3a3bc36f0539';
+import { validBullets } from '../features/notes/formatting/bullets.js?v=3a3bc36f0539';
+import { validFocusReports } from '../features/focus/model.js?v=3a3bc36f0539';
+import { DEFAULT_SETTINGS } from './schedule.js?v=3a3bc36f0539';
+import { validFormat } from '../features/notes/formatting/format.js?v=3a3bc36f0539';
+import { validTasks } from '../features/notes/formatting/tasks.js?v=3a3bc36f0539';
 const KEY = 'dayline.v1';
 export function validState(value) {
   if (
@@ -54,6 +55,10 @@ export function validState(value) {
       }
       if (e.yearly !== undefined) {
         result.yearly = validYearly(e.yearly);
+        if (result.yearly.kind === 'commitments') {
+          if (e.text.length > 200000) throw Error('Commitment history is too large.');
+          validCommitmentState(JSON.parse(e.text));
+        }
         if (result.yearly.kind === 'life') {
           if (e.text.length > 200000) throw new Error('Life planner data is too large.');
           validLifeData(JSON.parse(e.text));
