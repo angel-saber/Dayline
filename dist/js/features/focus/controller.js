@@ -4,22 +4,22 @@ import {
   workDeadline,
   timerDue,
   sessionBreakSuggestion,
-} from './timing.js?v=70187e0ed5b2';
-import { timingControls } from './timing-view.js?v=70187e0ed5b2';
+} from './timing.js?v=a57308c94de9';
+import { timingControls } from './timing-view.js?v=a57308c94de9';
 import {
   createFlowPreparation,
   recoverySection,
   preparationReference,
-} from './flow-view.js?v=70187e0ed5b2';
-import { newFlow, newRecovery } from './flow-model.js?v=70187e0ed5b2';
-import { setupBreakTimer } from './break-timer.js?v=70187e0ed5b2';
-import { chooseRepeatScope } from '../repeating/scope.js?v=70187e0ed5b2';
-import { node } from '../../shared/dom.js?v=70187e0ed5b2';
-import { indentLevel } from '../notes/formatting/indents.js?v=70187e0ed5b2';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=70187e0ed5b2';
-import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=70187e0ed5b2';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=70187e0ed5b2';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=70187e0ed5b2';
+} from './flow-view.js?v=a57308c94de9';
+import { newFlow, newRecovery } from './flow-model.js?v=a57308c94de9';
+import { setupBreakTimer } from './break-timer.js?v=a57308c94de9';
+import { chooseRepeatScope } from '../repeating/scope.js?v=a57308c94de9';
+import { node } from '../../shared/dom.js?v=a57308c94de9';
+import { indentLevel } from '../notes/formatting/indents.js?v=a57308c94de9';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=a57308c94de9';
+import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=a57308c94de9';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=a57308c94de9';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=a57308c94de9';
 import {
   focusIntervalNotes,
   newFocus,
@@ -31,10 +31,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=70187e0ed5b2';
-import { createNoteEditor } from '../notes/note-editor.js?v=70187e0ed5b2';
-import { renderFormatted } from '../notes/formatting/format.js?v=70187e0ed5b2';
-import { noteTasks } from '../notes/formatting/tasks.js?v=70187e0ed5b2';
+} from './model.js?v=a57308c94de9';
+import { createNoteEditor } from '../notes/note-editor.js?v=a57308c94de9';
+import { renderFormatted } from '../notes/formatting/format.js?v=a57308c94de9';
+import { noteTasks } from '../notes/formatting/tasks.js?v=a57308c94de9';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {

@@ -1,7 +1,7 @@
-import { segments, HIGHLIGHTS } from '../notes/formatting/format.js?v=70187e0ed5b2';
-import { detectedLinks, safeLink } from '../notes/formatting/links.js?v=70187e0ed5b2';
-import { noteTasks } from '../notes/formatting/tasks.js?v=70187e0ed5b2';
-import { indentLevel } from '../notes/formatting/indents.js?v=70187e0ed5b2';
+import { segments, HIGHLIGHTS } from '../notes/formatting/format.js?v=a57308c94de9';
+import { detectedLinks, safeLink } from '../notes/formatting/links.js?v=a57308c94de9';
+import { noteTasks } from '../notes/formatting/tasks.js?v=a57308c94de9';
+import { indentLevel } from '../notes/formatting/indents.js?v=a57308c94de9';
 
 export function escapeHtml(text) {
   return String(text).replace(

@@ -92,3 +92,16 @@ test('commitment categories validate, retain multiple/default/custom tags and in
   assert.deepEqual(session.practice.tags, tagged.tags);
   assert.notEqual(session.flow.tags, tagged.tags);
 });
+
+test('optional commitment bodies retain lines through Focus drafts and reject malformed or oversized input', () => {
+  const detailed = {
+    ...practice,
+    body: 'Read one chapter.\nWrite a thought.\n<script>literal text</script>',
+  };
+  assert.deepEqual(validCommitment(detailed), detailed);
+  const session = newPracticeFocus(state, detailed, at, 'body-session', 'body-note', 'owner');
+  assert.equal(session.pages[0].text, detailed.body);
+  assert.equal(validFocusDraft(JSON.parse(JSON.stringify(session))).practice.body, detailed.body);
+  for (const body of [null, 42, 'x'.repeat(10001)])
+    assert.throws(() => validCommitment({ ...practice, body }));
+});

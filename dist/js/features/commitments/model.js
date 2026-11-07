@@ -1,4 +1,4 @@
-import { validTags } from '../notes/note-types.js?v=70187e0ed5b2';
+import { validTags } from '../notes/note-types.js?v=a57308c94de9';
 export const COMMITMENTS_KEY = 'dayline.daily-commitments.v1';
 export const SUGGESTIONS = [
   'Exercise',
@@ -31,7 +31,10 @@ export function validCommitment(value) {
     (!Number.isInteger(value.breakMinutes) || value.breakMinutes < 0 || value.breakMinutes > 120)
   )
     throw Error('Choose 0–120 break minutes.');
+  if (value.body !== undefined && (typeof value.body !== 'string' || value.body.length > 10000))
+    throw Error('Keep commitment details to 10,000 characters.');
   return {
+    ...(value.body !== undefined ? { body: value.body } : {}),
     id: value.id,
     title: value.title.trim(),
     minutes: value.minutes,
