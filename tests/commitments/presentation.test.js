@@ -46,9 +46,17 @@ test('card-first view keeps setup collapsed, exposes accessible completion/menu 
     [...menu.querySelectorAll('button')].find((b) => b.textContent === 'Edit').click();
     assert.equal(composer.open, true);
     assert.equal(dialog.querySelector('[aria-label="Habit name"]').value, 'Read');
+    const body = dialog.querySelector('[aria-label="Commitment details"]');
+    body.value = 'One chapter.\nOne thought.';
     dialog.querySelector('form').dispatchEvent(new window.Event('submit', { cancelable: true }));
     assert.equal(composer.open, false);
     assert.equal(readCommitmentState(storage).items[0].id, 'a');
+    assert.equal(readCommitmentState(storage).items[0].body, 'One chapter.\nOne thought.');
+    assert.equal(
+      dialog.querySelector('[data-commitment-id="a"] .commitment-body').textContent,
+      'One chapter.\nOne thought.',
+    );
+    assert.equal(body.value, '');
     dialog.querySelector('[data-commitment-id="a"] .commitment-complete').click();
     assert.deepEqual(
       [...dialog.querySelectorAll('.commitment-row')].map((row) => row.dataset.commitmentId),

@@ -5346,6 +5346,25 @@ body.month-dragging .commitments-launch {
   color: inherit;
 }
 
+.commitment-body-details {
+  margin: 12px 0;
+  font-size: 13px;
+}
+.commitment-body-details > summary {
+  cursor: pointer;
+}
+.commitment-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+  margin: 10px 0;
+}
+.commitment-composer textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
 
 :root[data-layout='astronaut'] body {
   background-image:

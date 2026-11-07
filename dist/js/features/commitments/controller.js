@@ -1,10 +1,10 @@
-import { commitmentColors } from './colors.js?v=70187e0ed5b2';
+import { commitmentColors } from './colors.js?v=a57308c94de9';
 import {
   commitmentRecords,
   commitmentToken,
   importDeviceCommitments,
-} from './account-state.js?v=70187e0ed5b2';
-import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=70187e0ed5b2';
+} from './account-state.js?v=a57308c94de9';
+import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=a57308c94de9';
 import {
   readAwakeHours,
   awakeMinutes,
@@ -13,11 +13,11 @@ import {
   assertCommitmentBudget,
   AWAKE_HOURS_EVENT,
   AWAKE_HOURS_KEY,
-} from '../settings/awake-hours.js?v=70187e0ed5b2';
-import { readTiming } from '../focus/timing.js?v=70187e0ed5b2';
-import { dayKey } from '../../shared/dates.js?v=70187e0ed5b2';
-import { bucket } from '../../shared/schedule.js?v=70187e0ed5b2';
-import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=70187e0ed5b2';
+} from '../settings/awake-hours.js?v=a57308c94de9';
+import { readTiming } from '../focus/timing.js?v=a57308c94de9';
+import { dayKey } from '../../shared/dates.js?v=a57308c94de9';
+import { bucket } from '../../shared/schedule.js?v=a57308c94de9';
+import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=a57308c94de9';
 import {
   COMMITMENT_STATE_KEY,
   DURATION_PRESETS,
@@ -31,14 +31,14 @@ import {
   acknowledgePenalty,
   changeItems,
   pendingCommitments,
-} from './game.js?v=70187e0ed5b2';
-import { node } from '../../shared/dom.js?v=70187e0ed5b2';
+} from './game.js?v=a57308c94de9';
+import { node } from '../../shared/dom.js?v=a57308c94de9';
 import {
   COMMITMENTS_KEY,
   SUGGESTIONS,
   validCommitments,
   practiceProgress,
-} from './model.js?v=70187e0ed5b2';
+} from './model.js?v=a57308c94de9';
 function button(text, action, kind = 'secondary') {
   const b = node('button', kind, text);
   b.type = 'button';
@@ -103,6 +103,13 @@ export function setupCommitments({
   title.maxLength = 100;
   title.setAttribute('aria-label', 'Habit name');
   titleLabel.append(title);
+  const bodyLabel = node('label', '', 'Details (optional)'),
+    body = node('textarea');
+  body.rows = 4;
+  body.maxLength = 10000;
+  body.setAttribute('aria-label', 'Commitment details');
+  body.placeholder = 'Instructions, ideas, or reminders for this practice…';
+  bodyLabel.append(body);
   const minuteLabel = node('label', '', 'Daily focus minutes'),
     minutes = node('input');
   minutes.type = 'number';
@@ -172,6 +179,7 @@ export function setupCommitments({
     ),
     suggestions,
     titleLabel,
+    bodyLabel,
     tagHost,
     presets,
     minuteLabel,
@@ -251,6 +259,7 @@ export function setupCommitments({
   function reset() {
     editing = null;
     title.value = '';
+    body.value = '';
     minutes.value = '30';
     breakMinutes.value = '5';
     renderTagPicker([]);
@@ -556,6 +565,16 @@ export function setupCommitments({
         badges.classList.add('commitment-card-tags');
         row.append(badges);
       }
+      const details = node('details', 'commitment-body-details');
+      details.append(
+        node('summary', '', 'Details'),
+        node(
+          'p',
+          'commitment-body',
+          item.body || 'Add instructions, ideas, or reminders using Edit.',
+        ),
+      );
+      row.append(details);
       const controls = node('div', 'inline commitment-controls');
       const doneButton = button(
         done ? (manual ? 'Undo done' : 'Completed by practice') : 'Mark done',
@@ -588,6 +607,7 @@ export function setupCommitments({
         button('Edit', () => {
           editing = item.id;
           title.value = item.title;
+          body.value = item.body || '';
           renderTagPicker(item.tags || []);
           minutes.value = String(item.minutes);
           breakMinutes.value = String(item.breakMinutes ?? suggestedPracticeBreak(item.minutes));
@@ -626,6 +646,7 @@ export function setupCommitments({
     const item = {
       id: editing || crypto.randomUUID(),
       title: title.value,
+      body: body.value,
       minutes: Number(minutes.value),
       breakMinutes: Number(breakMinutes.value),
       tags: tagPicker?.value || [],

@@ -12,6 +12,7 @@ import { SyncEngine } from '../../dist/js/features/accounts/sync.js';
 const habit = {
   id: 'read',
   title: 'Read',
+  body: 'Read a chapter.\nTake a note.',
   minutes: 30,
   breakMinutes: 5,
   tags: ['personal', 'custom:Study'],
