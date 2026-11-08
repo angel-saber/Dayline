@@ -1,10 +1,11 @@
-import { commitmentColors } from './colors.js?v=a57308c94de9';
+import { commitmentTimelineDrag } from './timeline-drag.js?v=4631c0ee1e9e';
+import { commitmentColors } from './colors.js?v=4631c0ee1e9e';
 import {
   commitmentRecords,
   commitmentToken,
   importDeviceCommitments,
-} from './account-state.js?v=a57308c94de9';
-import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=a57308c94de9';
+} from './account-state.js?v=4631c0ee1e9e';
+import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=4631c0ee1e9e';
 import {
   readAwakeHours,
   awakeMinutes,
@@ -13,11 +14,11 @@ import {
   assertCommitmentBudget,
   AWAKE_HOURS_EVENT,
   AWAKE_HOURS_KEY,
-} from '../settings/awake-hours.js?v=a57308c94de9';
-import { readTiming } from '../focus/timing.js?v=a57308c94de9';
-import { dayKey } from '../../shared/dates.js?v=a57308c94de9';
-import { bucket } from '../../shared/schedule.js?v=a57308c94de9';
-import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=a57308c94de9';
+} from '../settings/awake-hours.js?v=4631c0ee1e9e';
+import { readTiming } from '../focus/timing.js?v=4631c0ee1e9e';
+import { dayKey } from '../../shared/dates.js?v=4631c0ee1e9e';
+import { bucket } from '../../shared/schedule.js?v=4631c0ee1e9e';
+import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=4631c0ee1e9e';
 import {
   COMMITMENT_STATE_KEY,
   DURATION_PRESETS,
@@ -31,14 +32,14 @@ import {
   acknowledgePenalty,
   changeItems,
   pendingCommitments,
-} from './game.js?v=a57308c94de9';
-import { node } from '../../shared/dom.js?v=a57308c94de9';
+} from './game.js?v=4631c0ee1e9e';
+import { node } from '../../shared/dom.js?v=4631c0ee1e9e';
 import {
   COMMITMENTS_KEY,
   SUGGESTIONS,
   validCommitments,
   practiceProgress,
-} from './model.js?v=a57308c94de9';
+} from './model.js?v=4631c0ee1e9e';
 function button(text, action, kind = 'secondary') {
   const b = node('button', kind, text);
   b.type = 'button';
@@ -50,6 +51,8 @@ export function setupCommitments({
   getAccountId = () => null,
   saveAccountState = () => false,
   startPractice,
+  prepareTimeline = () => false,
+  schedulePractice = () => false,
   notify = () => {},
   openAwakeSettings = () => {},
   canNotify = () => true,
@@ -514,7 +517,13 @@ export function setupCommitments({
       let pointer = null,
         swiped = false;
       row.addEventListener('pointerdown', (e) => {
-        if (e.button !== 0 || e.target.closest('.commitment-controls')) return;
+        if (
+          e.button !== 0 ||
+          e.target.closest(
+            '.commitment-controls,.commitment-timeline-drag,.commitment-body-details',
+          )
+        )
+          return;
         pointer = { id: e.pointerId, x: e.clientX, y: e.clientY };
       });
       row.addEventListener('pointercancel', () => {
@@ -575,6 +584,30 @@ export function setupCommitments({
         ),
       );
       row.append(details);
+      let dragScope, dragRaw;
+      const drag = button('⠿ Drag to timeline', () => {}, 'commitment-timeline-drag');
+      drag.setAttribute('aria-label', `Drag ${item.title} to the Daily timeline`);
+      commitmentTimelineDrag(drag, {
+        root: document.querySelector('#timeline') || list,
+        interval: () => getState().settings.interval,
+        begin() {
+          dragScope = loadedScope;
+          dragRaw = loadedRaw;
+          if (prepareTimeline() === false) return false;
+          close();
+          return true;
+        },
+        drop(minute) {
+          if (getAccountId() !== dragScope || rawToken() !== dragRaw) {
+            open();
+            status.textContent = 'Commitments changed. Please try dragging again.';
+            return;
+          }
+          if (!schedulePractice(item, minute)) open();
+        },
+        cancel: open,
+      });
+      row.append(drag);
       const controls = node('div', 'inline commitment-controls');
       const doneButton = button(
         done ? (manual ? 'Undo done' : 'Completed by practice') : 'Mark done',
