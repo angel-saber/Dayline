@@ -1,12 +1,12 @@
-import { reorderCommitments, bindCommitmentReorder } from './reorder.js?v=c43c8d2c5a01';
-import { commitmentTimelineDrag } from './timeline-drag.js?v=c43c8d2c5a01';
-import { commitmentColors } from './colors.js?v=c43c8d2c5a01';
+import { reorderCommitments, bindCommitmentReorder } from './reorder.js?v=4c38d9100be9';
+import { commitmentTimelineDrag } from './timeline-drag.js?v=4c38d9100be9';
+import { commitmentColors } from './colors.js?v=4c38d9100be9';
 import {
   commitmentRecords,
   commitmentToken,
   importDeviceCommitments,
-} from './account-state.js?v=c43c8d2c5a01';
-import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=c43c8d2c5a01';
+} from './account-state.js?v=4c38d9100be9';
+import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=4c38d9100be9';
 import {
   readAwakeHours,
   awakeMinutes,
@@ -15,11 +15,11 @@ import {
   assertCommitmentBudget,
   AWAKE_HOURS_EVENT,
   AWAKE_HOURS_KEY,
-} from '../settings/awake-hours.js?v=c43c8d2c5a01';
-import { readTiming } from '../focus/timing.js?v=c43c8d2c5a01';
-import { dayKey } from '../../shared/dates.js?v=c43c8d2c5a01';
-import { bucket } from '../../shared/schedule.js?v=c43c8d2c5a01';
-import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=c43c8d2c5a01';
+} from '../settings/awake-hours.js?v=4c38d9100be9';
+import { readTiming } from '../focus/timing.js?v=4c38d9100be9';
+import { dayKey } from '../../shared/dates.js?v=4c38d9100be9';
+import { bucket } from '../../shared/schedule.js?v=4c38d9100be9';
+import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=4c38d9100be9';
 import {
   COMMITMENT_STATE_KEY,
   DURATION_PRESETS,
@@ -33,14 +33,14 @@ import {
   acknowledgePenalty,
   changeItems,
   pendingCommitments,
-} from './game.js?v=c43c8d2c5a01';
-import { node } from '../../shared/dom.js?v=c43c8d2c5a01';
+} from './game.js?v=4c38d9100be9';
+import { node } from '../../shared/dom.js?v=4c38d9100be9';
 import {
   COMMITMENTS_KEY,
   SUGGESTIONS,
   validCommitments,
   practiceProgress,
-} from './model.js?v=c43c8d2c5a01';
+} from './model.js?v=4c38d9100be9';
 function button(text, action, kind = 'secondary') {
   const b = node('button', kind, text);
   b.type = 'button';
@@ -205,7 +205,7 @@ export function setupCommitments({
     node(
       'p',
       'field-hint',
-      'Tap a card to start timed Focus. Swipe right or tap the check to mark it done without a session.',
+      'Tap a card to prepare Focus. Swipe right or tap the check to mark it done without a session.',
     ),
     pingLabel,
     gameLabel,
@@ -588,20 +588,21 @@ export function setupCommitments({
         'commitment-start',
       );
       start.setAttribute('aria-label', `Start ${item.minutes}-minute practice: ${item.title}`);
-      row.append(
-        start,
-        ...(done ? [node('strong', '', 'Done today')] : []),
+      row.append(start, ...(done ? [node('strong', '', 'Done today')] : []));
+      const info = node('div', 'commitment-card-info');
+      info.append(
         node(
           'p',
           'commitment-card-meta',
-          `${item.minutes} min daily${item.breakMinutes ? ` · ${item.breakMinutes} min break` : ''} · Today: ${Math.floor(total / 60000)} min recorded`,
+          `${item.minutes} min${item.breakMinutes ? ` · ${item.breakMinutes} min break` : ''} · ${Math.floor(total / 60000)} min today`,
         ),
       );
       const badges = tagBadges(item);
       if (badges) {
         badges.classList.add('commitment-card-tags');
-        row.append(badges);
+        info.append(badges);
       }
+      row.append(info);
       const details = node('details', 'commitment-body-details');
       details.append(
         node('summary', '', 'Details'),

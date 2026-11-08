@@ -1,85 +1,85 @@
-import { activatePracticeNote } from '../features/commitments/planned-note.js?v=c43c8d2c5a01';
-import { writeCommitmentAccount } from '../features/commitments/account-state.js?v=c43c8d2c5a01';
-import { setupAwakeHours } from '../features/settings/awake-hours.js?v=c43c8d2c5a01';
+import { activatePracticeNote } from '../features/commitments/planned-note.js?v=4c38d9100be9';
+import { writeCommitmentAccount } from '../features/commitments/account-state.js?v=4c38d9100be9';
+import { setupAwakeHours } from '../features/settings/awake-hours.js?v=4c38d9100be9';
 import {
   orderDailySlots,
   readNightOrder,
   setupNightOrder,
-} from '../features/daily/night-order.js?v=c43c8d2c5a01';
-import { setupTimingSettings } from '../features/focus/timing-view.js?v=c43c8d2c5a01';
-import { setupCommitments } from '../features/commitments/controller.js?v=c43c8d2c5a01';
-import { setupDayAdjust } from '../features/day-adjust/view.js?v=c43c8d2c5a01';
-import { applySchedule } from '../features/day-adjust/model.js?v=c43c8d2c5a01';
-import { bindIntervalLayout } from '../features/daily/timeline-layout.js?v=c43c8d2c5a01';
-import { writeLife, scheduleLife } from '../features/yearly/life/model.js?v=c43c8d2c5a01';
-import { bindPreciseTime } from '../features/daily/precise-time.js?v=c43c8d2c5a01';
-import { setupActivityFavorites } from '../features/activity-favorites/controller.js?v=c43c8d2c5a01';
-import { setupYearly } from '../features/yearly/view.js?v=c43c8d2c5a01';
+} from '../features/daily/night-order.js?v=4c38d9100be9';
+import { setupTimingSettings } from '../features/focus/timing-view.js?v=4c38d9100be9';
+import { setupCommitments } from '../features/commitments/controller.js?v=4c38d9100be9';
+import { setupDayAdjust } from '../features/day-adjust/view.js?v=4c38d9100be9';
+import { applySchedule } from '../features/day-adjust/model.js?v=4c38d9100be9';
+import { bindIntervalLayout } from '../features/daily/timeline-layout.js?v=4c38d9100be9';
+import { writeLife, scheduleLife } from '../features/yearly/life/model.js?v=4c38d9100be9';
+import { bindPreciseTime } from '../features/daily/precise-time.js?v=4c38d9100be9';
+import { setupActivityFavorites } from '../features/activity-favorites/controller.js?v=4c38d9100be9';
+import { setupYearly } from '../features/yearly/view.js?v=4c38d9100be9';
 import {
   writeYearly,
   planNextStep,
   carryIntentions,
-} from '../features/yearly/model.js?v=c43c8d2c5a01';
+} from '../features/yearly/model.js?v=4c38d9100be9';
 import {
   setupSummarySettings,
   SUMMARY_PREFERENCES_EVENT,
-} from '../features/summaries/preferences.js?v=c43c8d2c5a01';
-import { summarySource, summarizePeriod } from '../features/summaries/model.js?v=c43c8d2c5a01';
-import { createPeriodSummary } from '../features/summaries/view.js?v=c43c8d2c5a01';
+} from '../features/summaries/preferences.js?v=4c38d9100be9';
+import { summarySource, summarizePeriod } from '../features/summaries/model.js?v=4c38d9100be9';
+import { createPeriodSummary } from '../features/summaries/view.js?v=4c38d9100be9';
 import {
   changeRepeatNotes,
   rescheduleRepeatNotes,
-} from '../features/repeating/series.js?v=c43c8d2c5a01';
-import { chooseRepeatScope } from '../features/repeating/scope.js?v=c43c8d2c5a01';
-import { createRepeatCycle } from '../features/repeating/model.js?v=c43c8d2c5a01';
-import { openRepeatCycle } from '../features/repeating/view.js?v=c43c8d2c5a01';
-import { setupVisualizations } from '../features/visualization/controller.js?v=c43c8d2c5a01';
-import { canKeepEditor } from '../features/notes/editor-sync.js?v=c43c8d2c5a01';
-import { setupInspiration } from '../features/inspiration/view.js?v=c43c8d2c5a01';
-import { storyNote } from '../features/inspiration/model.js?v=c43c8d2c5a01';
-import { setupShortcuts } from '../features/shortcuts/controller.js?v=c43c8d2c5a01';
-import { duplicateNote as copyNote } from '../features/notes/duplicate.js?v=c43c8d2c5a01';
-import { setupFocusAudio } from '../features/focus-audio/controller.js?v=c43c8d2c5a01';
-import { setupPersonalityEffects } from '../personalities/effects.js?v=c43c8d2c5a01';
-import { node } from '../shared/dom.js?v=c43c8d2c5a01';
-import { setupBackups } from '../features/settings/backups.js?v=c43c8d2c5a01';
-import { setupSettings } from '../features/settings/controller.js?v=c43c8d2c5a01';
-import { renderNoteLines } from '../features/notes/render.js?v=c43c8d2c5a01';
-import { rescheduleNote } from '../features/daily/reschedule.js?v=c43c8d2c5a01';
-import { changeWeekly } from '../features/monthly/weekly-model.js?v=c43c8d2c5a01';
+} from '../features/repeating/series.js?v=4c38d9100be9';
+import { chooseRepeatScope } from '../features/repeating/scope.js?v=4c38d9100be9';
+import { createRepeatCycle } from '../features/repeating/model.js?v=4c38d9100be9';
+import { openRepeatCycle } from '../features/repeating/view.js?v=4c38d9100be9';
+import { setupVisualizations } from '../features/visualization/controller.js?v=4c38d9100be9';
+import { canKeepEditor } from '../features/notes/editor-sync.js?v=4c38d9100be9';
+import { setupInspiration } from '../features/inspiration/view.js?v=4c38d9100be9';
+import { storyNote } from '../features/inspiration/model.js?v=4c38d9100be9';
+import { setupShortcuts } from '../features/shortcuts/controller.js?v=4c38d9100be9';
+import { duplicateNote as copyNote } from '../features/notes/duplicate.js?v=4c38d9100be9';
+import { setupFocusAudio } from '../features/focus-audio/controller.js?v=4c38d9100be9';
+import { setupPersonalityEffects } from '../personalities/effects.js?v=4c38d9100be9';
+import { node } from '../shared/dom.js?v=4c38d9100be9';
+import { setupBackups } from '../features/settings/backups.js?v=4c38d9100be9';
+import { setupSettings } from '../features/settings/controller.js?v=4c38d9100be9';
+import { renderNoteLines } from '../features/notes/render.js?v=4c38d9100be9';
+import { rescheduleNote } from '../features/daily/reschedule.js?v=4c38d9100be9';
+import { changeWeekly } from '../features/monthly/weekly-model.js?v=4c38d9100be9';
 import {
   availableHours,
   dailySlotVisible,
-} from '../features/settings/available-hours.js?v=c43c8d2c5a01';
+} from '../features/settings/available-hours.js?v=4c38d9100be9';
 import {
   attachmentList,
   bindFileDrop,
-} from '../features/attachments/attachments.js?v=c43c8d2c5a01';
-import { setupTagSettings } from '../features/notes/tag-settings.js?v=c43c8d2c5a01';
-import { setupBulk } from '../features/bulk/view.js?v=c43c8d2c5a01';
-import { bulkChange } from '../features/bulk/model.js?v=c43c8d2c5a01';
-import { openShareNote } from '../features/sharing/share-note.js?v=c43c8d2c5a01';
+} from '../features/attachments/attachments.js?v=4c38d9100be9';
+import { setupTagSettings } from '../features/notes/tag-settings.js?v=4c38d9100be9';
+import { setupBulk } from '../features/bulk/view.js?v=4c38d9100be9';
+import { bulkChange } from '../features/bulk/model.js?v=4c38d9100be9';
+import { openShareNote } from '../features/sharing/share-note.js?v=4c38d9100be9';
 import {
   tagBadges,
   categoryOptions,
   collectTagSettings,
-} from '../features/notes/note-types.js?v=c43c8d2c5a01';
+} from '../features/notes/note-types.js?v=4c38d9100be9';
 import {
   setupActivities,
   renderGuidedReports,
-} from '../features/activities/view.js?v=c43c8d2c5a01';
-import { attachGuidedPlan } from '../features/activities/model.js?v=c43c8d2c5a01';
-import { setupWelcome } from '../features/onboarding/welcome.js?v=c43c8d2c5a01';
-import { voice, personality, applyPersonality } from '../personalities/index.js?v=c43c8d2c5a01';
-import { setupFocus } from '../features/focus/controller.js?v=c43c8d2c5a01';
-import { renderFocusReports } from '../features/focus/reports.js?v=c43c8d2c5a01';
+} from '../features/activities/view.js?v=4c38d9100be9';
+import { attachGuidedPlan } from '../features/activities/model.js?v=4c38d9100be9';
+import { setupWelcome } from '../features/onboarding/welcome.js?v=4c38d9100be9';
+import { voice, personality, applyPersonality } from '../personalities/index.js?v=4c38d9100be9';
+import { setupFocus } from '../features/focus/controller.js?v=4c38d9100be9';
+import { renderFocusReports } from '../features/focus/reports.js?v=4c38d9100be9';
 import {
   findFocusNote,
   extendFocusNote,
   attachFocusReport,
-} from '../features/focus/model.js?v=c43c8d2c5a01';
-import { setupMonthly } from '../features/monthly/view.js?v=c43c8d2c5a01';
-import { moveToDay, quickNotes } from '../features/monthly/model.js?v=c43c8d2c5a01';
+} from '../features/focus/model.js?v=4c38d9100be9';
+import { setupMonthly } from '../features/monthly/view.js?v=4c38d9100be9';
+import { moveToDay, quickNotes } from '../features/monthly/model.js?v=4c38d9100be9';
 import {
   dayKey,
   parseDay,
@@ -87,14 +87,14 @@ import {
   grouped,
   dropEntry,
   timeLabel,
-} from '../shared/schedule.js?v=c43c8d2c5a01';
-import { load, save } from '../shared/storage.js?v=c43c8d2c5a01';
-import { attachGestures } from '../features/daily/gestures.js?v=c43c8d2c5a01';
-import { Reminders, resolveReminder } from '../features/reminders/reminders.js?v=c43c8d2c5a01';
-import { setupAccounts } from '../features/accounts/accounts.js?v=c43c8d2c5a01';
-import { dailyQuote } from '../personalities/quotes.js?v=c43c8d2c5a01';
-import { createNoteEditor } from '../features/notes/note-editor.js?v=c43c8d2c5a01';
-import { noteTasks } from '../features/notes/formatting/tasks.js?v=c43c8d2c5a01';
+} from '../shared/schedule.js?v=4c38d9100be9';
+import { load, save } from '../shared/storage.js?v=4c38d9100be9';
+import { attachGestures } from '../features/daily/gestures.js?v=4c38d9100be9';
+import { Reminders, resolveReminder } from '../features/reminders/reminders.js?v=4c38d9100be9';
+import { setupAccounts } from '../features/accounts/accounts.js?v=4c38d9100be9';
+import { dailyQuote } from '../personalities/quotes.js?v=4c38d9100be9';
+import { createNoteEditor } from '../features/notes/note-editor.js?v=4c38d9100be9';
+import { noteTasks } from '../features/notes/formatting/tasks.js?v=4c38d9100be9';
 const $ = (s) => document.querySelector(s);
 let monthly = null;
 let yearly = null;
