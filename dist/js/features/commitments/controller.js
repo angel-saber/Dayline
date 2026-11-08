@@ -1,12 +1,12 @@
-import { reorderCommitments, bindCommitmentReorder } from './reorder.js?v=c0487c930675';
-import { commitmentTimelineDrag } from './timeline-drag.js?v=c0487c930675';
-import { commitmentColors } from './colors.js?v=c0487c930675';
+import { reorderCommitments, bindCommitmentReorder } from './reorder.js?v=c43c8d2c5a01';
+import { commitmentTimelineDrag } from './timeline-drag.js?v=c43c8d2c5a01';
+import { commitmentColors } from './colors.js?v=c43c8d2c5a01';
 import {
   commitmentRecords,
   commitmentToken,
   importDeviceCommitments,
-} from './account-state.js?v=c0487c930675';
-import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=c0487c930675';
+} from './account-state.js?v=c43c8d2c5a01';
+import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=c43c8d2c5a01';
 import {
   readAwakeHours,
   awakeMinutes,
@@ -15,11 +15,11 @@ import {
   assertCommitmentBudget,
   AWAKE_HOURS_EVENT,
   AWAKE_HOURS_KEY,
-} from '../settings/awake-hours.js?v=c0487c930675';
-import { readTiming } from '../focus/timing.js?v=c0487c930675';
-import { dayKey } from '../../shared/dates.js?v=c0487c930675';
-import { bucket } from '../../shared/schedule.js?v=c0487c930675';
-import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=c0487c930675';
+} from '../settings/awake-hours.js?v=c43c8d2c5a01';
+import { readTiming } from '../focus/timing.js?v=c43c8d2c5a01';
+import { dayKey } from '../../shared/dates.js?v=c43c8d2c5a01';
+import { bucket } from '../../shared/schedule.js?v=c43c8d2c5a01';
+import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=c43c8d2c5a01';
 import {
   COMMITMENT_STATE_KEY,
   DURATION_PRESETS,
@@ -33,14 +33,14 @@ import {
   acknowledgePenalty,
   changeItems,
   pendingCommitments,
-} from './game.js?v=c0487c930675';
-import { node } from '../../shared/dom.js?v=c0487c930675';
+} from './game.js?v=c43c8d2c5a01';
+import { node } from '../../shared/dom.js?v=c43c8d2c5a01';
 import {
   COMMITMENTS_KEY,
   SUGGESTIONS,
   validCommitments,
   practiceProgress,
-} from './model.js?v=c0487c930675';
+} from './model.js?v=c43c8d2c5a01';
 function button(text, action, kind = 'secondary') {
   const b = node('button', kind, text);
   b.type = 'button';
@@ -611,7 +611,7 @@ export function setupCommitments({
           item.body || 'Add instructions, ideas, or reminders using Edit.',
         ),
       );
-      row.append(details);
+
       let dragScope, dragRaw;
       const drag = button('⠿ Drag to timeline', () => {}, 'commitment-timeline-drag');
       drag.setAttribute('aria-label', `Drag ${item.title} to the Daily timeline`);
@@ -636,7 +636,9 @@ export function setupCommitments({
         },
         cancel: open,
       });
-      row.append(drag);
+      const secondary = node('div', 'commitment-secondary');
+      secondary.append(details, drag);
+      row.append(secondary);
       const controls = node('div', 'inline commitment-controls');
       const doneButton = button(
         done ? (manual ? 'Undo done' : 'Completed by practice') : 'Mark done',

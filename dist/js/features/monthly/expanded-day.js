@@ -1,7 +1,7 @@
-import { node } from '../../shared/dom.js?v=c0487c930675';
-import { grouped, timeLabel } from '../../shared/schedule.js?v=c0487c930675';
-import { noteTitle } from './model.js?v=c0487c930675';
-import { tagBadges } from '../notes/note-types.js?v=c0487c930675';
+import { node } from '../../shared/dom.js?v=c43c8d2c5a01';
+import { grouped, timeLabel } from '../../shared/schedule.js?v=c43c8d2c5a01';
+import { noteTitle } from './model.js?v=c43c8d2c5a01';
+import { tagBadges } from '../notes/note-types.js?v=c43c8d2c5a01';
 
 const button = (text, label, action, cls = '') => {
   const el = node('button', cls, text);

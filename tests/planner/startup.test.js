@@ -1102,14 +1102,15 @@ test('the assembled planner starts, switches views/personalities, edits settings
     habitWindow.querySelector('.commitment-start').click();
     const practiceDraft = JSON.parse(local.getItem('dayline.focus.v1'));
     assert.equal(practiceDraft.practice.title, 'Read');
-    assert.equal(practiceDraft.phase, 'active');
+    assert.equal(practiceDraft.phase, 'prepare');
+    assert.equal(practiceDraft.startedAt, null);
     assert.equal(practiceDraft.practice.minutes, 45);
     assert.equal(practiceDraft.timing.mode, 'timed');
     assert.equal(practiceDraft.timing.workMinutes, 45);
     assert.equal(practiceDraft.timing.breakMinutes, 7);
     assert.equal(document.querySelector('#daily-view').hidden, false);
     assert.ok(document.querySelector('.focus-window').open);
-    assert.match(document.querySelector('.focus-window').textContent, /45-minute daily practice/);
+
     const practiceNote = JSON.parse(local.getItem('dayline.v1')).days[today].find(
       (n) => n.id === practiceDraft.pages[0].noteId,
     );
@@ -1117,9 +1118,15 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.deepEqual(practiceNote.tags, ['project', 'personal']);
     assert.deepEqual(practiceDraft.practice.tags, ['project', 'personal']);
     assert.deepEqual(practiceDraft.flow.tags, ['project', 'personal']);
-    const launchedAt = new Date(practiceDraft.startedAt);
+    const launchedAt = new Date(practiceDraft.launchedAt);
     assert.equal(practiceNote.minute, launchedAt.getHours() * 60 + launchedAt.getMinutes());
     assert.ok(document.querySelector(`#timeline .entry[data-id="${practiceNote.id}"]`));
+    [...document.querySelector('.focus-window').querySelectorAll('button')]
+      .find((b) => b.textContent === 'Commit')
+      .click();
+    await new Promise((resolve) => setTimeout(resolve, 1150));
+    assert.equal(JSON.parse(local.getItem('dayline.focus.v1')).phase, 'active');
+    assert.match(document.querySelector('.focus-window').textContent, /45-minute daily practice/);
     [...document.querySelector('.focus-window').querySelectorAll('button')]
       .find((b) => b.textContent === 'Minimize')
       .click();

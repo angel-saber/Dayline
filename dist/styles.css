@@ -3336,7 +3336,7 @@ main {
 @media (max-width: 750px) {
   .month-day {
     display: flex;
-    min-height: 90px;
+    min-height: 52px;
     max-height: 340px;
     gap: 0;
   }
@@ -5106,7 +5106,7 @@ body.month-dragging .commitments-launch {
 }
 .commitments-list {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 .commitments-panel .commitment-row {
   position: relative;
@@ -5125,12 +5125,12 @@ body.month-dragging .commitments-launch {
   display: block;
   min-height: 90px;
   margin: 0;
-  padding: 23px 106px 12px 20px;
+  padding: 14px 96px 6px 44px;
   border: 0;
   border-radius: 7px;
   background: transparent;
   color: inherit;
-  font-size: 25px;
+  font-size: 20px;
   font-weight: 650;
   line-height: 1.15;
   letter-spacing: -0.035em;
@@ -5142,7 +5142,7 @@ body.month-dragging .commitments-launch {
 }
 .commitment-card-meta {
   margin: 0;
-  padding: 0 20px 20px;
+  padding: 0 14px 6px 44px;
   font-size: 10px;
   line-height: 1.5;
   letter-spacing: 0.035em;
@@ -5157,8 +5157,8 @@ body.month-dragging .commitments-launch {
 }
 .commitments-panel .commitment-controls {
   position: absolute;
-  top: 18px;
-  right: 14px;
+  top: 9px;
+  right: 10px;
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
@@ -5322,7 +5322,7 @@ body.month-dragging .commitments-launch {
     font-size: 40px;
   }
   .commitments-panel .commitment-start {
-    font-size: 24px;
+    font-size: 20px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -5337,8 +5337,8 @@ body.month-dragging .commitments-launch {
 .commitments-panel .commitment-card-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 12px;
-  padding: 0 20px 18px;
+  gap: 4px 10px;
+  padding: 0 14px 6px 44px;
   color: inherit;
 }
 .commitments-panel .commitment-card-tags .note-type-badge {
@@ -5347,11 +5347,14 @@ body.month-dragging .commitments-launch {
 }
 
 .commitment-body-details {
-  margin: 12px 0;
-  font-size: 13px;
+  margin: 0;
+  min-width: 0;
+  font-size: 12px;
 }
 .commitment-body-details > summary {
   cursor: pointer;
+  padding: 8px 0;
+  min-height: 34px;
 }
 .commitment-body {
   white-space: pre-wrap;
@@ -5392,7 +5395,9 @@ body.month-dragging .commitments-launch {
 .commitment-reorder-handle {
   touch-action: none;
   cursor: grab;
-  float: right;
+  position: absolute;
+  top: 8px;
+  left: 4px;
   color: inherit;
   background: transparent;
   border: 0;
@@ -5436,6 +5441,36 @@ body.month-dragging .commitments-launch {
   width: fit-content;
   max-width: 100%;
   box-shadow: 0 2px 8px #0004;
+}
+
+/* Compact secondary actions share one row; opened details get the full width. */
+.commitment-secondary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 4px 8px;
+  padding: 0 14px 10px 44px;
+}
+.commitment-secondary .commitment-body-details[open] {
+  grid-column: 1 / -1;
+}
+.commitment-secondary .commitment-timeline-drag {
+  margin: 0;
+  padding: 7px 8px;
+  min-height: 34px;
+  font-size: 11px;
+}
+.commitments-panel .commitment-row > .commitment-reorder-handle {
+  margin: 0;
+  padding: 4px;
+  width: 34px;
+  min-height: 40px;
+  max-width: none;
+  border: 0;
+  font-size: 20px;
+}
+.commitment-start {
+  overflow-wrap: anywhere;
 }
 
 

@@ -1,15 +1,16 @@
-import { validTiming, sessionTiming, TIMING_DEFAULTS } from './timing.js?v=c0487c930675';
-import { validCommitment } from '../commitments/model.js?v=c0487c930675';
-import { newFlow, validFlow, validRecovery } from './flow-model.js?v=c0487c930675';
-import { noteTags } from '../notes/note-types.js?v=c0487c930675';
+import { plannedCommitmentNote } from '../commitments/planned-note.js?v=c43c8d2c5a01';
+import { validTiming, sessionTiming, TIMING_DEFAULTS } from './timing.js?v=c43c8d2c5a01';
+import { validCommitment } from '../commitments/model.js?v=c43c8d2c5a01';
+import { newFlow, validFlow, validRecovery } from './flow-model.js?v=c43c8d2c5a01';
+import { noteTags } from '../notes/note-types.js?v=c43c8d2c5a01';
 import {
   dayKey,
   parseDay,
   offsetDay,
   bucket,
   slots,
-} from '../../shared/schedule.js?v=c0487c930675';
-import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=c0487c930675';
+} from '../../shared/schedule.js?v=c43c8d2c5a01';
+import { PERSONALITY_MANTRAS, VOICE_QUOTES } from '../../personalities/index.js?v=c43c8d2c5a01';
 export const MANTRAS = PERSONALITY_MANTRAS.zen;
 export const INSPIRATION = VOICE_QUOTES.zen;
 export function intervalAt(at, interval) {
@@ -363,10 +364,21 @@ export function newPracticeFocus(
   const p = session.pages[0];
   const d = new Date(now);
   p.minute = d.getHours() * 60 + d.getMinutes();
-  p.noteId = p.practiceNoteId = noteId;
+  const planned = plannedCommitmentNote(
+    state.days[p.date] || [],
+    session.practice,
+    p.minute,
+    state.settings.interval,
+  );
+  p.noteId = p.practiceNoteId = planned?.id || noteId;
   p.title = session.practice.title;
   p.text = session.practice.body?.trim()
     ? session.practice.body
     : `Daily practice · ${session.practice.minutes} minutes\nShow up for the practice. No specific outcome required.`;
+  if (planned) {
+    p.title = planned.title || session.practice.title;
+    p.text = planned.text;
+    session.flow = newFlow(noteTags(planned));
+  }
   return session;
 }
