@@ -2825,7 +2825,7 @@ button.slot-time .now-badge {
   font-weight: 600;
 }
 
-/* Card starts share the exact proportional axis used by precise-time clicks. */
+/* Compact note cards; the time gutter remains the drop/click scheduling axis. */
 .slot.precise-layout > .slot-time {
   height: var(--interval-height);
 }

@@ -1,6 +1,6 @@
-import { minuteAtPosition } from './precise-time.js?v=a65a5f1958ca';
-import { timeLabel } from '../../shared/dates.js?v=a65a5f1958ca';
-import { node } from '../../shared/dom.js?v=a65a5f1958ca';
+import { minuteAtPosition } from './precise-time.js?v=c0487c930675';
+import { timeLabel } from '../../shared/dates.js?v=c0487c930675';
+import { node } from '../../shared/dom.js?v=c0487c930675';
 export function snapDropMinute(start, interval, y, rect) {
   if (start === -1) return -1;
   const raw = minuteAtPosition(start, interval, y, rect);

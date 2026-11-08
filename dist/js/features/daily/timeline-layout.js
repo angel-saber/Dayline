@@ -1,30 +1,18 @@
-// Keep note starts proportional to the displayed interval, expanding for readable bodies.
+// Time labels carry exact scheduling; empty time gets a small, bounded visual gap.
 export function intervalLayout(items, start, interval, minimum = 120) {
   const duration = Math.min(interval, 1440 - start);
-  const groups = [];
+  let cursor = 0,
+    previousMinute = start;
+  const placed = [];
   for (const item of [...items].sort((a, b) => a.minute - b.minute)) {
     const minute = Math.max(start, Math.min(start + duration - 1, item.minute));
-    let group = groups.at(-1);
-    if (!group || group.minute !== minute) {
-      group = { minute, fraction: (minute - start) / duration, items: [], height: 0 };
-      groups.push(group);
-    }
-    if (group.items.length) group.height += 8;
-    group.items.push({ ...item, offset: group.height });
-    group.height += item.height;
+    const gap = ((minute - previousMinute) / duration) * 12;
+    cursor += (placed.length ? 8 : 0) + gap;
+    placed.push({ ...item, top: cursor });
+    cursor += item.height;
+    previousMinute = minute;
   }
-  let height = minimum;
-  for (let i = 0; i < groups.length; i++) {
-    const group = groups[i],
-      next = groups[i + 1];
-    height = Math.max(height, (group.height + 8) / ((next?.fraction ?? 1) - group.fraction));
-  }
-  return {
-    height,
-    items: groups.flatMap((group) =>
-      group.items.map((item) => ({ ...item, top: group.fraction * height + item.offset })),
-    ),
-  };
+  return { height: Math.max(minimum, cursor + 8), items: placed };
 }
 
 export function bindIntervalLayout(timeline, interval) {
