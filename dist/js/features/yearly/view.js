@@ -1,6 +1,10 @@
-import { createLifePlanner } from './life/view.js?v=4c38d9100be9';
-import { node } from '../../shared/dom.js?v=4c38d9100be9';
-import { dayKey } from '../../shared/dates.js?v=4c38d9100be9';
+import { layoutToggle, readLayout } from '../lists/preferences.js?v=4a8d127fdc4d';
+import { listItems } from '../lists/model.js?v=4a8d127fdc4d';
+import { cardList } from '../lists/view.js?v=4a8d127fdc4d';
+import { readLife } from './life/model.js?v=4a8d127fdc4d';
+import { createLifePlanner } from './life/view.js?v=4a8d127fdc4d';
+import { node } from '../../shared/dom.js?v=4a8d127fdc4d';
+import { dayKey } from '../../shared/dates.js?v=4a8d127fdc4d';
 import {
   validYearly,
   DIMENSIONS,
@@ -8,7 +12,7 @@ import {
   yearPosition,
   yearRecords,
   linkedNotes,
-} from './model.js?v=4c38d9100be9';
+} from './model.js?v=4a8d127fdc4d';
 
 const button = (text, action, className = 'secondary') => {
   const item = node('button', className, text);
@@ -19,6 +23,7 @@ const button = (text, action, className = 'secondary') => {
 const names = ['', 'January–March', 'April–June', 'July–September', 'October–December'];
 export function setupYearly({
   root,
+  listActions,
   getState,
   saveRecord,
   saveLife,
@@ -391,6 +396,8 @@ export function setupYearly({
   function intention(record) {
     const card = node('article', 'yearly-intention');
     card.dataset.intentionId = record.id;
+    card.classList.toggle('done', !!record.done);
+    if (record.done) card.append(node('span', 'eyebrow', 'Completed'));
     card.append(node('h4', '', record.title));
     if (record.yearly.dimension) card.append(node('span', 'eyebrow', record.yearly.dimension));
     if (record.text) card.append(node('p', 'yearly-copy', record.text));
@@ -487,7 +494,11 @@ export function setupYearly({
     prev.disabled = year <= 1900;
     next.disabled = year >= 9998;
     header.append(prev, heading, next);
-    root.append(header, node('p', 'intro', 'There is room to choose what comes next.'));
+    root.append(
+      header,
+      layoutToggle('yearly', render, toast),
+      node('p', 'intro', 'There is room to choose what comes next.'),
+    );
     const bar = node('progress', 'yearly-time');
     bar.max = position.total;
     bar.value = position.elapsed;
@@ -504,6 +515,43 @@ export function setupYearly({
             : 'A year to revisit, without anything to catch up on.',
       ),
     );
+    if (readLayout('yearly') === 'list' && listActions) {
+      let links = [];
+      try {
+        links = readLife(getState().days).data.links;
+      } catch {
+        root.append(
+          node(
+            'p',
+            'field-hint',
+            'Life planner data could not be read. Your notes have been kept.',
+          ),
+        );
+      }
+      root.append(
+        cardList({
+          items: listItems(getState().days, 'yearly', String(year), links),
+          view: 'yearly',
+          clock: getState().settings.clock,
+          actions: listActions,
+          onEdit: (item) =>
+            item.entry.yearly
+              ? edit('intention', item.entry.yearly.quarter, item.entry)
+              : listActions.edit(item),
+          onReschedule: (item) =>
+            item.entry.yearly ? move(item.entry) : listActions.reschedule(item),
+          onAdd: () => edit('intention', position.currentQuarter || 1),
+          onPlan: (item) => nextStep(item.entry),
+        }),
+      );
+      if (context) {
+        [...root.querySelectorAll('[data-card-key]')]
+          .find((card) => card.dataset.cardKey === `${year}-01-01/${context}`)
+          ?.scrollIntoView?.({ block: 'center' });
+        context = null;
+      }
+      return;
+    }
     if (life) {
       life.refresh();
       root.append(life.element);

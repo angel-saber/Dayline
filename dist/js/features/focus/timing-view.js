@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=4c38d9100be9';
-import { TIMING_KEY, TIMING_DEFAULTS, readTiming, validTiming } from './timing.js?v=4c38d9100be9';
+import { node } from '../../shared/dom.js?v=4a8d127fdc4d';
+import { TIMING_KEY, TIMING_DEFAULTS, readTiming, validTiming } from './timing.js?v=4a8d127fdc4d';
 export function timingControls(timing, onChange) {
   const section = node('section', 'focus-section focus-timing-controls');
   section.append(node('h2', '', 'Session timing'));
@@ -57,7 +57,7 @@ export function timingControls(timing, onChange) {
   };
   label.append(
     automatic,
-    document.createTextNode('Start the break automatically when timed work ends'),
+    document.createTextNode('Start the break automatically after the reflection page'),
   );
   fields.append(label);
   section.append(
@@ -121,7 +121,7 @@ export function setupTimingSettings({
   number('workMinutes', 'Default timed work minutes', current.workMinutes, 1440);
   number('breakMinutes', 'Timed-session break minutes', current.breakMinutes, 120);
   for (const [key, text] of [
-    ['autoBreak', 'Start timed-session breaks automatically'],
+    ['autoBreak', 'Start timed-session breaks after reflection'],
     ['sound', 'Play a sound when work or break time is up'],
   ]) {
     const l = node('label'),

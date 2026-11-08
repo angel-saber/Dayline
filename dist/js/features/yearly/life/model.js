@@ -1,9 +1,9 @@
-import { validDate } from '../../bulk/model.js?v=4c38d9100be9';
-import { dayKey, offsetDay, parseDay } from '../../../shared/dates.js?v=4c38d9100be9';
-import { weekStart } from '../../monthly/weekly-model.js?v=4c38d9100be9';
-import { repeatDates, addMonths } from '../../repeating/model.js?v=4c38d9100be9';
-import { validTags } from '../../notes/note-types.js?v=4c38d9100be9';
-import { writeYearly } from '../model.js?v=4c38d9100be9';
+import { validDate } from '../../bulk/model.js?v=4a8d127fdc4d';
+import { dayKey, offsetDay, parseDay } from '../../../shared/dates.js?v=4a8d127fdc4d';
+import { weekStart } from '../../monthly/weekly-model.js?v=4a8d127fdc4d';
+import { repeatDates, addMonths } from '../../repeating/model.js?v=4a8d127fdc4d';
+import { validTags } from '../../notes/note-types.js?v=4a8d127fdc4d';
+import { writeYearly } from '../model.js?v=4a8d127fdc4d';
 export const LIFE_DATE = '1900-01-01';
 export const GROUPS = {
   occasions: ['Birthdays & anniversaries', 'event', 'annual'],
@@ -278,6 +278,7 @@ export function planLifeRows(data, key, today = dayKey(), newId = () => crypto.r
         if (notes.length >= 1000) throw Error('Use a shorter cycle: up to 1000 notes per batch.');
         const entry = {
           id: unique(),
+          lifeSource: { group: key },
           title: row.title.trim(),
           text: [row.text, row.amount ? `Amount: ${row.amount}` : ''].filter(Boolean).join('\n'),
           minute: time

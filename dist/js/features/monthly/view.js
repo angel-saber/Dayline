@@ -1,9 +1,12 @@
-import { SUMMARY_PREFERENCES_EVENT } from '../summaries/preferences.js?v=4c38d9100be9';
-import { summarySource, summarizePeriod } from '../summaries/model.js?v=4c38d9100be9';
-import { createPeriodSummary } from '../summaries/view.js?v=4c38d9100be9';
-import { openExpandedDay } from './expanded-day.js?v=4c38d9100be9';
-import { node } from '../../shared/dom.js?v=4c38d9100be9';
-import { createWeeklySection } from './weekly-notes.js?v=4c38d9100be9';
+import { layoutToggle, readLayout } from '../lists/preferences.js?v=4a8d127fdc4d';
+import { listItems } from '../lists/model.js?v=4a8d127fdc4d';
+import { cardList } from '../lists/view.js?v=4a8d127fdc4d';
+import { SUMMARY_PREFERENCES_EVENT } from '../summaries/preferences.js?v=4a8d127fdc4d';
+import { summarySource, summarizePeriod } from '../summaries/model.js?v=4a8d127fdc4d';
+import { createPeriodSummary } from '../summaries/view.js?v=4a8d127fdc4d';
+import { openExpandedDay } from './expanded-day.js?v=4a8d127fdc4d';
+import { node } from '../../shared/dom.js?v=4a8d127fdc4d';
+import { createWeeklySection } from './weekly-notes.js?v=4a8d127fdc4d';
 import {
   NOTE_TYPES,
   categoryOptions,
@@ -13,11 +16,11 @@ import {
   typeBadge,
   noteTags,
   categoryLabel,
-} from '../notes/note-types.js?v=4c38d9100be9';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=4c38d9100be9';
-import { dateActions } from './date-actions.js?v=4c38d9100be9';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=4c38d9100be9';
-import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=4c38d9100be9';
+} from '../notes/note-types.js?v=4a8d127fdc4d';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=4a8d127fdc4d';
+import { dateActions } from './date-actions.js?v=4a8d127fdc4d';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=4a8d127fdc4d';
+import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=4a8d127fdc4d';
 
 const button = (text, label, action) => {
   const el = node('button', '', text);
@@ -43,6 +46,7 @@ function categoryBackground(tags) {
 }
 export function setupMonthly({
   root,
+  listActions,
   getState,
   onOpen,
   onDelete,
@@ -304,6 +308,14 @@ export function setupMonthly({
     content.append(
       node('div', 'eyebrow', voice('monthly.eyebrow')),
       head,
+      layoutToggle(
+        'monthly',
+        () => {
+          flushWeekly();
+          render();
+        },
+        announce,
+      ),
       monthSummary.element,
       node(
         'p',
@@ -348,6 +360,24 @@ export function setupMonthly({
       content.append(
         node('p', 'field-hint', 'No tags selected. Choose a tag above to show its notes.'),
       );
+    if (readLayout('monthly') === 'list' && listActions) {
+      content.append(
+        cardList({
+          items: listItems(getState().days, 'monthly', month).filter((item) =>
+            matchesNoteType(item.entry, filters),
+          ),
+          view: 'monthly',
+          clock: getState().settings.clock,
+          actions: listActions,
+          onEdit: listActions.edit,
+          onReschedule: listActions.reschedule,
+          onAdd: () => quickAdd(dayKey().startsWith(month) ? dayKey() : month + '-01'),
+        }),
+      );
+      root.replaceChildren(content);
+      refreshPeriodSummaries();
+      return;
+    }
     for (const week of monthWeeks(month)) {
       const section = node('section', 'month-week');
       const weekHeading = node(

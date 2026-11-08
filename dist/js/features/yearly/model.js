@@ -1,6 +1,6 @@
-import { dayKey } from '../../shared/dates.js?v=4c38d9100be9';
-import { validDate } from '../bulk/model.js?v=4c38d9100be9';
-import { weekStart } from '../monthly/weekly-model.js?v=4c38d9100be9';
+import { dayKey } from '../../shared/dates.js?v=4a8d127fdc4d';
+import { validDate } from '../bulk/model.js?v=4a8d127fdc4d';
+import { weekStart } from '../monthly/weekly-model.js?v=4a8d127fdc4d';
 export const DIMENSIONS = ['work', 'health', 'learning', 'relationships', 'spirituality'];
 export const SEASONS = ['Winter', 'Spring', 'Summer', 'Fall'];
 export function validYear(year) {
@@ -135,7 +135,8 @@ export function writeYearly(days, record, newId = () => crypto.randomUUID()) {
   const entry = {
     id,
     minute: 0,
-    done: false,
+    done: existing?.done || false,
+    ...(existing?.listOrder ? { listOrder: { ...existing.listOrder } } : {}),
     title: record.title.trim(),
     text: record.text,
     yearly,

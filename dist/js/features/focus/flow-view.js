@@ -1,6 +1,6 @@
-import { node } from '../../shared/dom.js?v=4c38d9100be9';
-import { ACCESS, INTEREST, PERMISSIONS, BREATHS } from './flow-model.js?v=4c38d9100be9';
-import { breathingFrame } from '../activities/model.js?v=4c38d9100be9';
+import { node } from '../../shared/dom.js?v=4a8d127fdc4d';
+import { ACCESS, INTEREST, PERMISSIONS, BREATHS } from './flow-model.js?v=4a8d127fdc4d';
+import { breathingFrame } from '../activities/model.js?v=4a8d127fdc4d';
 const button = (text, action) => {
   const b = node('button', 'secondary', text);
   b.type = 'button';
@@ -469,7 +469,7 @@ export function recoverySection(recovery, onChange) {
   });
   check(
     root,
-    `Start the suggested ${recovery.minutes}-minute break timer after saving`,
+    `Start the suggested ${recovery.minutes}-minute break timer after reflection`,
     recovery.startTimer,
     (value) => {
       recovery.startTimer = value;

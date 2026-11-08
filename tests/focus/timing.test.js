@@ -130,7 +130,7 @@ function harness(run) {
     }
   }
 }
-test('Daily practice sounds once at its target, keeps overtime, and starts its adjusted break on actual finish without duplicate alerts', () =>
+test('Daily practice sounds once at its target, keeps overtime, and starts its adjusted break after reflection without duplicate alerts', () =>
   harness(({ document, storage, callbacks, setNow, now }) => {
     const state = { version: 1, settings: { interval: 60, clock: '24' }, days: {} };
     let primed = 0;
@@ -140,6 +140,9 @@ test('Daily practice sounds once at its target, keeps overtime, and starts its a
       flushEditor() {},
       toast() {},
       refresh() {},
+      saveReport() {
+        return true;
+      },
       primeTimerSound() {
         primed++;
       },
@@ -183,15 +186,25 @@ test('Daily practice sounds once at its target, keeps overtime, and starts its a
     draft = JSON.parse(storage.getItem('dayline.focus.v1'));
     assert.equal(draft.endedAt, stopped);
     assert.equal(draft.recovery.minutes, 10);
-    assert.equal(JSON.parse(storage.getItem(BREAK_KEY)).until, stopped + 10 * 60000);
-    setNow(stopped + 10 * 60000);
+    assert.equal(storage.getItem(BREAK_KEY), null);
+    assert.equal(draft.phase, 'reflect');
+    assert.equal(draft.timing.breakStarted, false);
+    const reflectedAt = stopped + 3 * 60000;
+    setNow(reflectedAt);
+    for (const fn of callbacks) fn();
+    assert.equal(storage.getItem(BREAK_KEY), null);
+    [...document.querySelectorAll('button')]
+      .find((button) => button.textContent === 'Save reflection & close')
+      .click();
+    assert.equal(JSON.parse(storage.getItem(BREAK_KEY)).until, reflectedAt + 10 * 60000);
+    setNow(reflectedAt + 10 * 60000);
     for (const fn of callbacks) fn();
     assert.deepEqual(sounds, ['Practice target reached', 'Break complete']);
     const reloaded = setupBreakTimer({ storage, now, onComplete: () => sounds.push('duplicate') });
     reloaded.tick();
     assert.equal(sounds.length, 2);
     reloaded.destroy();
-    assert.match(document.querySelector('.focus-window').textContent, /Break complete/);
+    assert.match(document.querySelector('.focus-break-timer').textContent, /Break complete/);
   }));
 test('regular Focus timing choices switch; Settings validate and retain failed drafts', () =>
   harness(({ document, window, storage }) => {
@@ -320,3 +333,56 @@ test('overtime commitment break suggestions use actual work duration and customi
     5,
   );
 });
+
+test('regular timed work waits through reflection and failed report saves; skipping starts the full break only after success', () =>
+  harness(({ document, storage, callbacks, setNow, now }) => {
+    const state = { version: 1, settings: { interval: 60, clock: '24' }, days: {} };
+    storage.setItem(
+      TIMING_KEY,
+      JSON.stringify({
+        ...TIMING_DEFAULTS,
+        mode: 'timed',
+        workMinutes: 2,
+        breakMinutes: 5,
+        autoBreak: true,
+        sound: false,
+      }),
+    );
+    let allowSave = false;
+    setupFocus({
+      getState: () => state,
+      flushEditor() {},
+      toast() {},
+      refresh() {},
+      ringTimer() {},
+      saveReport() {
+        return allowSave;
+      },
+    });
+    document.querySelector('#launch-focus').click();
+    [...document.querySelectorAll('button')]
+      .find((button) => button.textContent === 'Commit')
+      .click();
+    const end = workDeadline(JSON.parse(storage.getItem('dayline.focus.v1')));
+    setNow(end + 1000);
+    for (const tick of callbacks) tick();
+    let draft = JSON.parse(storage.getItem('dayline.focus.v1'));
+    assert.equal(draft.phase, 'reflect');
+    assert.equal(draft.recovery.startTimer, true);
+    assert.equal(storage.getItem(BREAK_KEY), null);
+    setNow(end + 3 * 60000);
+    for (const tick of callbacks) tick();
+    assert.equal(storage.getItem(BREAK_KEY), null);
+    [...document.querySelectorAll('button')]
+      .find((button) => button.textContent === 'Save reflection & close')
+      .click();
+    assert.equal(storage.getItem(BREAK_KEY), null);
+    assert.equal(document.querySelector('.focus-window').open, true);
+    allowSave = true;
+    const closedAt = now();
+    [...document.querySelectorAll('button')]
+      .find((button) => button.textContent === 'Skip reflection & close')
+      .click();
+    assert.equal(JSON.parse(storage.getItem(BREAK_KEY)).until, closedAt + 5 * 60000);
+    assert.equal(document.querySelector('.focus-window').open, false);
+  }));

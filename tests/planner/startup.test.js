@@ -1136,6 +1136,83 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.equal(JSON.parse(local.getItem('dayline.focus.v1')).id, practiceDraft.id);
     assert.equal(local.getItem('dayline.v1'), notesBeforeSecondStart);
 
+    // Alternate presentations use the same records and restore the Schedule view.
+    const activeFocus = document.querySelector('.focus-window');
+    if (activeFocus.open)
+      [...activeFocus.querySelectorAll('button')]
+        .find((b) => b.textContent === 'Minimize')
+        ?.click();
+    document.querySelector('#daily-tab').click();
+    document.querySelector('#daily-layout-toggle [data-layout-option="list"]').click();
+    assert.equal(document.querySelector('#timeline').hidden, true);
+    const dayNotes = JSON.parse(local.getItem('dayline.v1')).days[today].filter(
+      (n) => !n.weekly && !n.yearly,
+    );
+    assert.equal(
+      document.querySelectorAll('#daily-card-list .planner-note-card').length,
+      dayNotes.length,
+    );
+    const practiceCard = [...document.querySelectorAll('#daily-card-list .planner-note-card')].find(
+      (card) => card.dataset.cardKey.endsWith('/' + practiceNote.id),
+    );
+    practiceCard.querySelector('.list-note-title').click();
+    const listTitle = document.querySelector('.planner-list-editor .note-title-input');
+    assert.ok(listTitle);
+    listTitle.value = 'Practice edited from List';
+    listTitle.dispatchEvent(new window.Event('input', { bubbles: true }));
+    [...document.querySelectorAll('.planner-list-editor button')]
+      .find((button) => button.textContent === 'Done')
+      .click();
+    assert.equal(
+      JSON.parse(local.getItem('dayline.v1')).days[today].find(
+        (note) => note.id === practiceNote.id,
+      ).title,
+      'Practice edited from List',
+    );
+    [...document.querySelectorAll('#daily-card-list .planner-list-tools button')]
+      .find((button) => button.textContent === '+ Add')
+      .click();
+    const newListTitle = document.querySelector('.planner-list-editor .note-title-input');
+    newListTitle.value = 'New List note';
+    newListTitle.dispatchEvent(new window.Event('input', { bubbles: true }));
+    [...document.querySelectorAll('.planner-list-editor button')]
+      .find((button) => button.textContent === 'Done')
+      .click();
+    assert.equal(document.querySelector('#timeline').hidden, true);
+    const listAdded = JSON.parse(local.getItem('dayline.v1')).days[today].find(
+      (note) => note.title === 'New List note',
+    );
+    assert.ok(listAdded);
+    const addedCard = [...document.querySelectorAll('#daily-card-list .planner-note-card')].find(
+      (card) => card.dataset.cardKey.endsWith('/' + listAdded.id),
+    );
+    [...addedCard.querySelectorAll('button')]
+      .find((button) => button.textContent === 'Reschedule')
+      .click();
+    const tomorrowDate = new Date();
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    const tomorrowKey = dayKey(tomorrowDate);
+    document.querySelector('#move-date').value = tomorrowKey;
+    document.querySelector('#move-time').value = '08:15';
+    document.querySelector('#move-dialog').close('move');
+    assert.equal(
+      JSON.parse(local.getItem('dayline.v1')).days[tomorrowKey].find(
+        (note) => note.id === listAdded.id,
+      ).minute,
+      495,
+    );
+    document.querySelector('#daily-layout-toggle [data-layout-option="schedule"]').click();
+    assert.equal(document.querySelector('#timeline').hidden, false);
+    document.querySelector('#monthly-tab').click();
+    document.querySelector('#monthly-view [data-layout-option="list"]').click();
+    assert.ok(document.querySelector('#monthly-view .planner-list-view'));
+    document.querySelector('#monthly-view [data-layout-option="schedule"]').click();
+    assert.ok(document.querySelector('#monthly-view .month-week'));
+    document.querySelector('#yearly-tab').click();
+    document.querySelector('#yearly-view [data-layout-option="list"]').click();
+    assert.ok(document.querySelector('#yearly-view .planner-list-view'));
+    document.querySelector('#yearly-view [data-layout-option="schedule"]').click();
+    assert.ok(document.querySelector('#yearly-view .yearly-quarter'));
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.deepEqual(network, []);
   } finally {
