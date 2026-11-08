@@ -1,4 +1,4 @@
-import { node } from './dom.js?v=c43c8d2c5a01';
+import { node } from './dom.js?v=4c38d9100be9';
 export function downloadText(text, filename, type = 'application/json') {
   const url = URL.createObjectURL(new Blob([text], { type }));
   const link = node('a');

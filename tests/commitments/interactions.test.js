@@ -67,7 +67,7 @@ test('duration presets choose optional breaks and a right swipe marks done witho
       pointer('pointerup', 100);
       assert.equal(launches, 0);
       assert.deepEqual(readCommitmentState(storage).marks[dayKey()], ['a']);
-      assert.match(dialog.textContent, /0 min recorded/);
+      assert.match(dialog.textContent, /0 min today/);
       assert.match(dialog.textContent, /Done today/);
       click('Undo done');
       assert.deepEqual(readCommitmentState(storage).marks[dayKey()], []);

@@ -1,10 +1,10 @@
-import { node } from '../../shared/dom.js?v=c43c8d2c5a01';
+import { node } from '../../shared/dom.js?v=4c38d9100be9';
 import {
   SHORTCUTS_KEY,
   DEFAULT_SHORTCUTS,
   shortcutValues,
   validShortcuts,
-} from './model.js?v=c43c8d2c5a01';
+} from './model.js?v=4c38d9100be9';
 const button = (label, action, className = 'secondary') => {
   const el = node('button', className, label);
   el.type = 'button';
