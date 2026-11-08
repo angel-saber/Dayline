@@ -1,12 +1,12 @@
-import { node } from '../../shared/dom.js?v=8a5bc8e309ca';
-import { STORIES } from './catalog.js?v=8a5bc8e309ca';
+import { node } from '../../shared/dom.js?v=64877b8db3f1';
+import { STORIES } from './catalog.js?v=64877b8db3f1';
 import {
   CHALLENGES,
   FIELDS,
   FAVORITES_KEY,
   validFavorites,
   filterStories,
-} from './model.js?v=8a5bc8e309ca';
+} from './model.js?v=64877b8db3f1';
 const button = (label, action, cls = 'secondary') => {
   const value = node('button', cls, label);
   value.type = 'button';

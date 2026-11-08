@@ -1,4 +1,4 @@
-import { PERSONALITIES, getPersonality } from '../../personalities/index.js?v=8a5bc8e309ca';
+import { PERSONALITIES, getPersonality } from '../../personalities/index.js?v=64877b8db3f1';
 // First-visit setup stays separate from planner data and personality presentation.
 const KEY = 'dayline.welcome.v1';
 export function needsWelcome(storage, entryComplete = false, loginVisible = true) {

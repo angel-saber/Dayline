@@ -1,5 +1,5 @@
 // Original procedural scores. Personality folders own their profiles and scores.
-import { getPersonality } from '../../personalities/index.js?v=8a5bc8e309ca';
+import { getPersonality } from '../../personalities/index.js?v=64877b8db3f1';
 export function musicProfile(layout) {
   const { bars, ...profile } = getPersonality(layout).soundtrack;
   return { ...profile };

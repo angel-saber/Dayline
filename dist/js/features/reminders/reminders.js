@@ -1,5 +1,5 @@
-import { reminderChime } from './reminder-chime.js?v=8a5bc8e309ca';
-import { dayKey, dueEntries, bucket } from '../../shared/schedule.js?v=8a5bc8e309ca';
+import { reminderChime } from './reminder-chime.js?v=64877b8db3f1';
+import { dayKey, dueEntries, bucket } from '../../shared/schedule.js?v=64877b8db3f1';
 export class Reminders {
   constructor(getState, onDue, onError, onOpen = () => {}, onAudioState = () => {}) {
     this.getState = getState;
