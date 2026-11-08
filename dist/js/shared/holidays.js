@@ -1,4 +1,4 @@
-import { dayKey, parseDay, offsetDay } from './dates.js?v=4c38d9100be9';
+import { dayKey, parseDay, offsetDay } from './dates.js?v=a34f3afb6430';
 // Annual U.S. federal holidays under current OPM rules. No network requests.
 export const HOLIDAY_SOURCE =
   'https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/';

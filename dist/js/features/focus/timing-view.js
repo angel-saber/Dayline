@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=4c38d9100be9';
-import { TIMING_KEY, TIMING_DEFAULTS, readTiming, validTiming } from './timing.js?v=4c38d9100be9';
+import { node } from '../../shared/dom.js?v=a34f3afb6430';
+import { TIMING_KEY, TIMING_DEFAULTS, readTiming, validTiming } from './timing.js?v=a34f3afb6430';
 export function timingControls(timing, onChange) {
   const section = node('section', 'focus-section focus-timing-controls');
   section.append(node('h2', '', 'Session timing'));

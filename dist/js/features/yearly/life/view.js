@@ -1,7 +1,7 @@
-import { downloadText } from '../../../shared/download.js?v=4c38d9100be9';
-import { categoryOptions, categoryLabel } from '../../notes/note-types.js?v=4c38d9100be9';
-import { node } from '../../../shared/dom.js?v=4c38d9100be9';
-import { dayKey } from '../../../shared/dates.js?v=4c38d9100be9';
+import { downloadText } from '../../../shared/download.js?v=a34f3afb6430';
+import { categoryOptions, categoryLabel } from '../../notes/note-types.js?v=a34f3afb6430';
+import { node } from '../../../shared/dom.js?v=a34f3afb6430';
+import { dayKey } from '../../../shared/dates.js?v=a34f3afb6430';
 import {
   GROUPS,
   SUGGESTIONS,
@@ -12,7 +12,7 @@ import {
   resolveDate,
   parseList,
   planLifeRows,
-} from './model.js?v=4c38d9100be9';
+} from './model.js?v=a34f3afb6430';
 const button = (text, fn) => {
   const el = node('button', 'secondary', text);
   el.type = 'button';

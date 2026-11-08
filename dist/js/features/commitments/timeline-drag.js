@@ -1,4 +1,4 @@
-import { dropTimePreview } from '../daily/drop-time.js?v=4c38d9100be9';
+import { dropTimePreview } from '../daily/drop-time.js?v=a34f3afb6430';
 // Pointer capture keeps touch and mouse dragging alive after the drawer closes.
 export function commitmentTimelineDrag(
   handle,

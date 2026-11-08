@@ -7,29 +7,30 @@ existing GitHub Actions checks.
 
 ## Directory responsibilities
 
-| Directory                       | Responsibility                                                                     |
-| ------------------------------- | ---------------------------------------------------------------------------------- |
-| `dist/js/app/`                  | Application startup, view coordination, and connections between features.          |
-| `dist/js/features/accounts/`    | Sign-in, account sync, synced preferences, and device-note recovery.               |
-| `dist/js/features/activities/`  | Guided activity catalog, rules, UI, and saved reports.                             |
-| `dist/js/features/attachments/` | Browser-local file storage, upload review, and supported compression.              |
-| `dist/js/features/bulk/`        | Selection, categories, multi-note changes, and batch actions.                      |
-| `dist/js/features/daily/`       | Timeline gestures, held drop targets, and rescheduling.                            |
-| `dist/js/features/focus/`       | Session rules, UI, and report rendering.                                           |
-| `dist/js/features/yearly/`      | Flexible annual directions, quarter intentions, reflections and linked next steps. |
-| `dist/js/features/monthly/`     | Month navigation, compact day views, and undated Weekly Notes.                     |
-| `dist/js/features/notes/`       | Shared editor, tags, note rendering, and formatting rules.                         |
-| `dist/js/features/onboarding/`  | First-visit setup and personality previews.                                        |
-| `dist/js/features/reminders/`   | Planned-note timing, notification navigation, and reminder audio.                  |
-| `dist/js/features/settings/`    | Settings controls, available hours, and backup/restore workflows.                  |
-| `dist/js/features/sharing/`     | Share previews, category ordering, file sharing, and availability.                 |
-| `dist/js/personalities/`        | Personality registry and each personality's authored assets.                       |
-| `dist/js/shared/`               | Date/time helpers, scheduling, validated storage, DOM text helpers, and downloads. |
-| `dist/styles/`                  | Ordered stylesheet sources and shared component styling.                           |
-| `dist/vendor/`                  | Unmodified third-party browser library and its license.                            |
-| `tests/<feature>/`              | Behavior and regression tests corresponding to feature ownership.                  |
-| `supabase/`                     | Existing backend migrations and database access tests.                             |
-| `docs/`                         | Setup, architecture, contribution workflow, and release decisions.                 |
+| Directory                       | Responsibility                                                                                    |
+| ------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `dist/js/app/`                  | Application startup, view coordination, and connections between features.                         |
+| `dist/js/features/accounts/`    | Sign-in, account sync, synced preferences, and device-note recovery.                              |
+| `dist/js/features/activities/`  | Guided activity catalog, rules, UI, and saved reports.                                            |
+| `dist/js/features/attachments/` | Browser-local file storage, upload review, and supported compression.                             |
+| `dist/js/features/bulk/`        | Selection, categories, multi-note changes, and batch actions.                                     |
+| `dist/js/features/daily/`       | Timeline gestures, held drop targets, and rescheduling.                                           |
+| `dist/js/features/focus/`       | Session rules, UI, and report rendering.                                                          |
+| `dist/js/features/yearly/`      | Flexible annual directions, quarter intentions, reflections and linked next steps.                |
+| `dist/js/features/lists/`       | Shared Schedule/List controls, period collection, card rendering, gestures and priority ordering. |
+| `dist/js/features/monthly/`     | Month navigation, compact day views, and undated Weekly Notes.                                    |
+| `dist/js/features/notes/`       | Shared editor, tags, note rendering, and formatting rules.                                        |
+| `dist/js/features/onboarding/`  | First-visit setup and personality previews.                                                       |
+| `dist/js/features/reminders/`   | Planned-note timing, notification navigation, and reminder audio.                                 |
+| `dist/js/features/settings/`    | Settings controls, available hours, and backup/restore workflows.                                 |
+| `dist/js/features/sharing/`     | Share previews, category ordering, file sharing, and availability.                                |
+| `dist/js/personalities/`        | Personality registry and each personality's authored assets.                                      |
+| `dist/js/shared/`               | Date/time helpers, scheduling, validated storage, DOM text helpers, and downloads.                |
+| `dist/styles/`                  | Ordered stylesheet sources and shared component styling.                                          |
+| `dist/vendor/`                  | Unmodified third-party browser library and its license.                                           |
+| `tests/<feature>/`              | Behavior and regression tests corresponding to feature ownership.                                 |
+| `supabase/`                     | Existing backend migrations and database access tests.                                            |
+| `docs/`                         | Setup, architecture, contribution workflow, and release decisions.                                |
 
 `dist/js/app.js` is a deliberately tiny entry point. The application controller
 still coordinates Daily rendering and shared application state; settings,
@@ -798,3 +799,14 @@ never changes that sequence position. Completed cards use the active personality
 muted palette. Appearance changes recolor an open list without replacing composer
 fields or changing data. Palette tests enforce unique profile palettes and at least
 4.5:1 foreground/background contrast for both pending and completed text.
+
+## Planner list presentation
+
+Daily, Monthly and Yearly share `features/lists/`. Schedule remains the default.
+`dayline.list-layout.v1` stores the device's independent view choices. Lists read
+existing records; they do not keep a second copy of note content. Optional
+`listOrder` metadata stores independent Daily/Monthly/Yearly priorities through the
+existing note validation, sync and backups. Reordering cards never reschedules
+notes; Date order removes that view's priorities. New life-planner notes carry a
+validated `lifeSource.group` link so the Yearly list can identify every planned
+occurrence. Older saved life links and their repeat cycles are also recognized.

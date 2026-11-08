@@ -64,6 +64,7 @@ test('bulk scheduling keeps shared defaults and row overrides, finite cycles, we
   assert.equal(result.days['2027-05-12'][0].allDay, true);
   assert.equal(result.days['2027-05-12'][0].remind, false);
   assert.equal(result.days['2026-11-02'][0].minute, 615);
+  assert.deepEqual(result.days['2026-11-02'][0].lifeSource, { group: 'occasions' });
   assert.deepEqual(result.days['2026-11-02'][0].tags, ['project', 'custom:Care']);
   assert.equal(readLife(result.days).data.groups.occasions.rows[0].title, '');
   assert.ok(readLife(result.days).data.links.length);

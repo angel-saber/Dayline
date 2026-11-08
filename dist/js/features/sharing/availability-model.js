@@ -4,8 +4,8 @@ import {
   parseDay,
   slots,
   bucket,
-} from '../../shared/schedule.js?v=4c38d9100be9';
-import { validDate } from '../bulk/model.js?v=4c38d9100be9';
+} from '../../shared/schedule.js?v=a34f3afb6430';
+import { validDate } from '../bulk/model.js?v=a34f3afb6430';
 export const availabilityKey = (date, minute) => `${date}:${minute}`;
 export function emptyIntervals(
   days,
