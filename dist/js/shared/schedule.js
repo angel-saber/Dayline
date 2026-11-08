@@ -1,5 +1,5 @@
-import { parseDay } from './dates.js?v=a37149fac314';
-export { dayKey, parseDay, offsetDay, timeLabel } from './dates.js?v=a37149fac314';
+import { parseDay } from './dates.js?v=a65a5f1958ca';
+export { dayKey, parseDay, offsetDay, timeLabel } from './dates.js?v=a65a5f1958ca';
 export const DEFAULT_SETTINGS = { interval: 60, notifications: false, sound: false, clock: '12' };
 export function slots(interval) {
   if (!Number.isInteger(interval) || interval < 1 || interval > 1440)
@@ -39,19 +39,26 @@ export function moveEntry(entries, id, targetMinute, interval) {
     .sort((a, b) => a.minute - b.minute);
 }
 // A normal drop joins a slot. A deliberately held target swaps just those notes.
-export function dropEntry(entries, id, targetMinute, interval, targetId = null) {
+export function dropEntry(entries, id, targetMinute, interval, targetId = null, exact = false) {
   const moved = entries.find((e) => e.id === id);
   if (!moved) return entries;
   if (targetMinute === -1)
     return entries.map((e) => (e.id === id ? { ...e, allDay: true, remind: false } : e));
-  if (!slots(interval).includes(targetMinute)) return entries;
+  if (
+    exact
+      ? !Number.isInteger(targetMinute) || targetMinute < 0 || targetMinute > 1439
+      : !slots(interval).includes(targetMinute)
+  )
+    return entries;
   if (moved.allDay)
     return entries
       .map((e) => (e.id === id ? { ...e, allDay: false, remind: false, minute: targetMinute } : e))
       .sort((a, b) => a.minute - b.minute);
   const target =
     targetId && targetId !== id
-      ? entries.find((e) => e.id === targetId && bucket(e.minute, interval) === targetMinute)
+      ? entries.find(
+          (e) => e.id === targetId && bucket(e.minute, interval) === bucket(targetMinute, interval),
+        )
       : null;
   if (target)
     return entries
@@ -64,8 +71,8 @@ export function dropEntry(entries, id, targetMinute, interval, targetId = null) 
       )
       .sort((a, b) => a.minute - b.minute);
   const source = bucket(moved.minute, interval);
-  if (source === targetMinute) return entries;
-  const minute = Math.min(1439, targetMinute + moved.minute - source);
+  if (!exact && source === targetMinute) return entries;
+  const minute = exact ? targetMinute : Math.min(1439, targetMinute + moved.minute - source);
   return entries
     .map((e) => (e.id === id ? { ...e, minute } : e))
     .sort((a, b) => a.minute - b.minute);

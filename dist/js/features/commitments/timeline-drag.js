@@ -1,6 +1,11 @@
-import { minuteAtPosition } from '../daily/precise-time.js?v=a37149fac314';
+import { dropTimePreview } from '../daily/drop-time.js?v=a65a5f1958ca';
 // Pointer capture keeps touch and mouse dragging alive after the drawer closes.
-export function commitmentTimelineDrag(handle, { begin, drop, cancel = () => {}, root, interval }) {
+export function commitmentTimelineDrag(
+  handle,
+  { begin, drop, cancel = () => {}, root, interval, clock = () => '24h' },
+) {
+  const preview = dropTimePreview(root);
+  let lockedMinute = null;
   let active = false,
     frame = null,
     position = null,
@@ -12,10 +17,13 @@ export function commitmentTimelineDrag(handle, { begin, drop, cancel = () => {},
     root.querySelectorAll('.drop-target').forEach((el) => el.classList.remove('drop-target'));
     const slot = document.elementFromPoint(position.x, position.y)?.closest('.slot');
     target = slot && root.contains(slot) ? slot : null;
+    if (target?.dataset.minute === '-1') target = null;
     target?.classList.add('drop-target');
+    lockedMinute = preview.show(target, position.y, interval(), clock());
   }
   function clear() {
     active = false;
+    preview.clear();
     cancelAnimationFrame(frame);
     root.querySelectorAll('.drop-target').forEach((el) => el.classList.remove('drop-target'));
     handle.classList.remove('commitment-drag-ghost');
@@ -63,15 +71,7 @@ export function commitmentTimelineDrag(handle, { begin, drop, cancel = () => {},
     position.x = event.clientX;
     position.y = event.clientY;
     inspect();
-    const slot = target;
-    const minute = slot
-      ? minuteAtPosition(
-          Number(slot.dataset.minute),
-          interval(),
-          event.clientY,
-          (slot.querySelector('.slot-time') || slot).getBoundingClientRect(),
-        )
-      : null;
+    const minute = target ? lockedMinute : null;
     clear();
     if (minute !== null) drop(minute);
     else cancel();

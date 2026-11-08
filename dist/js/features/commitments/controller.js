@@ -1,12 +1,12 @@
-import { reorderCommitments, bindCommitmentReorder } from './reorder.js?v=a37149fac314';
-import { commitmentTimelineDrag } from './timeline-drag.js?v=a37149fac314';
-import { commitmentColors } from './colors.js?v=a37149fac314';
+import { reorderCommitments, bindCommitmentReorder } from './reorder.js?v=a65a5f1958ca';
+import { commitmentTimelineDrag } from './timeline-drag.js?v=a65a5f1958ca';
+import { commitmentColors } from './colors.js?v=a65a5f1958ca';
 import {
   commitmentRecords,
   commitmentToken,
   importDeviceCommitments,
-} from './account-state.js?v=a37149fac314';
-import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=a37149fac314';
+} from './account-state.js?v=a65a5f1958ca';
+import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=a65a5f1958ca';
 import {
   readAwakeHours,
   awakeMinutes,
@@ -15,11 +15,11 @@ import {
   assertCommitmentBudget,
   AWAKE_HOURS_EVENT,
   AWAKE_HOURS_KEY,
-} from '../settings/awake-hours.js?v=a37149fac314';
-import { readTiming } from '../focus/timing.js?v=a37149fac314';
-import { dayKey } from '../../shared/dates.js?v=a37149fac314';
-import { bucket } from '../../shared/schedule.js?v=a37149fac314';
-import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=a37149fac314';
+} from '../settings/awake-hours.js?v=a65a5f1958ca';
+import { readTiming } from '../focus/timing.js?v=a65a5f1958ca';
+import { dayKey } from '../../shared/dates.js?v=a65a5f1958ca';
+import { bucket } from '../../shared/schedule.js?v=a65a5f1958ca';
+import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=a65a5f1958ca';
 import {
   COMMITMENT_STATE_KEY,
   DURATION_PRESETS,
@@ -33,14 +33,14 @@ import {
   acknowledgePenalty,
   changeItems,
   pendingCommitments,
-} from './game.js?v=a37149fac314';
-import { node } from '../../shared/dom.js?v=a37149fac314';
+} from './game.js?v=a65a5f1958ca';
+import { node } from '../../shared/dom.js?v=a65a5f1958ca';
 import {
   COMMITMENTS_KEY,
   SUGGESTIONS,
   validCommitments,
   practiceProgress,
-} from './model.js?v=a37149fac314';
+} from './model.js?v=a65a5f1958ca';
 function button(text, action, kind = 'secondary') {
   const b = node('button', kind, text);
   b.type = 'button';
@@ -618,6 +618,7 @@ export function setupCommitments({
       commitmentTimelineDrag(drag, {
         root: document.querySelector('#timeline') || list,
         interval: () => getState().settings.interval,
+        clock: () => getState().settings.clock,
         begin() {
           dragScope = loadedScope;
           dragRaw = loadedRaw;

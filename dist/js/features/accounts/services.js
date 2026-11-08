@@ -1,5 +1,5 @@
-import { createSupabaseServices } from './providers/supabase.js?v=a37149fac314';
-import { validateAccountServices } from './service-contract.js?v=a37149fac314';
+import { createSupabaseServices } from './providers/supabase.js?v=a65a5f1958ca';
+import { validateAccountServices } from './service-contract.js?v=a65a5f1958ca';
 
 // Add explicitly registered adapters; never import code from a configured URL.
 const PROVIDERS = Object.freeze({ supabase: createSupabaseServices });
