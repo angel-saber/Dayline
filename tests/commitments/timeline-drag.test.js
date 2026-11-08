@@ -19,6 +19,13 @@ test('commitment drag creates at precise time, cancels outside, and leaves other
       handle = document.querySelector('#handle'),
       slot = root.querySelector('.slot');
     slot.querySelector('button').getBoundingClientRect = () => ({ top: 100, height: 100 });
+    window.scrollX = 0;
+    window.scrollY = 720;
+    const restored = [];
+    window.scrollTo = (value) => {
+      restored.push(value);
+      window.scrollY = value.top;
+    };
     let hit = slot,
       begun = 0,
       cancelled = 0;
@@ -31,6 +38,7 @@ test('commitment drag creates at precise time, cancels outside, and leaves other
       interval: () => 60,
       begin: () => {
         begun++;
+        window.scrollY = 0;
       },
       drop: (m) => drops.push(m),
       cancel: () => cancelled++,
@@ -41,6 +49,7 @@ test('commitment drag creates at precise time, cancels outside, and leaves other
       handle.dispatchEvent(e);
     }
     send('pointerdown');
+    assert.deepEqual(restored[0], { left: 0, top: 720, behavior: 'instant' });
     assert.match(root.querySelector('.drop-time-lock').textContent, /Drop at .*7:30/);
     assert.equal(root.querySelectorAll('.drop-time-tick').length, 4);
     send('pointerup', 150, 2);

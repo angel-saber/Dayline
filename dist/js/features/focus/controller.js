@@ -4,22 +4,22 @@ import {
   workDeadline,
   timerDue,
   sessionBreakSuggestion,
-} from './timing.js?v=a34f3afb6430';
-import { timingControls } from './timing-view.js?v=a34f3afb6430';
+} from './timing.js?v=4a8d127fdc4d';
+import { timingControls } from './timing-view.js?v=4a8d127fdc4d';
 import {
   createFlowPreparation,
   recoverySection,
   preparationReference,
-} from './flow-view.js?v=a34f3afb6430';
-import { newFlow, newRecovery } from './flow-model.js?v=a34f3afb6430';
-import { setupBreakTimer } from './break-timer.js?v=a34f3afb6430';
-import { chooseRepeatScope } from '../repeating/scope.js?v=a34f3afb6430';
-import { node } from '../../shared/dom.js?v=a34f3afb6430';
-import { indentLevel } from '../notes/formatting/indents.js?v=a34f3afb6430';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=a34f3afb6430';
-import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=a34f3afb6430';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=a34f3afb6430';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=a34f3afb6430';
+} from './flow-view.js?v=4a8d127fdc4d';
+import { newFlow, newRecovery } from './flow-model.js?v=4a8d127fdc4d';
+import { setupBreakTimer } from './break-timer.js?v=4a8d127fdc4d';
+import { chooseRepeatScope } from '../repeating/scope.js?v=4a8d127fdc4d';
+import { node } from '../../shared/dom.js?v=4a8d127fdc4d';
+import { indentLevel } from '../notes/formatting/indents.js?v=4a8d127fdc4d';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=4a8d127fdc4d';
+import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=4a8d127fdc4d';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=4a8d127fdc4d';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=4a8d127fdc4d';
 import {
   focusIntervalNotes,
   newFocus,
@@ -31,10 +31,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=a34f3afb6430';
-import { createNoteEditor } from '../notes/note-editor.js?v=a34f3afb6430';
-import { renderFormatted } from '../notes/formatting/format.js?v=a34f3afb6430';
-import { noteTasks } from '../notes/formatting/tasks.js?v=a34f3afb6430';
+} from './model.js?v=4a8d127fdc4d';
+import { createNoteEditor } from '../notes/note-editor.js?v=4a8d127fdc4d';
+import { renderFormatted } from '../notes/formatting/format.js?v=4a8d127fdc4d';
+import { noteTasks } from '../notes/formatting/tasks.js?v=4a8d127fdc4d';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {
@@ -674,9 +674,7 @@ export function setupFocus(api) {
     session.recovery.minutes = sessionBreakSuggestion({ ...session, timing });
     if (timedOut) timing.alerted = true;
     if (timing.mode === 'timed' && timing.autoBreak && !timing.breakStarted) {
-      timing.breakStarted = true;
-      session.recovery.startTimer = false;
-      breakTimer.start(session.recovery.minutes, session.endedAt, timing.sound);
+      session.recovery.startTimer = true;
     }
     api.fadeAudio?.()?.catch?.((e) => api.toast(e.message));
     if (
@@ -742,10 +740,11 @@ export function setupFocus(api) {
         )
           api.recordCommitmentCompletion?.(session.practice, session.startedAt, session.endedAt);
         const recovery = session.recovery;
+        const breakSound = session.timing?.sound ?? readTiming().sound;
         clear();
         if (recovery.startTimer) {
-          if (readTiming().sound) api.primeTimerSound?.();
-          breakTimer.start(recovery.minutes, Date.now(), readTiming().sound);
+          if (breakSound) api.primeTimerSound?.();
+          breakTimer.start(recovery.minutes, Date.now(), breakSound);
         }
         dialog.close();
         buttons();

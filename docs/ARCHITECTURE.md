@@ -574,7 +574,7 @@ Finish freezes work time and fades Focus Audio without changing audio preference
 Reflection remains optional. Recovery displays a suggested 5/8/10/15-minute break
 at 25/50/90-minute work thresholds, with brief recovery and acknowledgment notes
 rather than editable duration or answer buttons. Celebration and a timer for the
-suggested break are optional; celebration and manually chosen recovery timers start after successful report saving; configured timed-session breaks may start when work ends.
+suggested break are optional. All new break timers wait until the reflection is saved or skipped and the report saves successfully. Configured timed-session breaks preselect the reflection timer option; the countdown uses the reflection-close time, excluding reflection from both work duration and the break.
 Older saved recovery answers remain preserved. Reports stay excluded from shares
 by default.
 

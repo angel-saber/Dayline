@@ -1,4 +1,4 @@
-import { dropTimePreview } from '../daily/drop-time.js?v=a34f3afb6430';
+import { dropTimePreview } from '../daily/drop-time.js?v=4a8d127fdc4d';
 // Pointer capture keeps touch and mouse dragging alive after the drawer closes.
 export function commitmentTimelineDrag(
   handle,
@@ -39,6 +39,7 @@ export function commitmentTimelineDrag(
   handle.addEventListener('pointerdown', (event) => {
     if (event.button !== 0 || active) return;
     event.preventDefault();
+    const viewport = { left: window.scrollX || 0, top: window.scrollY || 0 };
     origin = { parent: handle.parentNode, next: handle.nextSibling };
     document.body.append(handle);
     handle.classList.add('commitment-drag-ghost');
@@ -46,6 +47,7 @@ export function commitmentTimelineDrag(
       clear();
       return;
     }
+    window.scrollTo?.({ ...viewport, behavior: 'instant' });
     active = true;
     position = { x: event.clientX, y: event.clientY, id: event.pointerId };
     handle.setPointerCapture?.(event.pointerId);

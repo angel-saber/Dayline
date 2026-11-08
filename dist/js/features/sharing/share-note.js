@@ -1,22 +1,22 @@
-import { flowLines, recoveryLines } from '../focus/flow-model.js?v=a34f3afb6430';
-import { richBody, escapeHtml, copyFormatted } from './share-format.js?v=a34f3afb6430';
-import { node } from '../../shared/dom.js?v=a34f3afb6430';
-import { weekStart } from '../monthly/weekly-model.js?v=a34f3afb6430';
-import { offsetDay } from '../../shared/schedule.js?v=a34f3afb6430';
-import { indentLevel } from '../notes/formatting/indents.js?v=a34f3afb6430';
+import { flowLines, recoveryLines } from '../focus/flow-model.js?v=4a8d127fdc4d';
+import { richBody, escapeHtml, copyFormatted } from './share-format.js?v=4a8d127fdc4d';
+import { node } from '../../shared/dom.js?v=4a8d127fdc4d';
+import { weekStart } from '../monthly/weekly-model.js?v=4a8d127fdc4d';
+import { offsetDay } from '../../shared/schedule.js?v=4a8d127fdc4d';
+import { indentLevel } from '../notes/formatting/indents.js?v=4a8d127fdc4d';
 import {
   shareAttachments,
   prepareShareFiles,
   supportsFileShare,
-} from './share-files.js?v=a34f3afb6430';
-import { attachmentList } from '../attachments/attachments.js?v=a34f3afb6430';
-import { parseDay, timeLabel } from '../../shared/schedule.js?v=a34f3afb6430';
-import { noteTasks } from '../notes/formatting/tasks.js?v=a34f3afb6430';
-import { NOTE_TYPES, categoryLabel, noteTags } from '../notes/note-types.js?v=a34f3afb6430';
-import { safeLink } from '../notes/formatting/links.js?v=a34f3afb6430';
-import { durationLabel } from '../focus/model.js?v=a34f3afb6430';
-import { dimensions, compassTitle, compassDates } from '../activities/model.js?v=a34f3afb6430';
-import { activityCatalog, activityFields } from '../activities/catalog.js?v=a34f3afb6430';
+} from './share-files.js?v=4a8d127fdc4d';
+import { attachmentList } from '../attachments/attachments.js?v=4a8d127fdc4d';
+import { parseDay, timeLabel } from '../../shared/schedule.js?v=4a8d127fdc4d';
+import { noteTasks } from '../notes/formatting/tasks.js?v=4a8d127fdc4d';
+import { NOTE_TYPES, categoryLabel, noteTags } from '../notes/note-types.js?v=4a8d127fdc4d';
+import { safeLink } from '../notes/formatting/links.js?v=4a8d127fdc4d';
+import { durationLabel } from '../focus/model.js?v=4a8d127fdc4d';
+import { dimensions, compassTitle, compassDates } from '../activities/model.js?v=4a8d127fdc4d';
+import { activityCatalog, activityFields } from '../activities/catalog.js?v=4a8d127fdc4d';
 export const SHARE_DEFAULTS = {
   dateTime: true,
   type: true,
