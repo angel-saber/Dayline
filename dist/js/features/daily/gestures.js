@@ -1,8 +1,13 @@
-import { dropHover } from './drop-hover.js?v=a37149fac314';
+import { dropTimePreview } from './drop-time.js?v=a65a5f1958ca';
+import { dropHover } from './drop-hover.js?v=a65a5f1958ca';
 // One delegated pointer controller; never blocks vertical scrolling on note cards.
-export function attachGestures(root, { complete, remove, move, announce }) {
+export function attachGestures(
+  root,
+  { complete, remove, move, announce, interval = () => 60, clock = () => '24h' },
+) {
   let active = null,
     suppressClick = false;
+  const preview = dropTimePreview(root);
   const hover = dropHover({
     onChange(id, armed) {
       root
@@ -12,6 +17,16 @@ export function attachGestures(root, { complete, remove, move, announce }) {
       root
         .querySelector(`[data-id="${CSS.escape(id)}"]`)
         ?.classList.add(armed ? 'replace-ready' : 'replace-pending');
+      if (armed && active) {
+        const target = root.querySelector(`[data-id="${CSS.escape(id)}"]`);
+        active.target = preview.show(
+          target?.closest('.slot'),
+          active.lastY,
+          interval(),
+          clock(),
+          Number(target?.dataset.minute),
+        );
+      }
       if (armed) announce('Release to swap these two notes. Move away to add without swapping.');
     },
   });
@@ -21,9 +36,11 @@ export function attachGestures(root, { complete, remove, move, announce }) {
     root.querySelectorAll('.drop-target').forEach((el) => el.classList.remove('drop-target'));
     const valid = slot && root.contains(slot);
     if (valid) slot.classList.add('drop-target');
-    active.target = valid ? slot.dataset.minute : undefined;
+    active.target = preview.show(valid ? slot : null, y, interval(), clock());
     const note = valid ? hit?.closest('.entry') : null;
     hover.update(note && note.dataset.id !== active.id ? note.dataset.id : null);
+    if (hover.targetId && note)
+      active.target = preview.show(slot, y, interval(), clock(), Number(note.dataset.minute));
   }
   root.addEventListener(
     'click',
@@ -41,6 +58,7 @@ export function attachGestures(root, { complete, remove, move, announce }) {
     clearTimeout(active.hold);
     cancelAnimationFrame(active.frame);
     hover.clear();
+    preview.clear();
     active.card?.classList.remove('dragging', 'swiping');
     active.card?.style.removeProperty('--swipe');
     document.querySelectorAll('.drop-target').forEach((e) => e.classList.remove('drop-target'));

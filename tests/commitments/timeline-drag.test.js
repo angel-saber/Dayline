@@ -41,10 +41,13 @@ test('commitment drag creates at precise time, cancels outside, and leaves other
       handle.dispatchEvent(e);
     }
     send('pointerdown');
+    assert.match(root.querySelector('.drop-time-lock').textContent, /Drop at .*7:30/);
+    assert.equal(root.querySelectorAll('.drop-time-tick').length, 4);
     send('pointerup', 150, 2);
     assert.deepEqual(drops, []);
     send('pointerup');
     assert.deepEqual(drops, [450]);
+    assert.equal(root.querySelector('.drop-time-overlay'), null);
     assert.equal(begun, 1);
     assert.equal(slot.classList.contains('drop-target'), false);
     send('pointerdown');
