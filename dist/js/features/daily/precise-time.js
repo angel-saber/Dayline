@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=c0487c930675';
-import { timeLabel } from '../../shared/dates.js?v=c0487c930675';
+import { node } from '../../shared/dom.js?v=8a5bc8e309ca';
+import { timeLabel } from '../../shared/dates.js?v=8a5bc8e309ca';
 // The gutter's displayed start/end bounds define time, independent of page scroll.
 export function minuteAtPosition(start, interval, y, { top, height }) {
   if (

@@ -1,4 +1,4 @@
-import { moveToDay } from '../monthly/model.js?v=c0487c930675';
+import { moveToDay } from '../monthly/model.js?v=8a5bc8e309ca';
 
 export function rescheduleNote(days, source, id, target, time) {
   if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)) throw new Error('Choose a valid time.');

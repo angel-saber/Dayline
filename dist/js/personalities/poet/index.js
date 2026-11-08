@@ -1,4 +1,4 @@
-import { renderScore } from './music.js?v=c0487c930675';
+import { renderScore } from './music.js?v=8a5bc8e309ca';
 // Original copy for creative practice; user writing is never restyled or rewritten.
 export default {
   commitmentPalette: {
