@@ -1,12 +1,12 @@
-import { reorderCommitments, bindCommitmentReorder } from './reorder.js?v=64877b8db3f1';
-import { commitmentTimelineDrag } from './timeline-drag.js?v=64877b8db3f1';
-import { commitmentColors } from './colors.js?v=64877b8db3f1';
+import { reorderCommitments, bindCommitmentReorder } from './reorder.js?v=c43c8d2c5a01';
+import { commitmentTimelineDrag } from './timeline-drag.js?v=c43c8d2c5a01';
+import { commitmentColors } from './colors.js?v=c43c8d2c5a01';
 import {
   commitmentRecords,
   commitmentToken,
   importDeviceCommitments,
-} from './account-state.js?v=64877b8db3f1';
-import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=64877b8db3f1';
+} from './account-state.js?v=c43c8d2c5a01';
+import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=c43c8d2c5a01';
 import {
   readAwakeHours,
   awakeMinutes,
@@ -15,11 +15,11 @@ import {
   assertCommitmentBudget,
   AWAKE_HOURS_EVENT,
   AWAKE_HOURS_KEY,
-} from '../settings/awake-hours.js?v=64877b8db3f1';
-import { readTiming } from '../focus/timing.js?v=64877b8db3f1';
-import { dayKey } from '../../shared/dates.js?v=64877b8db3f1';
-import { bucket } from '../../shared/schedule.js?v=64877b8db3f1';
-import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=64877b8db3f1';
+} from '../settings/awake-hours.js?v=c43c8d2c5a01';
+import { readTiming } from '../focus/timing.js?v=c43c8d2c5a01';
+import { dayKey } from '../../shared/dates.js?v=c43c8d2c5a01';
+import { bucket } from '../../shared/schedule.js?v=c43c8d2c5a01';
+import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=c43c8d2c5a01';
 import {
   COMMITMENT_STATE_KEY,
   DURATION_PRESETS,
@@ -33,14 +33,14 @@ import {
   acknowledgePenalty,
   changeItems,
   pendingCommitments,
-} from './game.js?v=64877b8db3f1';
-import { node } from '../../shared/dom.js?v=64877b8db3f1';
+} from './game.js?v=c43c8d2c5a01';
+import { node } from '../../shared/dom.js?v=c43c8d2c5a01';
 import {
   COMMITMENTS_KEY,
   SUGGESTIONS,
   validCommitments,
   practiceProgress,
-} from './model.js?v=64877b8db3f1';
+} from './model.js?v=c43c8d2c5a01';
 function button(text, action, kind = 'secondary') {
   const b = node('button', kind, text);
   b.type = 'button';

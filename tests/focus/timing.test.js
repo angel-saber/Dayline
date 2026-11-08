@@ -65,6 +65,7 @@ function harness(run) {
     'window',
     'document',
     'localStorage',
+    'setTimeout',
     'setInterval',
     'clearInterval',
     'Event',
@@ -72,6 +73,7 @@ function harness(run) {
   ];
   const old = keys.map((k) => [k, Object.getOwnPropertyDescriptor(globalThis, k)]);
   const oldNow = Date.now;
+  const originalTimeout = globalThis.setTimeout;
   let now = oldNow();
   const values = new Map(),
     callbacks = [];
@@ -84,6 +86,7 @@ function harness(run) {
     window,
     document,
     localStorage: storage,
+    setTimeout: (fn, delay) => (delay === 1100 ? (fn(), 0) : originalTimeout(fn, delay)),
     setInterval: (fn) => {
       callbacks.push(fn);
       return callbacks.length;
@@ -149,6 +152,13 @@ test('Daily practice sounds once at its target, keeps overtime, and starts its a
       },
     });
     assert.equal(api.startPractice({ id: 'habit', title: 'Read', minutes: 30 }), true);
+    assert.equal(primed, 0);
+    assert.equal(JSON.parse(storage.getItem('dayline.focus.v1')).phase, 'prepare');
+    assert.equal(JSON.parse(storage.getItem('dayline.focus.v1')).startedAt, null);
+    setNow(now() + 5 * 60000);
+    for (const fn of callbacks) fn();
+    assert.deepEqual(sounds, []);
+    [...document.querySelectorAll('button')].find((b) => b.textContent === 'Commit').click();
     assert.equal(primed, 1);
     let draft = JSON.parse(storage.getItem('dayline.focus.v1'));
     assert.equal(draft.timing.mode, 'timed');
@@ -280,7 +290,8 @@ test('choosing a commitment retargets an unstarted preparation with its own dura
     failNote = false;
     assert.equal(api.startPractice(habit), true);
     const selected = JSON.parse(storage.getItem('dayline.focus.v1'));
-    assert.equal(selected.phase, 'active');
+    assert.equal(selected.phase, 'prepare');
+    assert.equal(selected.startedAt, null);
     assert.equal(selected.timing.workMinutes, 15);
     assert.equal(selected.timing.mode, 'timed');
     assert.equal(selected.timing.autoBreak, false);
