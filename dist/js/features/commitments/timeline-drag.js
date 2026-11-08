@@ -1,4 +1,4 @@
-import { minuteAtPosition } from '../daily/precise-time.js?v=4631c0ee1e9e';
+import { minuteAtPosition } from '../daily/precise-time.js?v=a37149fac314';
 // Pointer capture keeps touch and mouse dragging alive after the drawer closes.
 export function commitmentTimelineDrag(handle, { begin, drop, cancel = () => {}, root, interval }) {
   let active = false,

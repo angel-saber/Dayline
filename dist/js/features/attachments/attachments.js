@@ -1,4 +1,4 @@
-import { openAttachmentPreview, downloadAttachmentBlob } from './preview.js?v=4631c0ee1e9e';
+import { openAttachmentPreview, downloadAttachmentBlob } from './preview.js?v=a37149fac314';
 // Files stay in this browser; notes contain only small, portable references.
 export const MAX_FILE_SIZE = 10 * 1024 * 1024,
   MAX_ATTACHMENTS = 10,
