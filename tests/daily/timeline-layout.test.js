@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { intervalLayout } from '../../dist/js/features/daily/timeline-layout.js';
 
-test('note starts are proportional within each interval, including custom and midnight intervals', () => {
+test('empty time before notes stays bounded for standard, custom and midnight intervals', () => {
   for (const [start, duration] of [
     [420, 60],
     [0, 15],
@@ -15,11 +15,12 @@ test('note starts are proportional within each interval, including custom and mi
     const actual = Math.min(duration, 1440 - start);
     const minute = start + Math.floor(actual / 2);
     const layout = intervalLayout([{ minute, height: 90 }], start, duration);
-    assert.equal(layout.items[0].top / layout.height, (minute - start) / actual);
+    assert.ok(layout.items[0].top <= 12);
+    assert.ok(layout.height <= 120);
     assert.ok(layout.items[0].top + 90 <= layout.height);
   }
 });
-test('expanded intervals keep adjacent and simultaneous note bodies readable without changing time order', () => {
+test('compact intervals keep adjacent and simultaneous note bodies readable without changing time order', () => {
   const layout = intervalLayout(
     [
       { minute: 450, height: 100 },
@@ -38,8 +39,8 @@ test('expanded intervals keep adjacent and simultaneous note bodies readable wit
     assert.ok(
       layout.items[i].top >= layout.items[i - 1].top + layout.items[i - 1].height + 8 - 0.00001,
     );
-  assert.equal(layout.items[1].top, layout.height / 2);
-  assert.ok(Math.abs(layout.items[3].top - (layout.height * 31) / 60) < 0.00001);
+  assert.ok(layout.height < 850);
+  assert.ok(layout.items[1].top - layout.items[0].height <= 20);
   assert.ok(layout.items.at(-1).top + 90 <= layout.height);
 });
 
@@ -57,10 +58,8 @@ test('Daily binding aligns cards, leaves all-day notes alone and keeps editors i
     const cleanup = bindIntervalLayout(document.querySelector('main'), 60);
     const slot = document.querySelector('.slot');
     assert.ok(slot.classList.contains('precise-layout'));
-    assert.equal(
-      parseFloat(card.style.top),
-      parseFloat(slot.style.getPropertyValue('--interval-height')) / 2,
-    );
+    assert.ok(parseFloat(card.style.top) <= 12);
+    assert.equal(parseFloat(slot.style.getPropertyValue('--interval-height')), 120);
     assert.ok(!document.querySelector('.all-day-slot').classList.contains('precise-layout'));
     const editor = document.createElement('div');
     editor.className = 'editor';
@@ -72,4 +71,20 @@ test('Daily binding aligns cards, leaves all-day notes alone and keeps editors i
   } finally {
     globalThis.window = previous;
   }
+});
+
+test('a large note at 10:50 does not multiply its body height into empty space', () => {
+  const layout = intervalLayout([{ minute: 650, height: 400 }], 600, 60);
+  assert.equal(layout.items[0].top, 10);
+  assert.equal(layout.height, 418);
+  const adjacent = intervalLayout(
+    [
+      { minute: 650, height: 400 },
+      { minute: 651, height: 400 },
+    ],
+    600,
+    60,
+  );
+  assert.ok(adjacent.height < 840);
+  assert.equal(adjacent.items[1].minute, 651);
 });

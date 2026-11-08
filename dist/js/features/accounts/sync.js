@@ -1,4 +1,4 @@
-import { validState } from '../../shared/storage.js?v=a65a5f1958ca';
+import { validState } from '../../shared/storage.js?v=c0487c930675';
 
 const copy = (value) => structuredClone(value);
 const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);

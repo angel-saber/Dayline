@@ -1,2 +1,2 @@
 // Compatibility entry point; the registry owns the supported IDs.
-export { PERSONALITY_IDS } from './index.js?v=a65a5f1958ca';
+export { PERSONALITY_IDS } from './index.js?v=c0487c930675';
