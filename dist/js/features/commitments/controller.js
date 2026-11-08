@@ -1,11 +1,12 @@
-import { commitmentTimelineDrag } from './timeline-drag.js?v=4631c0ee1e9e';
-import { commitmentColors } from './colors.js?v=4631c0ee1e9e';
+import { reorderCommitments, bindCommitmentReorder } from './reorder.js?v=a37149fac314';
+import { commitmentTimelineDrag } from './timeline-drag.js?v=a37149fac314';
+import { commitmentColors } from './colors.js?v=a37149fac314';
 import {
   commitmentRecords,
   commitmentToken,
   importDeviceCommitments,
-} from './account-state.js?v=4631c0ee1e9e';
-import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=4631c0ee1e9e';
+} from './account-state.js?v=a37149fac314';
+import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=a37149fac314';
 import {
   readAwakeHours,
   awakeMinutes,
@@ -14,11 +15,11 @@ import {
   assertCommitmentBudget,
   AWAKE_HOURS_EVENT,
   AWAKE_HOURS_KEY,
-} from '../settings/awake-hours.js?v=4631c0ee1e9e';
-import { readTiming } from '../focus/timing.js?v=4631c0ee1e9e';
-import { dayKey } from '../../shared/dates.js?v=4631c0ee1e9e';
-import { bucket } from '../../shared/schedule.js?v=4631c0ee1e9e';
-import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=4631c0ee1e9e';
+} from '../settings/awake-hours.js?v=a37149fac314';
+import { readTiming } from '../focus/timing.js?v=a37149fac314';
+import { dayKey } from '../../shared/dates.js?v=a37149fac314';
+import { bucket } from '../../shared/schedule.js?v=a37149fac314';
+import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=a37149fac314';
 import {
   COMMITMENT_STATE_KEY,
   DURATION_PRESETS,
@@ -32,14 +33,14 @@ import {
   acknowledgePenalty,
   changeItems,
   pendingCommitments,
-} from './game.js?v=4631c0ee1e9e';
-import { node } from '../../shared/dom.js?v=4631c0ee1e9e';
+} from './game.js?v=a37149fac314';
+import { node } from '../../shared/dom.js?v=a37149fac314';
 import {
   COMMITMENTS_KEY,
   SUGGESTIONS,
   validCommitments,
   practiceProgress,
-} from './model.js?v=4631c0ee1e9e';
+} from './model.js?v=a37149fac314';
 function button(text, action, kind = 'secondary') {
   const b = node('button', kind, text);
   b.type = 'button';
@@ -487,15 +488,42 @@ export function setupCommitments({
     if (game.pending) preferences.open = true;
     list.replaceChildren();
     if (!items.length) list.append(node('p', 'field-hint', 'Add your first practice below.'));
-    for (const item of items
-      .slice()
-      .sort(
-        (a, b) =>
-          Number(commitmentDone(commitmentState, a, dayKey(), getState().days)) -
-          Number(commitmentDone(commitmentState, b, dayKey(), getState().days)),
-      )) {
+    for (const item of items) {
       const row = node('section', 'commitment-row');
       row.dataset.commitmentId = item.id;
+      let reorderScope, reorderRaw;
+      const reorder = button('⠿', () => {}, 'commitment-reorder-handle');
+      reorder.setAttribute(
+        'aria-label',
+        `Reorder ${item.title}. Drag or use up and down arrow keys.`,
+      );
+      reorder.title = 'Drag to reorder · arrow keys also work';
+      bindCommitmentReorder(reorder, {
+        list,
+        id: item.id,
+        begin() {
+          reorderScope = loadedScope;
+          reorderRaw = loadedRaw;
+        },
+        move(id, target, after) {
+          if (getAccountId() !== reorderScope || rawToken() !== reorderRaw) {
+            status.textContent = 'Commitments changed. Reopen the list before reordering.';
+            return;
+          }
+          const next = reorderCommitments(items, id, target, after);
+          const updated = { ...commitmentState, items: next };
+          if (persist(updated)) {
+            render();
+            [...list.querySelectorAll('[data-commitment-id]')]
+              .find((row) => row.dataset.commitmentId === id)
+              ?.querySelector('.commitment-reorder-handle')
+              ?.focus({ preventScroll: true });
+            status.textContent = 'Commitment order saved.';
+          }
+        },
+      });
+      row.append(reorder);
+
       const colors = commitmentColors(items.indexOf(item));
       row.style.setProperty('--commitment-card', colors.background);
       row.style.setProperty('--commitment-card-ink', colors.ink);

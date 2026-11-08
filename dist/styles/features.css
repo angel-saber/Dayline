@@ -3383,3 +3383,20 @@ body.month-dragging .commitments-launch {
   opacity: 0.85;
   margin: 0;
 }
+
+.commitment-reorder-handle {
+  touch-action: none;
+  cursor: grab;
+  float: right;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: 8px 12px;
+  font-size: 20px;
+}
+.commitment-reorder-before {
+  box-shadow: 0 -4px 0 var(--accent);
+}
+.commitment-reorder-after {
+  box-shadow: 0 4px 0 var(--accent);
+}

@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=4631c0ee1e9e';
-import { hourInput, inputMinute } from './available-hours.js?v=4631c0ee1e9e';
+import { node } from '../../shared/dom.js?v=a37149fac314';
+import { hourInput, inputMinute } from './available-hours.js?v=a37149fac314';
 export const AWAKE_HOURS_KEY = 'dayline.awake-hours.v1';
 export const AWAKE_HOURS_EVENT = 'dayline:awake-hours';
 export const DEFAULT_AWAKE_HOURS = Object.freeze({ from: 420, to: 1380 });

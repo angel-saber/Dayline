@@ -60,7 +60,7 @@ test('card-first view keeps setup collapsed, exposes accessible completion/menu 
     dialog.querySelector('[data-commitment-id="a"] .commitment-complete').click();
     assert.deepEqual(
       [...dialog.querySelectorAll('.commitment-row')].map((row) => row.dataset.commitmentId),
-      ['b', 'a'],
+      ['a', 'b'],
     );
     assert.equal(
       dialog.querySelector('[data-commitment-id="a"]').style.getPropertyValue('--commitment-card'),
@@ -79,6 +79,15 @@ test('card-first view keeps setup collapsed, exposes accessible completion/menu 
       color,
     );
     assert.equal(dialog.querySelector('[aria-label="Habit name"]'), draftInput);
+    assert.equal(draftInput.value, 'Keep this unsaved draft');
+    const reorder = dialog.querySelector('[data-commitment-id="b"] .commitment-reorder-handle');
+    const key = new window.Event('keydown', { cancelable: true });
+    key.key = 'ArrowUp';
+    reorder.dispatchEvent(key);
+    assert.deepEqual(
+      readCommitmentState(storage).items.map((item) => item.id),
+      ['b', 'a'],
+    );
     assert.equal(draftInput.value, 'Keep this unsaved draft');
   } finally {
     api?.destroy();
