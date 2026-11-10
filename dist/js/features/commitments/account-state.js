@@ -1,4 +1,4 @@
-import { validCommitmentState } from './game.js?v=2b41014ead9b';
+import { validCommitmentState } from './game.js?v=609c727b7753';
 export const COMMITMENT_DATE = '1900-01-01';
 export function commitmentRecords(days, all = false) {
   return (days[COMMITMENT_DATE] || [])
