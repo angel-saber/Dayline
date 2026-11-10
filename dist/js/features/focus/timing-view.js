@@ -1,22 +1,30 @@
-import { node } from '../../shared/dom.js?v=2b41014ead9b';
-import { TIMING_KEY, TIMING_DEFAULTS, readTiming, validTiming } from './timing.js?v=2b41014ead9b';
+import { node } from '../../shared/dom.js?v=609c727b7753';
+import { TIMING_KEY, TIMING_DEFAULTS, readTiming, validTiming } from './timing.js?v=609c727b7753';
 export function timingControls(timing, onChange) {
   const section = node('section', 'focus-section focus-timing-controls');
-  section.append(node('h2', '', 'Session timing'));
-  const choices = node('div', 'inline');
+  const header = node('div', 'focus-timing-header');
+  const choices = node('div', 'focus-timing-choices');
+  choices.setAttribute('role', 'group');
+  choices.setAttribute('aria-label', 'Session timing mode');
+  const hint = node('p', 'field-hint focus-timing-hint');
   const fields = node('div', 'focus-timing-fields');
   function sync() {
     fields.hidden = timing.mode !== 'timed';
+    hint.textContent =
+      timing.mode === 'timed'
+        ? 'Breaks begin after reflection. Defaults in Settings.'
+        : 'Flowtime suggests a break when you finish. Defaults in Settings.';
     for (const b of choices.children)
       b.setAttribute('aria-pressed', String(b.dataset.mode === timing.mode));
   }
   for (const [mode, text] of [
-    ['untimed', 'No time limit · Flowtime'],
-    ['timed', 'Timed session'],
+    ['untimed', 'No limit'],
+    ['timed', 'Timed'],
   ]) {
     const b = node('button', 'secondary', text);
     b.type = 'button';
     b.dataset.mode = mode;
+    b.setAttribute('aria-label', mode === 'untimed' ? 'No time limit · Flowtime' : 'Timed session');
     b.onclick = () => {
       timing.mode = mode;
       sync();
@@ -28,7 +36,11 @@ export function timingControls(timing, onChange) {
     ['workMinutes', 'Work minutes', 1440],
     ['breakMinutes', 'Break minutes', 120],
   ]) {
-    const label = node('label', '', text),
+    const label = node(
+        'label',
+        'focus-timing-duration',
+        key === 'workMinutes' ? 'Work (min)' : 'Break (min)',
+      ),
       input = node('input');
     input.type = 'number';
     input.min = '1';
@@ -47,7 +59,7 @@ export function timingControls(timing, onChange) {
     label.append(input);
     fields.append(label);
   }
-  const label = node('label'),
+  const label = node('label', 'focus-timing-auto-break'),
     automatic = node('input');
   automatic.type = 'checkbox';
   automatic.checked = timing.autoBreak;
@@ -55,20 +67,10 @@ export function timingControls(timing, onChange) {
     timing.autoBreak = automatic.checked;
     onChange();
   };
-  label.append(
-    automatic,
-    document.createTextNode('Start the break automatically after the reflection page'),
-  );
+  label.append(automatic, document.createTextNode('Start break after reflection'));
   fields.append(label);
-  section.append(
-    choices,
-    fields,
-    node(
-      'p',
-      'field-hint',
-      'Untimed work ends when you choose Finish. Flowtime then suggests a break based on time worked. Defaults and sound are customizable in Settings.',
-    ),
-  );
+  header.append(node('h2', '', 'Session timing'), choices);
+  section.append(header, fields, hint);
   sync();
   return section;
 }

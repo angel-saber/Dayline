@@ -215,6 +215,9 @@ test('regular Focus timing choices switch; Settings validate and retain failed d
     controls.querySelector('[data-mode="timed"]').click();
     assert.equal(value.mode, 'timed');
     assert.equal(controls.querySelector('.focus-timing-fields').hidden, false);
+    assert.equal(controls.querySelectorAll('.focus-timing-header [data-mode]').length, 2);
+    assert.equal(controls.querySelectorAll('.focus-timing-duration input').length, 2);
+    assert.match(controls.querySelector('.focus-timing-hint').textContent, /after reflection/);
     controls.querySelector('[data-mode="untimed"]').click();
     assert.equal(value.mode, 'untimed');
     assert.ok(saves === 2);
