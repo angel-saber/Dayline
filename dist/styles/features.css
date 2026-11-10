@@ -3665,3 +3665,19 @@ body.month-dragging .commitments-launch {
 .yearly-intention.done > h4 {
   text-decoration: line-through;
 }
+
+.focus-preparation-help {
+  margin: 14px 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0 16px;
+}
+.focus-preparation-help > summary {
+  cursor: pointer;
+  padding: 14px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.focus-preparation-help[open] > summary {
+  margin-bottom: 8px;
+}

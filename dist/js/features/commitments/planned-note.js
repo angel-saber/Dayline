@@ -1,4 +1,4 @@
-import { bucket } from '../../shared/schedule.js?v=4a8d127fdc4d';
+import { bucket } from '../../shared/schedule.js?v=2b41014ead9b';
 // Older dragged plans had no ID link. Only recognize an unchanged title/body pair.
 export function plannedCommitmentNote(notes, practice, minute, interval) {
   return (

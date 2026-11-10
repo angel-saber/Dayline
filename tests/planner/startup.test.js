@@ -786,6 +786,20 @@ test('the assembled planner starts, switches views/personalities, edits settings
       (button) => button.textContent === 'Commit',
     );
     assert.ok(commit);
+    const preparationHelp = document.querySelector('.focus-preparation-help');
+    assert.ok(preparationHelp);
+    assert.ok(!preparationHelp.open);
+    assert.equal(
+      preparationHelp.querySelector('summary').textContent,
+      'Need help getting started?',
+    );
+    assert.equal(preparationHelp.querySelectorAll('.flow-part').length, 4);
+    assert.equal(preparationHelp.contains(commit), false);
+    const commitmentSection = commit.closest('.focus-commitment');
+    assert.equal(commitmentSection.nextElementSibling, preparationHelp);
+    preparationHelp.open = true;
+    assert.ok(preparationHelp.querySelector('[data-support-area="balance"]'));
+    preparationHelp.open = false;
     commit.click();
     await new Promise((resolve) => setTimeout(resolve, 1150));
     assert.equal(document.querySelector('.personality-burst')?.dataset.kind, 'focus-commit');

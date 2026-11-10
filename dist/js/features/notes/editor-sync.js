@@ -1,4 +1,4 @@
-import { validState } from '../../shared/storage.js?v=4a8d127fdc4d';
+import { validState } from '../../shared/storage.js?v=2b41014ead9b';
 
 // An untouched note can keep its editor when other notes or settings sync.
 // Never keep a stale editor when its own note was changed or deleted remotely.

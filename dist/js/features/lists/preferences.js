@@ -1,4 +1,4 @@
-import { node } from '../../shared/dom.js?v=4a8d127fdc4d';
+import { node } from '../../shared/dom.js?v=2b41014ead9b';
 const KEY = 'dayline.list-layout.v1';
 export function readLayout(view, storage = globalThis.localStorage) {
   try {

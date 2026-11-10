@@ -1,6 +1,6 @@
-import { duplicateNote } from '../notes/duplicate.js?v=4a8d127fdc4d';
-import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=4a8d127fdc4d';
-import { validDate } from '../bulk/model.js?v=4a8d127fdc4d';
+import { duplicateNote } from '../notes/duplicate.js?v=2b41014ead9b';
+import { dayKey, parseDay, offsetDay } from '../../shared/schedule.js?v=2b41014ead9b';
+import { validDate } from '../bulk/model.js?v=2b41014ead9b';
 export function weekStart(date) {
   if (!validDate(date)) throw new Error('Choose a valid date.');
   return offsetDay(date, -parseDay(date).getDay());
