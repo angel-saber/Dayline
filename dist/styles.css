@@ -5394,6 +5394,7 @@ body.month-dragging .commitments-launch {
 }
 
 .commitment-reorder-handle {
+  z-index: 1;
   touch-action: none;
   cursor: grab;
   position: absolute;

@@ -1,4 +1,4 @@
-import { offsetDay } from '../../shared/dates.js?v=609c727b7753';
+import { offsetDay } from '../../shared/dates.js?v=6d1be00d390d';
 export const itemKey = ({ date, entry }) => `${date}/${entry.id}`;
 export function listItems(days, view, period, legacyLifeLinks = []) {
   const first = view === 'monthly' ? `${period}-01` : `${period}-01-01`;

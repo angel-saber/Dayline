@@ -1,12 +1,12 @@
-import { reorderCommitments, bindCommitmentReorder } from './reorder.js?v=609c727b7753';
-import { commitmentTimelineDrag } from './timeline-drag.js?v=609c727b7753';
-import { commitmentColors } from './colors.js?v=609c727b7753';
+import { reorderCommitments, bindCommitmentReorder } from './reorder.js?v=6d1be00d390d';
+import { commitmentTimelineDrag } from './timeline-drag.js?v=6d1be00d390d';
+import { commitmentColors } from './colors.js?v=6d1be00d390d';
 import {
   commitmentRecords,
   commitmentToken,
   importDeviceCommitments,
-} from './account-state.js?v=609c727b7753';
-import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=609c727b7753';
+} from './account-state.js?v=6d1be00d390d';
+import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=6d1be00d390d';
 import {
   readAwakeHours,
   awakeMinutes,
@@ -15,11 +15,11 @@ import {
   assertCommitmentBudget,
   AWAKE_HOURS_EVENT,
   AWAKE_HOURS_KEY,
-} from '../settings/awake-hours.js?v=609c727b7753';
-import { readTiming } from '../focus/timing.js?v=609c727b7753';
-import { dayKey } from '../../shared/dates.js?v=609c727b7753';
-import { bucket } from '../../shared/schedule.js?v=609c727b7753';
-import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=609c727b7753';
+} from '../settings/awake-hours.js?v=6d1be00d390d';
+import { readTiming } from '../focus/timing.js?v=6d1be00d390d';
+import { dayKey } from '../../shared/dates.js?v=6d1be00d390d';
+import { bucket } from '../../shared/schedule.js?v=6d1be00d390d';
+import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=6d1be00d390d';
 import {
   COMMITMENT_STATE_KEY,
   DURATION_PRESETS,
@@ -33,14 +33,14 @@ import {
   acknowledgePenalty,
   changeItems,
   pendingCommitments,
-} from './game.js?v=609c727b7753';
-import { node } from '../../shared/dom.js?v=609c727b7753';
+} from './game.js?v=6d1be00d390d';
+import { node } from '../../shared/dom.js?v=6d1be00d390d';
 import {
   COMMITMENTS_KEY,
   SUGGESTIONS,
   validCommitments,
   practiceProgress,
-} from './model.js?v=609c727b7753';
+} from './model.js?v=6d1be00d390d';
 function button(text, action, kind = 'secondary') {
   const b = node('button', kind, text);
   b.type = 'button';
@@ -498,7 +498,7 @@ export function setupCommitments({
         `Reorder ${item.title}. Drag or use up and down arrow keys.`,
       );
       reorder.title = 'Drag to reorder · arrow keys also work';
-      bindCommitmentReorder(reorder, {
+      const stepOrder = bindCommitmentReorder(reorder, {
         list,
         id: item.id,
         begin() {
@@ -669,6 +669,8 @@ export function setupCommitments({
       menu.append(menuTitle, menuActions);
       controls.append(menu);
       menuActions.append(
+        button('Move up', () => stepOrder(-1)),
+        button('Move down', () => stepOrder(1)),
         button('Edit', () => {
           editing = item.id;
           title.value = item.title;
