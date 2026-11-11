@@ -1,4 +1,4 @@
-import { node } from '../../shared/dom.js?v=6d1be00d390d';
+import { node } from '../../shared/dom.js?v=a482c04a82dd';
 export const FAVORITES_KEY = 'dayline.activity-favorites.v1';
 export function validFavorites(value) {
   if (

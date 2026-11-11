@@ -1,12 +1,12 @@
-import { layoutToggle, readLayout } from '../lists/preferences.js?v=6d1be00d390d';
-import { listItems } from '../lists/model.js?v=6d1be00d390d';
-import { cardList } from '../lists/view.js?v=6d1be00d390d';
-import { SUMMARY_PREFERENCES_EVENT } from '../summaries/preferences.js?v=6d1be00d390d';
-import { summarySource, summarizePeriod } from '../summaries/model.js?v=6d1be00d390d';
-import { createPeriodSummary } from '../summaries/view.js?v=6d1be00d390d';
-import { openExpandedDay } from './expanded-day.js?v=6d1be00d390d';
-import { node } from '../../shared/dom.js?v=6d1be00d390d';
-import { createWeeklySection } from './weekly-notes.js?v=6d1be00d390d';
+import { layoutToggle, readLayout } from '../lists/preferences.js?v=a482c04a82dd';
+import { listItems } from '../lists/model.js?v=a482c04a82dd';
+import { cardList } from '../lists/view.js?v=a482c04a82dd';
+import { SUMMARY_PREFERENCES_EVENT } from '../summaries/preferences.js?v=a482c04a82dd';
+import { summarySource, summarizePeriod } from '../summaries/model.js?v=a482c04a82dd';
+import { createPeriodSummary } from '../summaries/view.js?v=a482c04a82dd';
+import { openExpandedDay } from './expanded-day.js?v=a482c04a82dd';
+import { node } from '../../shared/dom.js?v=a482c04a82dd';
+import { createWeeklySection } from './weekly-notes.js?v=a482c04a82dd';
 import {
   NOTE_TYPES,
   categoryOptions,
@@ -16,11 +16,11 @@ import {
   typeBadge,
   noteTags,
   categoryLabel,
-} from '../notes/note-types.js?v=6d1be00d390d';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=6d1be00d390d';
-import { dateActions } from './date-actions.js?v=6d1be00d390d';
-import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=6d1be00d390d';
-import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=6d1be00d390d';
+} from '../notes/note-types.js?v=a482c04a82dd';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=a482c04a82dd';
+import { dateActions } from './date-actions.js?v=a482c04a82dd';
+import { dayKey, parseDay, timeLabel } from '../../shared/schedule.js?v=a482c04a82dd';
+import { monthWeeks, offsetMonth, noteTitle } from './model.js?v=a482c04a82dd';
 
 const button = (text, label, action) => {
   const el = node('button', '', text);

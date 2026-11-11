@@ -1,9 +1,9 @@
-import { validDate } from '../../bulk/model.js?v=6d1be00d390d';
-import { dayKey, offsetDay, parseDay } from '../../../shared/dates.js?v=6d1be00d390d';
-import { weekStart } from '../../monthly/weekly-model.js?v=6d1be00d390d';
-import { repeatDates, addMonths } from '../../repeating/model.js?v=6d1be00d390d';
-import { validTags } from '../../notes/note-types.js?v=6d1be00d390d';
-import { writeYearly } from '../model.js?v=6d1be00d390d';
+import { validDate } from '../../bulk/model.js?v=a482c04a82dd';
+import { dayKey, offsetDay, parseDay } from '../../../shared/dates.js?v=a482c04a82dd';
+import { weekStart } from '../../monthly/weekly-model.js?v=a482c04a82dd';
+import { repeatDates, addMonths } from '../../repeating/model.js?v=a482c04a82dd';
+import { validTags } from '../../notes/note-types.js?v=a482c04a82dd';
+import { writeYearly } from '../model.js?v=a482c04a82dd';
 export const LIFE_DATE = '1900-01-01';
 export const GROUPS = {
   occasions: ['Birthdays & anniversaries', 'event', 'annual'],

@@ -1,7 +1,7 @@
-import { readSummaryPreferences, toggleSummaryTagMode } from './preferences.js?v=6d1be00d390d';
-import { node } from '../../shared/dom.js?v=6d1be00d390d';
-import { HOLIDAY_SOURCE } from '../../shared/holidays.js?v=6d1be00d390d';
-import { summaryParts, focusTime } from './model.js?v=6d1be00d390d';
+import { readSummaryPreferences, toggleSummaryTagMode } from './preferences.js?v=a482c04a82dd';
+import { node } from '../../shared/dom.js?v=a482c04a82dd';
+import { HOLIDAY_SOURCE } from '../../shared/holidays.js?v=a482c04a82dd';
+import { summaryParts, focusTime } from './model.js?v=a482c04a82dd';
 
 export function createPeriodSummary(label) {
   const element = node('details', 'period-summary');

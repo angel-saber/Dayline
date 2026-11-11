@@ -4,22 +4,22 @@ import {
   workDeadline,
   timerDue,
   sessionBreakSuggestion,
-} from './timing.js?v=6d1be00d390d';
-import { timingControls } from './timing-view.js?v=6d1be00d390d';
+} from './timing.js?v=a482c04a82dd';
+import { timingControls } from './timing-view.js?v=a482c04a82dd';
 import {
   createFlowPreparation,
   recoverySection,
   preparationReference,
-} from './flow-view.js?v=6d1be00d390d';
-import { newFlow, newRecovery } from './flow-model.js?v=6d1be00d390d';
-import { setupBreakTimer } from './break-timer.js?v=6d1be00d390d';
-import { chooseRepeatScope } from '../repeating/scope.js?v=6d1be00d390d';
-import { node } from '../../shared/dom.js?v=6d1be00d390d';
-import { indentLevel } from '../notes/formatting/indents.js?v=6d1be00d390d';
-import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=6d1be00d390d';
-import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=6d1be00d390d';
-import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=6d1be00d390d';
-import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=6d1be00d390d';
+} from './flow-view.js?v=a482c04a82dd';
+import { newFlow, newRecovery } from './flow-model.js?v=a482c04a82dd';
+import { setupBreakTimer } from './break-timer.js?v=a482c04a82dd';
+import { chooseRepeatScope } from '../repeating/scope.js?v=a482c04a82dd';
+import { node } from '../../shared/dom.js?v=a482c04a82dd';
+import { indentLevel } from '../notes/formatting/indents.js?v=a482c04a82dd';
+import { attachmentList, bindFileDrop } from '../attachments/attachments.js?v=a482c04a82dd';
+import { tagBadges, categoryOptions, noteTags } from '../notes/note-types.js?v=a482c04a82dd';
+import { voice, focusMantras, focusIdeas } from '../../personalities/index.js?v=a482c04a82dd';
+import { dayKey, timeLabel, bucket } from '../../shared/schedule.js?v=a482c04a82dd';
 import {
   focusIntervalNotes,
   newFocus,
@@ -31,10 +31,10 @@ import {
   durationLabel,
   MANTRAS,
   INSPIRATION,
-} from './model.js?v=6d1be00d390d';
-import { createNoteEditor } from '../notes/note-editor.js?v=6d1be00d390d';
-import { renderFormatted } from '../notes/formatting/format.js?v=6d1be00d390d';
-import { noteTasks } from '../notes/formatting/tasks.js?v=6d1be00d390d';
+} from './model.js?v=a482c04a82dd';
+import { createNoteEditor } from '../notes/note-editor.js?v=a482c04a82dd';
+import { renderFormatted } from '../notes/formatting/format.js?v=a482c04a82dd';
+import { noteTasks } from '../notes/formatting/tasks.js?v=a482c04a82dd';
 const KEY = 'dayline.focus.v1';
 
 const button = (text, action, className = 'secondary') => {
@@ -130,6 +130,7 @@ export function setupFocus(api) {
     flowView?.destroy();
     flowView = null;
     flushNote();
+    dialog.classList.remove('focus-preparing');
     dialog.replaceChildren();
     const header = node('div', 'focus-window-header'),
       heading = node('h1', '', title);
@@ -471,8 +472,11 @@ export function setupFocus(api) {
   }
   function prepare() {
     base(voice('focus.preparationHeading'));
-    const fields = node('div', 'focus-prep-fields');
-    fields.append(node('p', 'focus-lead', voice('focus.preparationIntro')), noteSection());
+    dialog.classList.add('focus-preparing');
+    const fields = node('div', 'focus-prep-fields focus-prep-scroll');
+    const notes = node('details', 'focus-prep-disclosure');
+    notes.append(node('summary', '', 'Review session notes'), noteSection());
+    fields.append(notes);
     session.timing ||= sessionTiming(readTiming());
     fields.append(timingControls(session.timing, save));
     const support = node('details', 'focus-preparation-help focus-prep-fields');
@@ -480,7 +484,7 @@ export function setupFocus(api) {
     const commitment = node('section', 'focus-commitment');
     commitment.append(node('h2', '', voice('focus.commitmentHeading')));
     const mantra = node('textarea', 'focus-mantra-input');
-    mantra.rows = 3;
+    mantra.rows = 2;
     mantra.value = session.mantra;
     mantra.setAttribute('aria-label', 'Commitment mantra');
     mantra.addEventListener('input', () => {
@@ -500,12 +504,7 @@ export function setupFocus(api) {
       }),
       button('Commit', beginFocus, 'primary'),
     );
-    commitment.append(
-      mantra,
-      node('small', 'field-hint', 'Keep this mantra, reshuffle it, or write your own.'),
-      controls,
-    );
-    fields.append(
+    controls.prepend(
       button(
         'Cancel preparation',
         () => {
@@ -516,7 +515,9 @@ export function setupFocus(api) {
         'text-button',
       ),
     );
-    dialog.append(fields, commitment, support);
+    commitment.append(mantra, controls);
+    fields.append(support);
+    dialog.append(fields, commitment);
   }
   function active() {
     base(voice('focus.activeHeading'));

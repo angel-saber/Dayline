@@ -1,7 +1,7 @@
-import { offsetDay } from '../../shared/dates.js?v=6d1be00d390d';
-import { noteTasks } from '../notes/formatting/tasks.js?v=6d1be00d390d';
-import { noteTags } from '../notes/note-types.js?v=6d1be00d390d';
-import { validDate } from '../bulk/model.js?v=6d1be00d390d';
+import { offsetDay } from '../../shared/dates.js?v=a482c04a82dd';
+import { noteTasks } from '../notes/formatting/tasks.js?v=a482c04a82dd';
+import { noteTags } from '../notes/note-types.js?v=a482c04a82dd';
+import { validDate } from '../bulk/model.js?v=a482c04a82dd';
 export function validRepeat(value) {
   if (
     !value ||

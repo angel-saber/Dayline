@@ -1,4 +1,4 @@
-import { PERSONALITY_IDS } from '../../personalities/index.js?v=6d1be00d390d';
+import { PERSONALITY_IDS } from '../../personalities/index.js?v=a482c04a82dd';
 // Preferences are device-local and independent of notes, sessions and account sync.
 export function restoreAudioSettings(raw, defaults, mode) {
   const result = { ...defaults, soundtrack: PERSONALITY_IDS.includes(mode) ? mode : 'zen' };

@@ -1,10 +1,10 @@
-import { layoutToggle, readLayout } from '../lists/preferences.js?v=6d1be00d390d';
-import { listItems } from '../lists/model.js?v=6d1be00d390d';
-import { cardList } from '../lists/view.js?v=6d1be00d390d';
-import { readLife } from './life/model.js?v=6d1be00d390d';
-import { createLifePlanner } from './life/view.js?v=6d1be00d390d';
-import { node } from '../../shared/dom.js?v=6d1be00d390d';
-import { dayKey } from '../../shared/dates.js?v=6d1be00d390d';
+import { layoutToggle, readLayout } from '../lists/preferences.js?v=a482c04a82dd';
+import { listItems } from '../lists/model.js?v=a482c04a82dd';
+import { cardList } from '../lists/view.js?v=a482c04a82dd';
+import { readLife } from './life/model.js?v=a482c04a82dd';
+import { createLifePlanner } from './life/view.js?v=a482c04a82dd';
+import { node } from '../../shared/dom.js?v=a482c04a82dd';
+import { dayKey } from '../../shared/dates.js?v=a482c04a82dd';
 import {
   validYearly,
   DIMENSIONS,
@@ -12,7 +12,7 @@ import {
   yearPosition,
   yearRecords,
   linkedNotes,
-} from './model.js?v=6d1be00d390d';
+} from './model.js?v=a482c04a82dd';
 
 const button = (text, action, className = 'secondary') => {
   const item = node('button', className, text);
