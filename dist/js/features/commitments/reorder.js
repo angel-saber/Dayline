@@ -24,15 +24,28 @@ export function bindCommitmentReorder(handle, { list, id, move, begin = () => {}
       .forEach((row) =>
         row.classList.remove('commitment-reorder-before', 'commitment-reorder-after'),
       );
-    const row = document
-      .elementFromPoint(event.clientX, event.clientY)
-      ?.closest('[data-commitment-id]');
-    target = row && list.contains(row) && row.dataset.commitmentId !== id ? row : null;
-    if (target) {
-      const rect = target.getBoundingClientRect();
-      after = event.clientY > rect.top + rect.height / 2;
-      target.classList.add(after ? 'commitment-reorder-after' : 'commitment-reorder-before');
-    }
+    const bounds = list.getBoundingClientRect();
+    target = null;
+    if (
+      event.clientX < bounds.left ||
+      event.clientX > bounds.right ||
+      event.clientY < bounds.top - 12 ||
+      event.clientY > bounds.bottom + 12
+    )
+      return;
+    // Use row geometry so the gaps between cards are valid drop targets too.
+    const rows = [...list.querySelectorAll('[data-commitment-id]')];
+    target =
+      rows.find((row) => {
+        const rect = row.getBoundingClientRect();
+        return event.clientY <= rect.top + rect.height / 2;
+      }) || rows.at(-1);
+    after =
+      !!target &&
+      event.clientY >
+        target.getBoundingClientRect().top + target.getBoundingClientRect().height / 2;
+    if (target?.dataset.commitmentId === id) target = null;
+    target?.classList.add(after ? 'commitment-reorder-after' : 'commitment-reorder-before');
   }
   handle.addEventListener('pointerdown', (event) => {
     if (event.button !== 0) return;
@@ -65,15 +78,19 @@ export function bindCommitmentReorder(handle, { list, id, move, begin = () => {}
     event.preventDefault();
     event.stopPropagation();
   });
+  function step(direction) {
+    const rows = [...list.querySelectorAll('[data-commitment-id]')],
+      index = rows.findIndex((row) => row.dataset.commitmentId === id);
+    const other = rows[index + direction];
+    if (other) {
+      begin();
+      move(id, other.dataset.commitmentId, direction > 0);
+    }
+  }
   handle.addEventListener('keydown', (event) => {
     if (!['ArrowUp', 'ArrowDown'].includes(event.key)) return;
     event.preventDefault();
-    const rows = [...list.querySelectorAll('[data-commitment-id]')],
-      index = rows.findIndex((row) => row.dataset.commitmentId === id);
-    const other = rows[index + (event.key === 'ArrowUp' ? -1 : 1)];
-    if (other) {
-      begin();
-      move(id, other.dataset.commitmentId, event.key === 'ArrowDown');
-    }
+    step(event.key === 'ArrowUp' ? -1 : 1);
   });
+  return step;
 }

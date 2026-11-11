@@ -796,7 +796,10 @@ test('the assembled planner starts, switches views/personalities, edits settings
     assert.equal(preparationHelp.querySelectorAll('.flow-part').length, 4);
     assert.equal(preparationHelp.contains(commit), false);
     const commitmentSection = commit.closest('.focus-commitment');
-    assert.equal(commitmentSection.nextElementSibling, preparationHelp);
+    const prepBody = document.querySelector('.focus-prep-scroll');
+    assert.ok(prepBody.contains(preparationHelp));
+    assert.equal(prepBody.nextElementSibling, commitmentSection);
+    assert.ok(!prepBody.querySelector('.focus-prep-disclosure').open);
     preparationHelp.open = true;
     assert.ok(preparationHelp.querySelector('[data-support-area="balance"]'));
     preparationHelp.open = false;

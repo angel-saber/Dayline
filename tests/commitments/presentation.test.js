@@ -89,6 +89,36 @@ test('card-first view keeps setup collapsed, exposes accessible completion/menu 
       ['b', 'a'],
     );
     assert.equal(draftInput.value, 'Keep this unsaved draft');
+    const rows = [...dialog.querySelectorAll('.commitment-row')];
+    rows[0].parentElement.getBoundingClientRect = () => ({
+      left: 0,
+      right: 300,
+      top: 0,
+      bottom: 110,
+    });
+    rows.forEach((row, i) => {
+      row.getBoundingClientRect = () => ({ top: i * 60, height: 50 });
+    });
+    const handle = rows[1].querySelector('.commitment-reorder-handle');
+    for (const [type, y] of [
+      ['pointerdown', 70],
+      ['pointermove', -5],
+      ['pointerup', -5],
+    ]) {
+      const event = new window.Event(type, { cancelable: true });
+      Object.assign(event, { button: 0, pointerId: 1, clientX: 50, clientY: y });
+      handle.dispatchEvent(event);
+    }
+    assert.deepEqual(
+      readCommitmentState(storage).items.map((item) => item.id),
+      ['a', 'b'],
+    );
+    const reorderMenu = dialog.querySelector('[data-commitment-id="a"] .commitment-card-menu');
+    [...reorderMenu.querySelectorAll('button')].find((b) => b.textContent === 'Move down').click();
+    assert.deepEqual(
+      readCommitmentState(storage).items.map((item) => item.id),
+      ['b', 'a'],
+    );
   } finally {
     api?.destroy();
     for (const [k, d] of old) {

@@ -3389,6 +3389,7 @@ body.month-dragging .commitments-launch {
 }
 
 .commitment-reorder-handle {
+  z-index: 1;
   touch-action: none;
   cursor: grab;
   position: absolute;
@@ -3741,4 +3742,82 @@ body.month-dragging .commitments-launch {
   margin: 8px 0 0;
   font-size: 11px;
   line-height: 1.4;
+}
+
+/* Only the optional preparation content scrolls; the start action stays visible. */
+.focus-window.focus-preparing[open] {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 24px);
+  padding: 12px clamp(12px, 3vw, 22px);
+  overflow: hidden;
+}
+.focus-preparing > :not(.focus-prep-scroll) {
+  flex-shrink: 0;
+}
+.focus-preparing .focus-window-header {
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.focus-preparing .focus-window-header .eyebrow {
+  display: none;
+}
+.focus-preparing .focus-window-header button {
+  font-size: 11px;
+  padding: 5px 8px;
+}
+.focus-window.focus-preparing h1 {
+  font-size: clamp(18px, 4vw, 24px);
+  margin: 8px 0;
+}
+.focus-prep-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.focus-preparing .focus-prep-disclosure,
+.focus-preparing .focus-preparation-help {
+  margin: 0;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.focus-preparing details > summary {
+  cursor: pointer;
+}
+.focus-preparing .focus-prep-disclosure > summary,
+.focus-preparing .focus-preparation-help > summary {
+  padding: 8px 0;
+  font-size: 12px;
+}
+.focus-window.focus-preparing .focus-timing-controls {
+  margin: 6px 0;
+  padding: 7px 10px;
+}
+.focus-preparing .focus-timing-fields {
+  margin-top: 6px;
+}
+.focus-preparing .focus-commitment {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+}
+.focus-preparing .focus-commitment h2 {
+  font-size: 15px;
+  margin: 0 0 4px;
+}
+.focus-preparing .focus-mantra-input {
+  padding: 5px 7px;
+  line-height: 1.35;
+  resize: none;
+}
+.focus-preparing .focus-commitment .inline {
+  margin-top: 6px;
+  gap: 6px;
+}
+.focus-preparing .focus-commitment button {
+  padding: 6px 9px;
+  font-size: 12px;
+}
+.focus-preparing .focus-commitment .primary {
+  margin-inline-start: auto;
 }
