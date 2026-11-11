@@ -1,19 +1,20 @@
-import { node } from '../../shared/dom.js?v=a482c04a82dd';
-import { TIMING_KEY, TIMING_DEFAULTS, readTiming, validTiming } from './timing.js?v=a482c04a82dd';
+import { node } from '../../shared/dom.js?v=e07453b1a957';
+import { TIMING_KEY, TIMING_DEFAULTS, readTiming, validTiming } from './timing.js?v=e07453b1a957';
 export function timingControls(timing, onChange) {
   const section = node('section', 'focus-section focus-timing-controls');
   const header = node('div', 'focus-timing-header');
   const choices = node('div', 'focus-timing-choices');
   choices.setAttribute('role', 'group');
   choices.setAttribute('aria-label', 'Session timing mode');
-  const hint = node('p', 'field-hint focus-timing-hint');
+  const hint = node(
+    'p',
+    'field-hint focus-timing-hint',
+    'Flowtime suggests a break when you finish.',
+  );
   const fields = node('div', 'focus-timing-fields');
   function sync() {
     fields.hidden = timing.mode !== 'timed';
-    hint.textContent =
-      timing.mode === 'timed'
-        ? 'Breaks begin after reflection. Defaults in Settings.'
-        : 'Flowtime suggests a break when you finish. Defaults in Settings.';
+    hint.hidden = timing.mode === 'timed';
     for (const b of choices.children)
       b.setAttribute('aria-pressed', String(b.dataset.mode === timing.mode));
   }
@@ -67,7 +68,7 @@ export function timingControls(timing, onChange) {
     timing.autoBreak = automatic.checked;
     onChange();
   };
-  label.append(automatic, document.createTextNode('Start break after reflection'));
+  label.append(automatic, document.createTextNode('Break after reflection'));
   fields.append(label);
   header.append(node('h2', '', 'Session timing'), choices);
   section.append(header, fields, hint);
