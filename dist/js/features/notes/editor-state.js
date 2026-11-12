@@ -1,7 +1,7 @@
-import { editIndents, indentLevel } from './formatting/indents.js?v=a482c04a82dd';
-import { editBullets, selectedLines } from './formatting/bullets.js?v=a482c04a82dd';
-import { segments, toggleFormat, editFormat } from './formatting/format.js?v=a482c04a82dd';
-import { lineRange, editTasks } from './formatting/tasks.js?v=a482c04a82dd';
+import { editIndents, indentLevel } from './formatting/indents.js?v=e07453b1a957';
+import { editBullets, selectedLines } from './formatting/bullets.js?v=e07453b1a957';
+import { segments, toggleFormat, editFormat } from './formatting/format.js?v=e07453b1a957';
+import { lineRange, editTasks } from './formatting/tasks.js?v=e07453b1a957';
 
 export function replaceText(state, start, end, text, typingStyle) {
   const next = state.text.slice(0, start) + text + state.text.slice(end);

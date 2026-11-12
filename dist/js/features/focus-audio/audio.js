@@ -1,4 +1,4 @@
-import { musicProfile, musicLength, renderMusic } from './music.js?v=a482c04a82dd';
+import { musicProfile, musicLength, renderMusic } from './music.js?v=e07453b1a957';
 // All sounds are generated locally; no remote tracks, accounts or audio downloads.
 export class FocusAudio {
   constructor() {

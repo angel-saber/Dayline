@@ -3683,68 +3683,64 @@ body.month-dragging .commitments-launch {
   margin-bottom: 8px;
 }
 
-/* Preparation timing stays visible in a compact strip. */
+/* Keep timer mode and timed settings side by side. */
 .focus-window .focus-timing-controls {
-  padding: 12px 14px;
-  margin: 12px 0;
+  display: grid;
+  grid-template-columns: minmax(82px, 1fr) minmax(0, 2.4fr);
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  margin: 6px 0;
 }
 .focus-timing-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px 12px;
+  display: grid;
+  gap: 4px;
 }
 .focus-window .focus-timing-header h2 {
   margin: 0;
-  font-size: 15px;
-  line-height: 1.3;
+  font-size: 14px;
+  line-height: 1.2;
 }
 .focus-timing-choices {
-  display: inline-flex;
-  gap: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
 }
 .focus-timing-choices button {
-  padding: 6px 12px;
-  min-height: 32px;
-  border-radius: 18px;
-  font-size: 12px;
+  padding: 4px 6px;
+  min-height: 24px;
+  border-radius: 12px;
+  font-size: 11px;
 }
 .focus-timing-controls .focus-timing-fields {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 12px;
-  margin-top: 10px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr);
+  align-items: start;
+  gap: 5px;
 }
-.focus-timing-controls .focus-timing-duration {
+.focus-timing-controls .focus-timing-duration,
+.focus-timing-controls .focus-timing-auto-break {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
   margin: 0;
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1.2;
 }
 .focus-timing-controls .focus-timing-duration input {
-  width: 70px;
+  width: min(100%, 72px);
   min-width: 0;
-  padding: 5px 7px;
+  padding: 4px;
   font-size: 13px;
 }
-.focus-timing-controls .focus-timing-auto-break {
-  grid-column: 1 / -1;
-  margin: 0;
-  gap: 6px;
-  align-items: center;
-  font-size: 12px;
-  line-height: 1.4;
-}
 .focus-timing-controls .focus-timing-hint {
-  margin: 8px 0 0;
+  margin: 0;
   font-size: 11px;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
-/* Only the optional preparation content scrolls; the start action stays visible. */
+/* Preparation content can scroll without moving the start action. */
 .focus-window.focus-preparing[open] {
   display: flex;
   flex-direction: column;
@@ -3775,7 +3771,6 @@ body.month-dragging .commitments-launch {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-.focus-preparing .focus-prep-disclosure,
 .focus-preparing .focus-preparation-help {
   margin: 0;
   padding: 0 10px;
@@ -3785,7 +3780,6 @@ body.month-dragging .commitments-launch {
 .focus-preparing details > summary {
   cursor: pointer;
 }
-.focus-preparing .focus-prep-disclosure > summary,
 .focus-preparing .focus-preparation-help > summary {
   padding: 8px 0;
   font-size: 12px;
@@ -3794,8 +3788,15 @@ body.month-dragging .commitments-launch {
   margin: 6px 0;
   padding: 7px 10px;
 }
-.focus-preparing .focus-timing-fields {
-  margin-top: 6px;
+.focus-preparing .focus-notes-section {
+  margin: 0;
+  padding: 8px 10px;
+}
+.focus-preparing .focus-notes-section h2 {
+  font-size: 15px;
+}
+.focus-preparing .focus-notes-section p {
+  margin-block: 4px;
 }
 .focus-preparing .focus-commitment {
   margin: 8px 0 0;

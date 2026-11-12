@@ -1,4 +1,4 @@
-import { validTags } from '../notes/note-types.js?v=a482c04a82dd';
+import { validTags } from '../notes/note-types.js?v=e07453b1a957';
 export const COMMITMENTS_KEY = 'dayline.daily-commitments.v1';
 export const SUGGESTIONS = [
   'Exercise',

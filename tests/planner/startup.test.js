@@ -799,7 +799,8 @@ test('the assembled planner starts, switches views/personalities, edits settings
     const prepBody = document.querySelector('.focus-prep-scroll');
     assert.ok(prepBody.contains(preparationHelp));
     assert.equal(prepBody.nextElementSibling, commitmentSection);
-    assert.ok(!prepBody.querySelector('.focus-prep-disclosure').open);
+    assert.ok(prepBody.querySelector('.focus-notes-section'));
+    assert.equal(prepBody.querySelector('.focus-notes-section').closest('details'), null);
     preparationHelp.open = true;
     assert.ok(preparationHelp.querySelector('[data-support-area="balance"]'));
     preparationHelp.open = false;
