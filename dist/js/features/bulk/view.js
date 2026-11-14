@@ -1,8 +1,8 @@
-import { node } from '../../shared/dom.js?v=e07453b1a957';
-import { openAvailability } from '../sharing/availability-ui.js?v=e07453b1a957';
-import { selectionKey, selectedNotes, matchingNotes, scopeRange } from './model.js?v=e07453b1a957';
-import { categoryOptions, typeChips } from '../notes/note-types.js?v=e07453b1a957';
-import { openShareNotes } from '../sharing/share-note.js?v=e07453b1a957';
+import { node } from '../../shared/dom.js?v=683d01a271f7';
+import { openAvailability } from '../sharing/availability-ui.js?v=683d01a271f7';
+import { selectionKey, selectedNotes, matchingNotes, scopeRange } from './model.js?v=683d01a271f7';
+import { categoryOptions, typeChips } from '../notes/note-types.js?v=683d01a271f7';
+import { openShareNotes } from '../sharing/share-note.js?v=683d01a271f7';
 
 const button = (text, fn, cls = 'secondary') => {
   const e = node('button', cls, text);

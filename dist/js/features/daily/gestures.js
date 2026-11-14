@@ -1,5 +1,5 @@
-import { dropTimePreview } from './drop-time.js?v=e07453b1a957';
-import { dropHover } from './drop-hover.js?v=e07453b1a957';
+import { dropTimePreview } from './drop-time.js?v=683d01a271f7';
+import { dropHover } from './drop-hover.js?v=683d01a271f7';
 // One delegated pointer controller; never blocks vertical scrolling on note cards.
 export function attachGestures(
   root,
