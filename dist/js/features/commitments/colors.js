@@ -1,4 +1,4 @@
-import { getPersonality, personality } from '../../personalities/index.js?v=a5c97504943d';
+import { getPersonality, personality } from '../../personalities/index.js?v=57a5551e6697';
 // The saved list position, not its temporary pending/done position, defines color.
 export function commitmentColors(index, mode = personality()) {
   const palette = getPersonality(mode).commitmentPalette;

@@ -5998,6 +5998,27 @@ body.month-dragging .commitments-launch {
   }
 }
 
+.meet-day-row:has(.meet-day-drag-handle) {
+  position: relative;
+}
+
+.meet-day-row:has(.meet-day-drag-handle) > .field-hint {
+  padding-right: 24px;
+}
+
+.meet-day-drag-handle {
+  position: absolute;
+  inset: 6px 8px auto auto;
+  padding: 2px 5px;
+  color: var(--muted);
+  cursor: grab;
+}
+
+.meet-day-dragging .meet-day-column {
+  outline: 1px dashed var(--green);
+  outline-offset: -1px;
+}
+
 
 :root[data-layout='astronaut'] body {
   background-image:

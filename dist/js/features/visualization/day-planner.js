@@ -1,7 +1,7 @@
-import { node } from '../../shared/dom.js?v=a5c97504943d';
-import { offsetDay, parseDay, timeLabel } from '../../shared/dates.js?v=a5c97504943d';
-import { noteTasks } from '../notes/formatting/tasks.js?v=a5c97504943d';
-import { buildDayReview, calendarLabel, planningTimeLabel } from './day-review.js?v=a5c97504943d';
+import { node } from '../../shared/dom.js?v=57a5551e6697';
+import { offsetDay, parseDay, timeLabel } from '../../shared/dates.js?v=57a5551e6697';
+import { noteTasks } from '../notes/formatting/tasks.js?v=57a5551e6697';
+import { buildDayReview, calendarLabel, planningTimeLabel } from './day-review.js?v=57a5551e6697';
 
 const periods = ['Morning', 'Afternoon', 'Evening'];
 const periodOf = (note) =>
@@ -69,6 +69,7 @@ export function buildDayPlanner({
   });
   let current = adaptive ? periodOf({ minute: getTiming().current }) : 0;
   let undo = null;
+  let dragged = null;
   const button = (text, action, style = 'secondary') => {
     const element = node('button', style, text);
     element.type = 'button';
@@ -394,14 +395,97 @@ export function buildDayPlanner({
       container.replaceChildren(controls);
       controls.firstElementChild.focus();
     }
+    function remove(container, entry, day) {
+      const commitment = !!entry.commitmentId;
+      const label = commitment ? 'Remove placement' : 'Delete note';
+      container.replaceChildren(
+        node(
+          'p',
+          'field-hint',
+          commitment
+            ? `Remove ${titleOf(entry)} from this plan?`
+            : `Delete ${titleOf(entry)} from ${calendarLabel(day)}${entry.repeat ? ' (this occurrence)' : ''}?`,
+        ),
+        button(
+          label,
+          () =>
+            applyChanges(
+              [{ from: day, before: entry }],
+              commitment ? 'Commitment placement removed.' : 'Note deleted.',
+            ),
+          'primary',
+        ),
+        button('Cancel', () => render(true)),
+      );
+      container.querySelector('button').focus();
+    }
+
+    function reorder(entries, entry, target) {
+      const reordered = entries.filter((note) => note !== entry);
+      reordered.splice(entries.indexOf(target), 0, entry);
+      const changes = reordered.flatMap((note, index) => {
+        if (note.dayPlanOrder === index) return [];
+        const day = note.calendarDay || today;
+        return [{ from: day, to: day, before: note, after: { ...note, dayPlanOrder: index } }];
+      });
+      if (changes.length) applyChanges(changes, 'Card order saved.');
+    }
+
+    function allowDrop(element, accepts, drop) {
+      element.addEventListener('dragover', (event) => {
+        if (!dragged || !accepts(dragged)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+      });
+      element.addEventListener('drop', (event) => {
+        if (!dragged || !accepts(dragged)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const entry = dragged;
+        dragged = null;
+        frame.classList.remove('meet-day-dragging');
+        drop(entry);
+      });
+    }
+
     periods.forEach((period, index) => {
       const entries = notes
         .filter((entry) => periodOf(entry) === index)
-        .sort((a, b) => Number(!!a.allDay) - Number(!!b.allDay) || a.minute - b.minute);
+        .sort(
+          (a, b) =>
+            Number(!!a.allDay) - Number(!!b.allDay) ||
+            (a.allDay && b.allDay
+              ? (a.dayPlanOrder ?? Infinity) - (b.dayPlanOrder ?? Infinity) || a.minute - b.minute
+              : a.minute - b.minute),
+        );
+      const untimed = entries.filter((entry) => entry.allDay);
       tabs.append(button(`${period} (${entries.length})`, () => select(index)));
       const column = node('section', 'meet-day-column');
       const actions = node('div', 'meet-day-actions');
       const editor = node('div');
+      allowDrop(
+        column,
+        (entry) => periodOf(entry) !== index,
+        (entry) => {
+          if (entry.allDay) {
+            const day = entry.calendarDay || today;
+            const { dayPlanOrder, ...note } = entry;
+            current = index;
+            applyChanges(
+              [
+                {
+                  from: day,
+                  to: today,
+                  before: entry,
+                  after: { ...note, dayPeriod: index, minute: dayStarts[index] },
+                },
+              ],
+              `${titleOf(entry)} moved to ${period.toLowerCase()}.`,
+            );
+          } else choose(editor, index, { note: entry });
+        },
+      );
       actions.append(
         button('+ Note', () => choose(editor, index, { compose: true })),
         button('Schedule commitment', () => {
@@ -423,7 +507,52 @@ export function buildDayPlanner({
         }
         const row = node('div', 'meet-day-row');
         const edit = node('div');
+        const cardActions = node('div', 'meet-day-actions');
+        const grip = node('span', 'meet-day-drag-handle', '⠿');
+        grip.setAttribute('aria-hidden', 'true');
+        grip.draggable = true;
+        grip.title = 'Drag to move';
+        grip.addEventListener('dragstart', (event) => {
+          dragged = entry;
+          frame.classList.add('meet-day-dragging');
+          if (event.dataTransfer) {
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', titleOf(entry));
+          }
+        });
+        grip.addEventListener('dragend', () => {
+          dragged = null;
+          frame.classList.remove('meet-day-dragging');
+        });
+        const position = untimed.indexOf(entry);
+        const canReorder = position !== -1 && untimed.length > 1;
+        if (canReorder) {
+          allowDrop(
+            row,
+            (source) => source !== entry && untimed.includes(source),
+            (source) => reorder(untimed, source, entry),
+          );
+        }
+        cardActions.append(
+          button('Move', () => {
+            destinations(edit, { note: entry });
+            if (canReorder && position > 0)
+              edit.firstElementChild.append(
+                button('Move up', () => reorder(untimed, entry, untimed[position - 1])),
+              );
+            if (canReorder && position < untimed.length - 1)
+              edit.firstElementChild.append(
+                button('Move down', () => reorder(untimed, entry, untimed[position + 1])),
+              );
+          }),
+        );
+        cardActions.append(
+          button(entry.commitmentId ? 'Remove' : 'Delete', () =>
+            remove(edit, entry, entry.calendarDay || today),
+          ),
+        );
         row.append(
+          grip,
           node(
             'span',
             'field-hint',
@@ -435,7 +564,7 @@ export function buildDayPlanner({
               .join(' · '),
           ),
           node('strong', '', titleOf(entry)),
-          button('Move', () => destinations(edit, { note: entry })),
+          cardActions,
           edit,
         );
         if (adaptive && isOpen(entry)) row.append(pin(`note:${entry.id}`));
@@ -444,6 +573,14 @@ export function buildDayPlanner({
       if (adaptive && dayStarts[index + 1] <= planTiming.current) {
         const earlier = node('details', 'meet-day-earlier');
         earlier.append(node('summary', '', `${period} · ${entries.length} earlier`), column);
+        allowDrop(
+          earlier,
+          (entry) => periodOf(entry) !== index,
+          (entry) => {
+            earlier.open = true;
+            choose(editor, index, { note: entry });
+          },
+        );
         grid.append(earlier);
       } else grid.append(column);
     });
@@ -497,6 +634,11 @@ export function buildDayPlanner({
             );
             edit.firstElementChild.focus();
           }),
+        );
+        actions.append(
+          button(note.commitmentId ? 'Remove' : 'Delete', () =>
+            remove(edit, note, note.calendarDay || yesterday),
+          ),
         );
         if (carried)
           actions.append(

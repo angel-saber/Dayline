@@ -1,7 +1,7 @@
-import { noteTasks } from '../notes/formatting/tasks.js?v=a5c97504943d';
-import { node } from '../../shared/dom.js?v=a5c97504943d';
-import { offsetDay, parseDay, timeLabel } from '../../shared/dates.js?v=a5c97504943d';
-import { freeGaps, suggestedApproach } from './planning-time.js?v=a5c97504943d';
+import { noteTasks } from '../notes/formatting/tasks.js?v=57a5551e6697';
+import { node } from '../../shared/dom.js?v=57a5551e6697';
+import { offsetDay, parseDay, timeLabel } from '../../shared/dates.js?v=57a5551e6697';
+import { freeGaps, suggestedApproach } from './planning-time.js?v=57a5551e6697';
 
 const labels = {
   smaller: [
