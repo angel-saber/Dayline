@@ -48,7 +48,7 @@ test('effects honor reduced motion and hidden tabs, persist device preference, a
     ]),
   );
   const { window } = parseHTML(
-    '<html data-layout="astronaut"><body><select id="visual-effects"><option>full</option><option>subtle</option><option>off</option></select><p id="effects-status"></p><dialog class="focus-window" open></dialog></body></html>',
+    '<html data-layout="astronaut"><body><select id="visual-effects"><option>full</option><option>subtle</option><option>off</option></select><p id="effects-status"></p><input id="celebration-sound" type="checkbox"><button id="preview-celebration-sound"></button><p id="celebration-sound-status"></p><dialog class="focus-window" open></dialog></body></html>',
   );
   const media = {
     matches: false,
@@ -77,7 +77,15 @@ test('effects honor reduced motion and hidden tabs, persist device preference, a
     window.HTMLElement.prototype.showPopover = function () {
       this.dataset.popoverShown = 'true';
     };
-    effects = setupPersonalityEffects();
+    const sounds = [];
+    effects = setupPersonalityEffects({
+      sound: {
+        async play(layout) {
+          sounds.push(layout);
+        },
+        destroy() {},
+      },
+    });
     const root = document.documentElement,
       select = document.querySelector('select');
     const emit = () =>
@@ -118,6 +126,26 @@ test('effects honor reduced motion and hidden tabs, persist device preference, a
     document.querySelector('.effects-preview').click();
     assert.match(document.querySelector('.personality-burst').textContent, /Course set/);
     assert.equal(JSON.stringify([...memory]), snapshot);
+    for (const layout of ['zen', 'builder', 'founder', 'poet', 'astronaut', 'gamer']) {
+      root.dataset.layout = layout;
+      window.dispatchEvent(new window.Event('dayline:appearance'));
+      emit();
+      assert.equal(sounds.at(-1), layout);
+      assert.equal(
+        !!document.querySelector('.personality-burst'),
+        ['astronaut', 'gamer'].includes(layout),
+      );
+    }
+    const toggle = document.querySelector('#celebration-sound');
+    toggle.checked = false;
+    toggle.dispatchEvent(new window.Event('change'));
+    const soundCount = sounds.length;
+    root.dataset.layout = 'poet';
+    window.dispatchEvent(new window.Event('dayline:appearance'));
+    emit();
+    assert.equal(sounds.length, soundCount);
+    document.querySelector('#preview-celebration-sound').click();
+    assert.equal(sounds.at(-1), 'poet');
     effects.destroy();
     effects = null;
     assert.equal(document.querySelector('.personality-scene'), null);

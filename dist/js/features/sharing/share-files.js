@@ -1,4 +1,4 @@
-import { readFile } from '../attachments/attachments.js?v=57a5551e6697';
+import { readFile } from '../attachments/attachments.js?v=73be664608f3';
 export function shareAttachments(items) {
   return [
     ...new Map(

@@ -1,13 +1,18 @@
-import { getPersonality } from './index.js?v=57a5551e6697';
+import { createCelebrationSound } from './celebration-sound.js?v=73be664608f3';
+import { getPersonality } from './index.js?v=73be664608f3';
 const KEY = 'dayline.effects.v1';
+const SOUND_KEY = 'dayline.celebration-sound.v1';
 const LEVELS = ['full', 'subtle', 'off'];
 export function effectiveEffects(level, reduced, hidden) {
   return reduced || hidden ? 'off' : LEVELS.includes(level) ? level : 'full';
 }
-export function setupPersonalityEffects() {
+export function setupPersonalityEffects({ sound = createCelebrationSound() } = {}) {
   const root = document.documentElement;
   const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
   const select = document.querySelector('#visual-effects');
+  const soundToggle = document.querySelector('#celebration-sound');
+  const soundStatus = document.querySelector('#celebration-sound-status');
+  const soundPreview = document.querySelector('#preview-celebration-sound');
   const status = document.querySelector('#effects-status');
   const preview = document.createElement('button');
   preview.type = 'button';
@@ -23,10 +28,38 @@ export function setupPersonalityEffects() {
   let level = 'full',
     timer,
     last = -Infinity;
+  let soundEnabled = true;
   try {
     level = localStorage.getItem(KEY) || 'full';
+    soundEnabled = localStorage.getItem(SOUND_KEY) !== 'off';
   } catch {}
   if (!LEVELS.includes(level)) level = 'full';
+  if (soundToggle) soundToggle.checked = soundEnabled;
+  function changeSound() {
+    soundEnabled = soundToggle.checked;
+    try {
+      localStorage.setItem(SOUND_KEY, soundEnabled ? 'on' : 'off');
+    } catch {}
+    if (soundStatus) soundStatus.textContent = '';
+  }
+  function playSound(preview = false) {
+    if ((!soundEnabled && !preview) || document.hidden) return;
+    sound
+      .play(root.dataset.layout)
+      .then(() => {
+        if (soundStatus) soundStatus.textContent = '';
+      })
+      .catch((error) => {
+        if (soundStatus)
+          soundStatus.textContent =
+            error.name === 'NotAllowedError'
+              ? 'Your browser blocked sound. Try Preview celebration sound.'
+              : error.message;
+      });
+  }
+  function previewSound() {
+    playSound(true);
+  }
   function clear() {
     clearTimeout(timer);
     document.querySelectorAll('.personality-burst').forEach((node) => node.remove());
@@ -58,15 +91,13 @@ export function setupPersonalityEffects() {
     refresh();
   }
   function burst(event) {
-    if (
-      !getPersonality(root.dataset.layout).effects ||
-      root.dataset.effects !== 'full' ||
-      Date.now() - last < 300
-    )
-      return;
-    if (!['complete', 'focus-commit', 'focus-finish'].includes(event.detail?.kind)) return;
-    clear();
+    const kind = event.detail?.kind;
+    if (!['complete', 'focus-commit', 'focus-finish'].includes(kind)) return;
+    if (Date.now() - last < 300) return;
     last = Date.now();
+    if (kind !== 'focus-commit' && soundToggle) playSound();
+    if (!getPersonality(root.dataset.layout).effects || root.dataset.effects !== 'full') return;
+    clear();
     const node = document.createElement('div');
     node.className = 'personality-burst';
     node.dataset.kind = event.detail.kind;
@@ -86,9 +117,9 @@ export function setupPersonalityEffects() {
         node.showPopover();
       } catch {
         node.removeAttribute('popover');
-        document.querySelector('.focus-window[open]')?.append(node);
+        [...document.querySelectorAll('dialog[open]')].at(-1)?.append(node);
       }
-    } else document.querySelector('.focus-window[open]')?.append(node);
+    } else [...document.querySelectorAll('dialog[open]')].at(-1)?.append(node);
     timer = setTimeout(() => node.remove(), 2400);
   }
   function previewEffect() {
@@ -98,6 +129,8 @@ export function setupPersonalityEffects() {
   function phase(event) {
     root.dataset.focusActive = String(event.detail?.phase === 'active');
   }
+  soundToggle?.addEventListener('change', changeSound);
+  soundPreview?.addEventListener('click', previewSound);
   select?.addEventListener('change', change);
   media?.addEventListener?.('change', refresh);
   document.addEventListener('visibilitychange', refresh);
@@ -108,6 +141,9 @@ export function setupPersonalityEffects() {
   return {
     destroy() {
       clear();
+      sound.destroy();
+      soundToggle?.removeEventListener('change', changeSound);
+      soundPreview?.removeEventListener('click', previewSound);
       scene.remove();
       preview.remove();
       select?.removeEventListener('change', change);
