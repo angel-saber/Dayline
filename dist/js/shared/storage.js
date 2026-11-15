@@ -1,22 +1,22 @@
-import { validListOrder } from '../features/lists/model.js?v=683d01a271f7';
-import { validCommitmentState } from '../features/commitments/game.js?v=683d01a271f7';
-import { validLifeData } from '../features/yearly/life/model.js?v=683d01a271f7';
-import { validYearly, validYearlySource } from '../features/yearly/model.js?v=683d01a271f7';
-import { validRepeat } from '../features/repeating/series.js?v=683d01a271f7';
-import { validIndents } from '../features/notes/formatting/indents.js?v=683d01a271f7';
-import { validAvailableHours } from '../features/settings/available-hours.js?v=683d01a271f7';
-import { validAttachments } from '../features/attachments/attachments.js?v=683d01a271f7';
+import { validListOrder } from '../features/lists/model.js?v=997915ecfd91';
+import { validCommitmentState } from '../features/commitments/game.js?v=997915ecfd91';
+import { validLifeData } from '../features/yearly/life/model.js?v=997915ecfd91';
+import { validYearly, validYearlySource } from '../features/yearly/model.js?v=997915ecfd91';
+import { validRepeat } from '../features/repeating/series.js?v=997915ecfd91';
+import { validIndents } from '../features/notes/formatting/indents.js?v=997915ecfd91';
+import { validAvailableHours } from '../features/settings/available-hours.js?v=997915ecfd91';
+import { validAttachments } from '../features/attachments/attachments.js?v=997915ecfd91';
 import {
   validNoteType,
   validTags,
   validTagSettings,
-} from '../features/notes/note-types.js?v=683d01a271f7';
-import { validGuidedReports } from '../features/activities/model.js?v=683d01a271f7';
-import { validBullets } from '../features/notes/formatting/bullets.js?v=683d01a271f7';
-import { validFocusReports } from '../features/focus/model.js?v=683d01a271f7';
-import { DEFAULT_SETTINGS } from './schedule.js?v=683d01a271f7';
-import { validFormat } from '../features/notes/formatting/format.js?v=683d01a271f7';
-import { validTasks } from '../features/notes/formatting/tasks.js?v=683d01a271f7';
+} from '../features/notes/note-types.js?v=997915ecfd91';
+import { validGuidedReports } from '../features/activities/model.js?v=997915ecfd91';
+import { validBullets } from '../features/notes/formatting/bullets.js?v=997915ecfd91';
+import { validFocusReports } from '../features/focus/model.js?v=997915ecfd91';
+import { DEFAULT_SETTINGS } from './schedule.js?v=997915ecfd91';
+import { validFormat } from '../features/notes/formatting/format.js?v=997915ecfd91';
+import { validTasks } from '../features/notes/formatting/tasks.js?v=997915ecfd91';
 const KEY = 'dayline.v1';
 export function validState(value) {
   if (
@@ -78,6 +78,15 @@ export function validState(value) {
         )
           throw Error('Invalid life planner link.');
         result.lifeSource = { group: e.lifeSource.group };
+      }
+      if (e.dayPeriod !== undefined) {
+        if (![0, 1, 2].includes(e.dayPeriod)) throw Error('Invalid planning period.');
+        result.dayPeriod = e.dayPeriod;
+      }
+      if (e.carriedFrom !== undefined) {
+        if (typeof e.carriedFrom !== 'string' || !/^\d{4}-\d{2}-\d{2}\/.+/.test(e.carriedFrom))
+          throw Error('Invalid carry-forward source.');
+        result.carriedFrom = e.carriedFrom;
       }
       if (e.commitmentId !== undefined) {
         if (typeof e.commitmentId !== 'string' || !e.commitmentId || e.commitmentId.length > 100)

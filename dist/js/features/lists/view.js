@@ -1,14 +1,14 @@
-import { renderFocusReports } from '../focus/reports.js?v=683d01a271f7';
-import { renderGuidedReports } from '../activities/view.js?v=683d01a271f7';
-import { node } from '../../shared/dom.js?v=683d01a271f7';
-import { timeLabel, parseDay } from '../../shared/dates.js?v=683d01a271f7';
-import { tagBadges } from '../notes/note-types.js?v=683d01a271f7';
-import { commitmentColors } from '../commitments/colors.js?v=683d01a271f7';
-import { renderNoteLines } from '../notes/render.js?v=683d01a271f7';
-import { noteTasks } from '../notes/formatting/tasks.js?v=683d01a271f7';
-import { attachmentList } from '../attachments/attachments.js?v=683d01a271f7';
-import { orderedItems, itemKey } from './model.js?v=683d01a271f7';
-import { bindListGestures } from './gestures.js?v=683d01a271f7';
+import { renderFocusReports } from '../focus/reports.js?v=997915ecfd91';
+import { renderGuidedReports } from '../activities/view.js?v=997915ecfd91';
+import { node } from '../../shared/dom.js?v=997915ecfd91';
+import { timeLabel, parseDay } from '../../shared/dates.js?v=997915ecfd91';
+import { tagBadges } from '../notes/note-types.js?v=997915ecfd91';
+import { commitmentColors } from '../commitments/colors.js?v=997915ecfd91';
+import { renderNoteLines } from '../notes/render.js?v=997915ecfd91';
+import { noteTasks } from '../notes/formatting/tasks.js?v=997915ecfd91';
+import { attachmentList } from '../attachments/attachments.js?v=997915ecfd91';
+import { orderedItems, itemKey } from './model.js?v=997915ecfd91';
+import { bindListGestures } from './gestures.js?v=997915ecfd91';
 const statusFilters = new Map();
 const button = (text, action, cls = '') => {
   const b = node('button', cls, text);

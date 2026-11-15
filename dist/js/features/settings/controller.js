@@ -3,7 +3,7 @@ import {
   validAvailableHours,
   hourInput,
   inputMinute,
-} from './available-hours.js?v=683d01a271f7';
+} from './available-hours.js?v=997915ecfd91';
 const $ = (selector) => document.querySelector(selector);
 export function setupSettings({
   getState,

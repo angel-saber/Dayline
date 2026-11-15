@@ -1,6 +1,7 @@
-import { node } from '../../shared/dom.js?v=683d01a271f7';
-import { dayKey } from '../../shared/dates.js?v=683d01a271f7';
-import { VISUALIZATIONS, rollVisualization } from './catalog.js?v=683d01a271f7';
+import { buildDayPlanner } from './day-planner.js?v=997915ecfd91';
+import { node } from '../../shared/dom.js?v=997915ecfd91';
+import { dayKey } from '../../shared/dates.js?v=997915ecfd91';
+import { VISUALIZATIONS, rollVisualization } from './catalog.js?v=997915ecfd91';
 export const ENABLED_KEY = 'dayline.visualization.enabled.v1';
 export const PINNED_KEY = 'dayline.visualization.pinned.v1';
 export const SEEN_KEY = 'dayline.visualization.seen.v1';
@@ -20,6 +21,7 @@ export function setupVisualizations({
   favorites,
   canInvite,
   saveAction,
+  planning,
   toast,
   storage = localStorage,
   now = () => new Date(),
@@ -27,7 +29,9 @@ export function setupVisualizations({
 }) {
   const dialog = node('dialog', 'visualization-dialog');
   dialog.setAttribute('aria-labelledby', 'visualization-heading');
-  document.body.append(dialog);
+  const planner = node('dialog', 'meet-day-dialog');
+  planner.setAttribute('aria-labelledby', 'meet-day-heading');
+  document.body.append(dialog, planner);
   let exercise,
     response = '',
     sessionDay = null;
@@ -45,14 +49,14 @@ export function setupVisualizations({
   const toggle = node('input');
   toggle.type = 'checkbox';
   toggle.checked = read(ENABLED_KEY) !== 'off';
-  label.append(toggle, document.createTextNode('Show daily visualization invitation'));
+  label.append(toggle, document.createTextNode('Open the day planner automatically'));
   setting.append(
-    node('h2', '', 'Daily visualization'),
+    node('h2', '', 'Meet Your Day'),
     label,
     node(
       'p',
       'field-hint',
-      'Show an invitation when you first open Dayline each day on this browser. Guided Visualization remains available in More.',
+      'Open the day planner the first time you visit Dayline each day on this browser.',
     ),
   );
   const firstLabel = node('label', 'visualization-first-label', 'First visualization');
@@ -73,7 +77,7 @@ export function setupVisualizations({
     node(
       'p',
       'field-hint',
-      'A pinned exercise opens first for the daily pop-up and Guided Visualization. You can still reroll. This choice and activity favorites are saved in this browser.',
+      'A pinned exercise opens first for the Guided Visualization. You can still reroll. This choice and activity favorites are saved in this browser.',
     ),
   );
   first.addEventListener('change', () => setPin(first.value));
@@ -99,12 +103,45 @@ export function setupVisualizations({
   if (favorites)
     card.append(favorites.register('visualization', 'Guided Visualization', () => open(false)));
   root.append(card);
+  if (planning) {
+    const plannerCard = node('section', 'settings-card activity-card');
+    plannerCard.append(
+      node('h2', '', 'Meet Your Day'),
+      button('Plan today', () => openPlanner(dayKey(now())), 'primary'),
+    );
+    root.append(plannerCard);
+  }
+  function openPlanner(today) {
+    if (planner.open) return;
+    const heading = node('h2', '', 'A moment to meet your day');
+    heading.id = 'meet-day-heading';
+    heading.tabIndex = -1;
+    const reflection = node('details', 'meet-day-reflection');
+    reflection.append(
+      node('summary', '', 'Reflection'),
+      button('Open guided visualization', () => open(false)),
+    );
+    planner.replaceChildren(
+      heading,
+      buildDayPlanner({
+        ...planning,
+        today,
+        reflection,
+        finish: () => {
+          planner.close();
+          planning.finish(today);
+        },
+      }),
+    );
+    planner.showModal();
+    heading.focus();
+  }
   function render() {
     dialog.replaceChildren();
     const header = node('div', 'activity-header');
     const close = button('×', () => dialog.close());
     close.setAttribute('aria-label', 'Close visualization');
-    const heading = node('h2', '', 'A moment to meet your day');
+    const heading = node('h2', '', 'Guided Visualization');
     heading.id = 'visualization-heading';
     header.append(heading, close);
     dialog.append(
@@ -174,11 +211,7 @@ export function setupVisualizations({
     dialog.append(
       actions,
       status,
-      node(
-        'p',
-        'field-hint',
-        'You can disable the daily pop-up in Settings → Daily visualization. These exercises are always available in More.',
-      ),
+      node('p', 'field-hint', 'These exercises are always available in More.'),
     );
   }
   function refreshPin() {
@@ -209,8 +242,11 @@ export function setupVisualizations({
     sessionDay = daily ? dayKey(now()) : null;
     exercise = pinnedExercise() || rollVisualization(exercise?.id, random);
     response = '';
-    render();
-    dialog.showModal();
+    if (daily && planning) openPlanner(sessionDay);
+    else {
+      render();
+      dialog.showModal();
+    }
     if (daily) {
       shown.add(sessionDay);
       try {
@@ -241,6 +277,7 @@ export function setupVisualizations({
   });
   window.addEventListener('dayline:account', () => {
     if (dialog.open) dialog.close();
+    if (planner.open) planner.close();
   });
   queueMicrotask(check);
   return { open: () => open(false), check, dialog };
