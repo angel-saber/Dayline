@@ -125,6 +125,33 @@ test('overnight notes use the next calendar date and a batch can be reviewed and
     click('Undo');
     assert.equal(days[today][0].id, 'old');
     assert.equal(days[tomorrow].length, 1);
+
+    for (const name of ['First card', 'Second card']) {
+      const period = planner.querySelector('.meet-day-current');
+      click('+ Note', period);
+      period.querySelector('[aria-label="Note title"]').value = name;
+      period.querySelector('form').dispatchEvent(new window.Event('submit', { cancelable: true }));
+    }
+    const card = (name) =>
+      [...planner.querySelectorAll('.meet-day-current .meet-day-row')].find(
+        (row) => row.querySelector('strong')?.textContent === name,
+      );
+    click('Move', card('Second card'));
+    click('Move up', card('Second card'));
+    assert.equal(days[today].find((note) => note.title === 'Second card').dayPlanOrder, 0);
+
+    card('First card').querySelector('[draggable]').dispatchEvent(new window.Event('dragstart'));
+    card('Second card').dispatchEvent(new window.Event('drop', { cancelable: true }));
+    assert.equal(days[today].find((note) => note.title === 'First card').dayPlanOrder, 0);
+
+    click('Delete', card('First card'));
+    click('Delete note', card('First card'));
+    assert.equal(
+      days[today].some((note) => note.title === 'First card'),
+      false,
+    );
+    click('Undo');
+    assert.equal(days[today].find((note) => note.title === 'First card').dayPlanOrder, 0);
   } finally {
     globalThis.document = old;
   }

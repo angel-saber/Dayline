@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=a5c97504943d';
-import { hourInput, inputMinute } from '../settings/available-hours.js?v=a5c97504943d';
+import { node } from '../../shared/dom.js?v=57a5551e6697';
+import { hourInput, inputMinute } from '../settings/available-hours.js?v=57a5551e6697';
 export const NIGHT_ORDER_KEY = 'dayline.daily-order.v1';
 export function readNightOrder(storage = localStorage) {
   try {
