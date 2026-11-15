@@ -1,7 +1,8 @@
-import { buildDayPlanner } from './day-planner.js?v=997915ecfd91';
-import { node } from '../../shared/dom.js?v=997915ecfd91';
-import { dayKey } from '../../shared/dates.js?v=997915ecfd91';
-import { VISUALIZATIONS, rollVisualization } from './catalog.js?v=997915ecfd91';
+import { planningClock } from './planning-time.js?v=a5c97504943d';
+import { buildDayPlanner } from './day-planner.js?v=a5c97504943d';
+import { node } from '../../shared/dom.js?v=a5c97504943d';
+import { dayKey } from '../../shared/dates.js?v=a5c97504943d';
+import { VISUALIZATIONS, rollVisualization } from './catalog.js?v=a5c97504943d';
 export const ENABLED_KEY = 'dayline.visualization.enabled.v1';
 export const PINNED_KEY = 'dayline.visualization.pinned.v1';
 export const SEEN_KEY = 'dayline.visualization.seen.v1';
@@ -22,6 +23,7 @@ export function setupVisualizations({
   canInvite,
   saveAction,
   planning,
+  plannerLaunch,
   toast,
   storage = localStorage,
   now = () => new Date(),
@@ -36,6 +38,9 @@ export function setupVisualizations({
     response = '',
     sessionDay = null;
   const shown = new Set();
+  const checkIns = new Map();
+  const getTiming = () => planningClock(now(), planning.hours());
+  const planningDate = () => (planning ? getTiming().today : dayKey(now()));
   const read = (key) => {
     try {
       return storage.getItem(key);
@@ -107,12 +112,26 @@ export function setupVisualizations({
     const plannerCard = node('section', 'settings-card activity-card');
     plannerCard.append(
       node('h2', '', 'Meet Your Day'),
-      button('Plan today', () => openPlanner(dayKey(now())), 'primary'),
+      button('Plan today', openPlanner, 'primary'),
     );
     root.append(plannerCard);
+    plannerLaunch?.addEventListener('click', openPlanner);
   }
-  function openPlanner(today) {
+  function openPlanner() {
     if (planner.open) return;
+    planning.prepare?.();
+    const today = planningDate();
+    const key = `dayline.meet-day.check-in.${planning.scope?.() || 'guest'}`;
+    let previous;
+    try {
+      previous = JSON.parse(read(key) || 'null');
+    } catch {
+      previous = null;
+    }
+    const dayState = {
+      ...(previous?.today === today ? previous.values : {}),
+      ...checkIns.get(`${key}/${today}`),
+    };
     const heading = node('h2', '', 'A moment to meet your day');
     heading.id = 'meet-day-heading';
     heading.tabIndex = -1;
@@ -127,9 +146,19 @@ export function setupVisualizations({
         ...planning,
         today,
         reflection,
+        getTiming,
+        dayState,
+        saveDayState(values) {
+          checkIns.set(`${key}/${today}`, { ...values });
+          try {
+            storage.setItem(key, JSON.stringify({ today, values }));
+          } catch {
+            // Use the in-memory check-in when storage is unavailable.
+          }
+        },
         finish: () => {
           planner.close();
-          planning.finish(today);
+          planning.finish(dayKey(now()));
         },
       }),
     );
@@ -239,10 +268,10 @@ export function setupVisualizations({
   });
   function open(daily) {
     if (dialog.open) return;
-    sessionDay = daily ? dayKey(now()) : null;
+    sessionDay = daily ? planningDate() : null;
     exercise = pinnedExercise() || rollVisualization(exercise?.id, random);
     response = '';
-    if (daily && planning) openPlanner(sessionDay);
+    if (daily && planning) openPlanner();
     else {
       render();
       dialog.showModal();
@@ -257,7 +286,7 @@ export function setupVisualizations({
     }
   }
   function check() {
-    const today = dayKey(now());
+    const today = planningDate();
     toggle.checked = read(ENABLED_KEY) !== 'off';
     if (
       !document.hidden &&

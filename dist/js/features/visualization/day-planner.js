@@ -1,12 +1,21 @@
-import { node } from '../../shared/dom.js?v=997915ecfd91';
-import { offsetDay, parseDay, timeLabel } from '../../shared/dates.js?v=997915ecfd91';
-import { noteTasks } from '../notes/formatting/tasks.js?v=997915ecfd91';
-import { isAwake } from '../settings/awake-hours.js?v=997915ecfd91';
+import { node } from '../../shared/dom.js?v=a5c97504943d';
+import { offsetDay, parseDay, timeLabel } from '../../shared/dates.js?v=a5c97504943d';
+import { noteTasks } from '../notes/formatting/tasks.js?v=a5c97504943d';
+import { buildDayReview, calendarLabel, planningTimeLabel } from './day-review.js?v=a5c97504943d';
 
 const periods = ['Morning', 'Afternoon', 'Evening'];
-const starts = [0, 720, 1020, 1440];
 const periodOf = (note) =>
   note.allDay ? (note.dayPeriod ?? 0) : note.minute < 720 ? 0 : note.minute < 1020 ? 1 : 2;
+const isOpen = (note) => !note.done || noteTasks(note).some((task) => !task.done);
+const complete = (note) => ({
+  ...note,
+  done: true,
+  tasks: noteTasks(note).map((task) => ({ ...task, done: true })),
+});
+const calendarNote = (note) => {
+  const { calendarDay, ...entry } = note;
+  return { ...entry, minute: entry.minute % 1440 };
+};
 const titleOf = (note) => note.title || note.text.split('\n')[0] || 'Untitled note';
 
 export function carryForward(note, id) {
@@ -30,7 +39,23 @@ export function carryForward(note, id) {
   return { ...rest, id, text: lines.join('\n'), tasks: open, done: false };
 }
 
-export function buildDayPlanner({ today, read, write, finish, reflection }) {
+export function buildDayPlanner({
+  today,
+  read,
+  write,
+  writeBatch,
+  finish,
+  reflection,
+  getTiming,
+  dayState = {},
+  saveDayState,
+}) {
+  const tomorrow = offsetDay(today, 1);
+  const adaptive = !!getTiming;
+  const saveState = (patch) => {
+    Object.assign(dayState, patch);
+    saveDayState?.(dayState);
+  };
   const yesterday = offsetDay(today, -1);
   const frame = node('div', 'meet-day');
   const body = node('div', 'meet-day-body');
@@ -42,7 +67,7 @@ export function buildDayPlanner({ today, read, write, finish, reflection }) {
     month: 'long',
     day: 'numeric',
   });
-  let current = 0;
+  let current = adaptive ? periodOf({ minute: getTiming().current }) : 0;
   let undo = null;
   const button = (text, action, style = 'secondary') => {
     const element = node('button', style, text);
@@ -57,27 +82,52 @@ export function buildDayPlanner({ today, read, write, finish, reflection }) {
   footer.append(status, undoButton, button('Done', finish, 'primary'));
   frame.append(node('p', 'field-hint', date), body, footer);
 
-  function apply(date, before, after, message) {
-    const changed = (notes, previous, next) => {
-      const id = previous?.id ?? next.id;
-      const index = notes.findIndex((note) => note.id === id);
-      if (previous ? JSON.stringify(notes[index]) !== JSON.stringify(previous) : index !== -1)
-        return null;
-      if (index === -1) return [...notes, next];
-      return next
-        ? notes.map((note) => (note.id === id ? next : note))
-        : notes.filter((note) => note.id !== id);
+  function applyChanges(changes, message, preference) {
+    const patches = [];
+    for (const { from, to, before, after } of changes) {
+      if (from === to) patches.push({ day: from, before, after });
+      else {
+        if (before) patches.push({ day: from, before });
+        if (after) patches.push({ day: to, after });
+      }
+    }
+    const applyPatches = (edits) => {
+      const next = (notes, { before, after }) => {
+        const previous = before && calendarNote(before);
+        const value = after && calendarNote(after);
+        const id = previous?.id ?? value.id;
+        const existing = notes.find((note) => note.id === id);
+        if (previous ? JSON.stringify(existing) !== JSON.stringify(previous) : existing)
+          return null;
+        return value
+          ? existing
+            ? notes.map((note) => (note.id === id ? value : note))
+            : [...notes, value]
+          : notes.filter((note) => note.id !== id);
+      };
+      if (writeBatch)
+        return writeBatch(
+          edits.map((edit) => ({ day: edit.day, update: (notes) => next(notes, edit) })),
+        );
+      return edits.length === 1 && write(edits[0].day, (notes) => next(notes, edits[0]));
     };
-    if (!write(date, (notes) => changed(notes, before, after))) {
-      status.textContent = 'Could not save this change. Please try again.';
+    if (!applyPatches(patches)) {
+      status.textContent = 'Could not save this change. Please refresh and try again.';
       return;
     }
+    const previousPriority = dayState.priority;
+    if (preference) saveState(preference);
     undo = () => {
-      if (!write(date, (notes) => changed(notes, after, before))) {
-        status.textContent = 'Could not undo because the note changed or saving failed.';
+      const reverse = patches
+        .map(({ day, before, after }) => ({ day, before: after, after: before }))
+        .reverse();
+      if (!applyPatches(reverse)) {
+        status.textContent = 'Could not undo because an item changed or saving failed.';
         return;
       }
       undo = null;
+      if (preference && dayState.priority === preference.priority)
+        saveState({ priority: previousPriority });
       undoButton.hidden = true;
       status.textContent = 'Change undone.';
       render(true);
@@ -86,13 +136,43 @@ export function buildDayPlanner({ today, read, write, finish, reflection }) {
     undoButton.hidden = false;
     render(true);
   }
+  const apply = (date, before, after, message) =>
+    applyChanges([{ from: before?.calendarDay || date, to: date, before, after }], message);
 
   function render(focus = false) {
     const { notes, oldNotes, commitments, pending, clock, hours } = read(today, yesterday);
+    const planTiming = getTiming?.();
+    const end = planTiming?.end ?? 1440;
+    const dayStarts = [0, 720, 1020, Math.max(1440, end)];
     const tabs = node('div', 'meet-day-tabs');
     const grid = node('div', 'meet-day-grid');
     const eligible = pending.filter((item) => !notes.some((note) => note.commitmentId === item.id));
-    body.replaceChildren(tabs, grid);
+    body.replaceChildren();
+    if (adaptive)
+      body.append(
+        buildDayReview({
+          today,
+          timing: planTiming,
+          notes,
+          commitments,
+          pending,
+          clock,
+          state: dayState,
+          saveState,
+          button,
+          titleOf,
+          isOpen,
+          complete,
+          update: applyChanges,
+          rerender: () => render(true),
+        }),
+      );
+    body.append(tabs, grid);
+    const pin = (key) =>
+      button(dayState.priority === key ? 'Priority selected' : 'Make this my priority', () => {
+        saveState({ priority: key });
+        render(true);
+      });
     function select(index, returnFocus = true) {
       current = index;
       [...grid.children].forEach((column, i) => {
@@ -102,7 +182,6 @@ export function buildDayPlanner({ today, read, write, finish, reflection }) {
       if (returnFocus) tabs.children[index].focus();
     }
     function choose(container, index, { note, item, source, compose } = {}) {
-      current = index;
       container.replaceChildren();
       const form = node('form', 'meet-day-editor');
       const title = node('input');
@@ -125,7 +204,7 @@ export function buildDayPlanner({ today, read, write, finish, reflection }) {
       time.setAttribute('aria-label', 'Start time');
       timing.append(node('summary', '', 'Set time'), time);
       if (note && !note.allDay && periodOf(note) === index) {
-        time.value = timeLabel(note.minute, '24');
+        time.value = timeLabel(note.minute % 1440, '24');
         timing.open = true;
       }
       const suggestions = node('select');
@@ -134,33 +213,53 @@ export function buildDayPlanner({ today, read, write, finish, reflection }) {
       placeholder.value = '';
       suggestions.append(placeholder);
       const durationOf = (entry) =>
-        commitments.find((candidate) => candidate.id === entry.commitmentId)?.minutes || 1;
+        entry.focusBlockMinutes ||
+        commitments.find((candidate) => candidate.id === entry.commitmentId)?.minutes ||
+        1;
       const duration = item?.minutes || (note ? durationOf(note) : 1);
       const conflictAt = (minute, entries = notes) =>
         entries.find(
           (entry) =>
             entry.id !== note?.id &&
             !entry.allDay &&
+            !entry.done &&
             minute < entry.minute + durationOf(entry) &&
             minute + duration > entry.minute,
         );
+      const awakeStart = planTiming ? Math.max(planTiming.start, planTiming.current) : hours.from;
+      const awakeEnd = planTiming?.end ?? (hours.to > hours.from ? hours.to : 1440);
       const fitsAwake = (minute) =>
-        minute >= starts[index] &&
-        minute < starts[index + 1] &&
-        minute + duration <= 1440 &&
-        Array.from({ length: duration }, (_, i) => minute + i).every((value) =>
-          isAwake(value, hours),
-        );
-      for (let minute = starts[index]; minute < starts[index + 1]; minute += 15) {
+        minute >= dayStarts[index] &&
+        minute < dayStarts[index + 1] &&
+        minute >= awakeStart &&
+        minute + duration <= awakeEnd;
+      for (
+        let minute = Math.ceil(Math.max(awakeStart, dayStarts[index]) / 15) * 15;
+        minute < dayStarts[index + 1];
+        minute += 15
+      ) {
         if (!fitsAwake(minute) || conflictAt(minute)) continue;
-        const option = node('option', '', timeLabel(minute, clock));
-        option.value = timeLabel(minute, '24');
+        const option = node('option', '', planningTimeLabel(today, minute, clock));
+        option.value = timeLabel(minute % 1440, '24');
         suggestions.append(option);
       }
+      const dateHint = node('p', 'field-hint');
+      const startMinute = () => {
+        if (!time.value) return dayStarts[index];
+        const [h, m] = time.value.split(':').map(Number);
+        const minute = h * 60 + m;
+        return index === 2 && end > 1440 && minute < end - 1440 ? minute + 1440 : minute;
+      };
+      const showDate = () => {
+        dateHint.textContent = `Daily date · ${calendarLabel(startMinute() >= 1440 ? tomorrow : today)}`;
+      };
+      time.addEventListener('input', showDate);
+      showDate();
       suggestions.addEventListener('change', () => {
         time.value = suggestions.value;
+        showDate();
       });
-      timing.append(suggestions);
+      timing.append(suggestions, dateHint);
       if (item) timing.open = true;
       const anytime = button('Leave untimed', () => {
         time.value = '';
@@ -187,8 +286,7 @@ export function buildDayPlanner({ today, read, write, finish, reflection }) {
       form.addEventListener('submit', (event) => {
         event.preventDefault();
         const timed = timing.open && !!time.value;
-        const parts = time.value.split(':').map(Number);
-        const minute = timed ? parts[0] * 60 + parts[1] : starts[index];
+        const minute = timed ? startMinute() : dayStarts[index];
         if (timed && !fitsAwake(minute)) {
           error.textContent = 'Choose a start time in this period that fits your awake hours.';
           return;
@@ -266,7 +364,25 @@ export function buildDayPlanner({ today, read, write, finish, reflection }) {
             return;
           }
         }
-        apply(today, note, entry, `${titleOf(entry)} added to ${periods[index].toLowerCase()}.`);
+        const destination = minute >= 1440 ? tomorrow : today;
+        if (note?.repeat && (note.calendarDay || today) !== destination) {
+          error.textContent = 'Move repeating notes across dates from Daily.';
+          return;
+        }
+        current = index;
+        const wasPriority = item && dayState.priority === `commitment:${item.id}`;
+        applyChanges(
+          [
+            {
+              from: note && (note.calendarDay || today),
+              to: destination,
+              before: note,
+              after: entry,
+            },
+          ],
+          `${titleOf(entry)} added to ${periods[index].toLowerCase()}.`,
+          wasPriority ? { priority: `note:${entry.id}` } : null,
+        );
       });
     }
 
@@ -312,7 +428,7 @@ export function buildDayPlanner({ today, read, write, finish, reflection }) {
             'span',
             'field-hint',
             [
-              entry.allDay ? '' : timeLabel(entry.minute, clock),
+              entry.allDay ? '' : planningTimeLabel(today, entry.minute, clock),
               entry.commitmentId ? 'Commitment' : 'Note',
             ]
               .filter(Boolean)
@@ -322,9 +438,14 @@ export function buildDayPlanner({ today, read, write, finish, reflection }) {
           button('Move', () => destinations(edit, { note: entry })),
           edit,
         );
+        if (adaptive && isOpen(entry)) row.append(pin(`note:${entry.id}`));
         column.append(row);
       }
-      grid.append(column);
+      if (adaptive && dayStarts[index + 1] <= planTiming.current) {
+        const earlier = node('details', 'meet-day-earlier');
+        earlier.append(node('summary', '', `${period} · ${entries.length} earlier`), column);
+        grid.append(earlier);
+      } else grid.append(column);
     });
     select(current, false);
     if (eligible.length) {
@@ -341,13 +462,12 @@ export function buildDayPlanner({ today, read, write, finish, reflection }) {
           node('span', 'field-hint', `${item.minutes} min`),
           actions,
         );
+        if (adaptive) row.append(pin(`commitment:${item.id}`));
         section.append(row);
       }
       body.append(section);
     }
-    const open = oldNotes.filter(
-      (note) => !note.done || noteTasks(note).some((task) => !task.done),
-    );
+    const open = oldNotes.filter(isOpen);
     if (open.length) {
       const section = node('section', 'meet-day-queue');
       section.append(node('h3', '', 'Open from yesterday'));
@@ -359,7 +479,7 @@ export function buildDayPlanner({ today, read, write, finish, reflection }) {
         const carried = notes.find((entry) => entry.carriedFrom === `${yesterday}/${note.id}`);
         const done = () =>
           apply(
-            yesterday,
+            note.calendarDay || yesterday,
             note,
             {
               ...note,

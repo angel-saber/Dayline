@@ -1,22 +1,22 @@
-import { validListOrder } from '../features/lists/model.js?v=997915ecfd91';
-import { validCommitmentState } from '../features/commitments/game.js?v=997915ecfd91';
-import { validLifeData } from '../features/yearly/life/model.js?v=997915ecfd91';
-import { validYearly, validYearlySource } from '../features/yearly/model.js?v=997915ecfd91';
-import { validRepeat } from '../features/repeating/series.js?v=997915ecfd91';
-import { validIndents } from '../features/notes/formatting/indents.js?v=997915ecfd91';
-import { validAvailableHours } from '../features/settings/available-hours.js?v=997915ecfd91';
-import { validAttachments } from '../features/attachments/attachments.js?v=997915ecfd91';
+import { validListOrder } from '../features/lists/model.js?v=a5c97504943d';
+import { validCommitmentState } from '../features/commitments/game.js?v=a5c97504943d';
+import { validLifeData } from '../features/yearly/life/model.js?v=a5c97504943d';
+import { validYearly, validYearlySource } from '../features/yearly/model.js?v=a5c97504943d';
+import { validRepeat } from '../features/repeating/series.js?v=a5c97504943d';
+import { validIndents } from '../features/notes/formatting/indents.js?v=a5c97504943d';
+import { validAvailableHours } from '../features/settings/available-hours.js?v=a5c97504943d';
+import { validAttachments } from '../features/attachments/attachments.js?v=a5c97504943d';
 import {
   validNoteType,
   validTags,
   validTagSettings,
-} from '../features/notes/note-types.js?v=997915ecfd91';
-import { validGuidedReports } from '../features/activities/model.js?v=997915ecfd91';
-import { validBullets } from '../features/notes/formatting/bullets.js?v=997915ecfd91';
-import { validFocusReports } from '../features/focus/model.js?v=997915ecfd91';
-import { DEFAULT_SETTINGS } from './schedule.js?v=997915ecfd91';
-import { validFormat } from '../features/notes/formatting/format.js?v=997915ecfd91';
-import { validTasks } from '../features/notes/formatting/tasks.js?v=997915ecfd91';
+} from '../features/notes/note-types.js?v=a5c97504943d';
+import { validGuidedReports } from '../features/activities/model.js?v=a5c97504943d';
+import { validBullets } from '../features/notes/formatting/bullets.js?v=a5c97504943d';
+import { validFocusReports } from '../features/focus/model.js?v=a5c97504943d';
+import { DEFAULT_SETTINGS } from './schedule.js?v=a5c97504943d';
+import { validFormat } from '../features/notes/formatting/format.js?v=a5c97504943d';
+import { validTasks } from '../features/notes/formatting/tasks.js?v=a5c97504943d';
 const KEY = 'dayline.v1';
 export function validState(value) {
   if (
@@ -78,6 +78,15 @@ export function validState(value) {
         )
           throw Error('Invalid life planner link.');
         result.lifeSource = { group: e.lifeSource.group };
+      }
+      if (e.focusBlockMinutes !== undefined) {
+        if (
+          !Number.isInteger(e.focusBlockMinutes) ||
+          e.focusBlockMinutes < 1 ||
+          e.focusBlockMinutes > 1440
+        )
+          throw Error('Invalid focus block length.');
+        result.focusBlockMinutes = e.focusBlockMinutes;
       }
       if (e.dayPeriod !== undefined) {
         if (![0, 1, 2].includes(e.dayPeriod)) throw Error('Invalid planning period.');

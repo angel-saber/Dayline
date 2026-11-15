@@ -3640,7 +3640,7 @@ main {
   margin: 0.25rem 0.5rem 0.25rem 0;
 }
 
-.shortcuts-launch {
+.planner-tool-dock {
   position: fixed;
   left: max(24px, env(safe-area-inset-left));
   bottom: calc(95px + env(safe-area-inset-bottom));
@@ -3714,11 +3714,11 @@ main {
   width: 100%;
   min-width: 0;
 }
-.bulk-mode .shortcuts-launch {
+.bulk-mode .planner-tool-dock {
   bottom: calc(210px + env(safe-area-inset-bottom));
 }
 @media (max-width: 600px) {
-  .shortcuts-launch {
+  .planner-tool-dock {
     left: max(16px, env(safe-area-inset-left));
   }
   .shortcuts-panel {
@@ -3863,7 +3863,7 @@ main {
 body.month-dragging .focus-launch,
 body.month-dragging .focus-mini,
 body.month-dragging .focus-audio-launch,
-body.month-dragging .shortcuts-launch {
+body.month-dragging .planner-tool-dock {
   pointer-events: none;
   opacity: 0.25;
 }
@@ -5940,8 +5940,61 @@ body.month-dragging .commitments-launch {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .meet-day-column:not(.meet-day-current) {
+  .meet-day-grid > :not(.meet-day-current) {
     display: none;
+  }
+}
+
+.meet-day-review {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface, var(--white));
+}
+
+.meet-day-review p {
+  margin: 0;
+}
+
+.meet-day-review-actions,
+.meet-day-review-editor {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+
+.meet-day-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.meet-day-field select {
+  max-width: 100%;
+}
+
+.meet-day-earlier > summary {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.planner-tool-dock {
+  flex-wrap: wrap;
+  max-width: calc(100vw - 145px);
+}
+
+@media (max-width: 600px) {
+  .planner-tool-dock {
+    max-width: calc(100vw - 125px);
+  }
+
+  .planner-tool-dock button {
+    padding-inline: 12px;
   }
 }
 

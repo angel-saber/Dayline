@@ -1,14 +1,14 @@
-import { cloudConfig } from './config.js?v=997915ecfd91';
-import { createAccountServices } from './services.js?v=997915ecfd91';
-import { takeSignInReturn } from './sign-in-return.js?v=997915ecfd91';
-import { SyncEngine, mergeGuestDays, clearSyncedDrafts } from './sync.js?v=997915ecfd91';
-import { load, save, validState } from '../../shared/storage.js?v=997915ecfd91';
+import { cloudConfig } from './config.js?v=a5c97504943d';
+import { createAccountServices } from './services.js?v=a5c97504943d';
+import { takeSignInReturn } from './sign-in-return.js?v=a5c97504943d';
+import { SyncEngine, mergeGuestDays, clearSyncedDrafts } from './sync.js?v=a5c97504943d';
+import { load, save, validState } from '../../shared/storage.js?v=a5c97504943d';
 import {
   deviceNotes,
   countDeviceNotes,
   preserveDeviceNotes,
-} from './device-notes.js?v=997915ecfd91';
-import { PreferencesSync, sharedPreferences } from './preferences-sync.js?v=997915ecfd91';
+} from './device-notes.js?v=a5c97504943d';
+import { PreferencesSync, sharedPreferences } from './preferences-sync.js?v=a5c97504943d';
 
 const $ = (selector) => document.querySelector(selector);
 
