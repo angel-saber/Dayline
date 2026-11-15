@@ -101,7 +101,7 @@ test('daily invitations wait for entry, roll once per local day, respect Setting
     assert.equal(api.dialog.open, true);
     assert.equal(data.get(SEEN_KEY), '2026-10-28');
     assert.ok(!api.dialog.textContent.includes('Not now'));
-    assert.match(api.dialog.textContent, /disable the daily pop-up in Settings/);
+    assert.match(api.dialog.textContent, /always available in More/);
     const assertExerciseScreen = () => {
       assert.ok(api.dialog.querySelector('.visualization-guidance'));
       assert.ok(api.dialog.querySelector('.visualization-prompt'));

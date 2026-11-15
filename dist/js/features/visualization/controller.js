@@ -1,6 +1,8 @@
-import { node } from '../../shared/dom.js?v=683d01a271f7';
-import { dayKey } from '../../shared/dates.js?v=683d01a271f7';
-import { VISUALIZATIONS, rollVisualization } from './catalog.js?v=683d01a271f7';
+import { planningClock } from './planning-time.js?v=a5c97504943d';
+import { buildDayPlanner } from './day-planner.js?v=a5c97504943d';
+import { node } from '../../shared/dom.js?v=a5c97504943d';
+import { dayKey } from '../../shared/dates.js?v=a5c97504943d';
+import { VISUALIZATIONS, rollVisualization } from './catalog.js?v=a5c97504943d';
 export const ENABLED_KEY = 'dayline.visualization.enabled.v1';
 export const PINNED_KEY = 'dayline.visualization.pinned.v1';
 export const SEEN_KEY = 'dayline.visualization.seen.v1';
@@ -20,6 +22,8 @@ export function setupVisualizations({
   favorites,
   canInvite,
   saveAction,
+  planning,
+  plannerLaunch,
   toast,
   storage = localStorage,
   now = () => new Date(),
@@ -27,11 +31,16 @@ export function setupVisualizations({
 }) {
   const dialog = node('dialog', 'visualization-dialog');
   dialog.setAttribute('aria-labelledby', 'visualization-heading');
-  document.body.append(dialog);
+  const planner = node('dialog', 'meet-day-dialog');
+  planner.setAttribute('aria-labelledby', 'meet-day-heading');
+  document.body.append(dialog, planner);
   let exercise,
     response = '',
     sessionDay = null;
   const shown = new Set();
+  const checkIns = new Map();
+  const getTiming = () => planningClock(now(), planning.hours());
+  const planningDate = () => (planning ? getTiming().today : dayKey(now()));
   const read = (key) => {
     try {
       return storage.getItem(key);
@@ -45,14 +54,14 @@ export function setupVisualizations({
   const toggle = node('input');
   toggle.type = 'checkbox';
   toggle.checked = read(ENABLED_KEY) !== 'off';
-  label.append(toggle, document.createTextNode('Show daily visualization invitation'));
+  label.append(toggle, document.createTextNode('Open the day planner automatically'));
   setting.append(
-    node('h2', '', 'Daily visualization'),
+    node('h2', '', 'Meet Your Day'),
     label,
     node(
       'p',
       'field-hint',
-      'Show an invitation when you first open Dayline each day on this browser. Guided Visualization remains available in More.',
+      'Open the day planner the first time you visit Dayline each day on this browser.',
     ),
   );
   const firstLabel = node('label', 'visualization-first-label', 'First visualization');
@@ -73,7 +82,7 @@ export function setupVisualizations({
     node(
       'p',
       'field-hint',
-      'A pinned exercise opens first for the daily pop-up and Guided Visualization. You can still reroll. This choice and activity favorites are saved in this browser.',
+      'A pinned exercise opens first for the Guided Visualization. You can still reroll. This choice and activity favorites are saved in this browser.',
     ),
   );
   first.addEventListener('change', () => setPin(first.value));
@@ -99,12 +108,69 @@ export function setupVisualizations({
   if (favorites)
     card.append(favorites.register('visualization', 'Guided Visualization', () => open(false)));
   root.append(card);
+  if (planning) {
+    const plannerCard = node('section', 'settings-card activity-card');
+    plannerCard.append(
+      node('h2', '', 'Meet Your Day'),
+      button('Plan today', openPlanner, 'primary'),
+    );
+    root.append(plannerCard);
+    plannerLaunch?.addEventListener('click', openPlanner);
+  }
+  function openPlanner() {
+    if (planner.open) return;
+    planning.prepare?.();
+    const today = planningDate();
+    const key = `dayline.meet-day.check-in.${planning.scope?.() || 'guest'}`;
+    let previous;
+    try {
+      previous = JSON.parse(read(key) || 'null');
+    } catch {
+      previous = null;
+    }
+    const dayState = {
+      ...(previous?.today === today ? previous.values : {}),
+      ...checkIns.get(`${key}/${today}`),
+    };
+    const heading = node('h2', '', 'A moment to meet your day');
+    heading.id = 'meet-day-heading';
+    heading.tabIndex = -1;
+    const reflection = node('details', 'meet-day-reflection');
+    reflection.append(
+      node('summary', '', 'Reflection'),
+      button('Open guided visualization', () => open(false)),
+    );
+    planner.replaceChildren(
+      heading,
+      buildDayPlanner({
+        ...planning,
+        today,
+        reflection,
+        getTiming,
+        dayState,
+        saveDayState(values) {
+          checkIns.set(`${key}/${today}`, { ...values });
+          try {
+            storage.setItem(key, JSON.stringify({ today, values }));
+          } catch {
+            // Use the in-memory check-in when storage is unavailable.
+          }
+        },
+        finish: () => {
+          planner.close();
+          planning.finish(dayKey(now()));
+        },
+      }),
+    );
+    planner.showModal();
+    heading.focus();
+  }
   function render() {
     dialog.replaceChildren();
     const header = node('div', 'activity-header');
     const close = button('×', () => dialog.close());
     close.setAttribute('aria-label', 'Close visualization');
-    const heading = node('h2', '', 'A moment to meet your day');
+    const heading = node('h2', '', 'Guided Visualization');
     heading.id = 'visualization-heading';
     header.append(heading, close);
     dialog.append(
@@ -174,11 +240,7 @@ export function setupVisualizations({
     dialog.append(
       actions,
       status,
-      node(
-        'p',
-        'field-hint',
-        'You can disable the daily pop-up in Settings → Daily visualization. These exercises are always available in More.',
-      ),
+      node('p', 'field-hint', 'These exercises are always available in More.'),
     );
   }
   function refreshPin() {
@@ -206,11 +268,14 @@ export function setupVisualizations({
   });
   function open(daily) {
     if (dialog.open) return;
-    sessionDay = daily ? dayKey(now()) : null;
+    sessionDay = daily ? planningDate() : null;
     exercise = pinnedExercise() || rollVisualization(exercise?.id, random);
     response = '';
-    render();
-    dialog.showModal();
+    if (daily && planning) openPlanner();
+    else {
+      render();
+      dialog.showModal();
+    }
     if (daily) {
       shown.add(sessionDay);
       try {
@@ -221,7 +286,7 @@ export function setupVisualizations({
     }
   }
   function check() {
-    const today = dayKey(now());
+    const today = planningDate();
     toggle.checked = read(ENABLED_KEY) !== 'off';
     if (
       !document.hidden &&
@@ -241,6 +306,7 @@ export function setupVisualizations({
   });
   window.addEventListener('dayline:account', () => {
     if (dialog.open) dialog.close();
+    if (planner.open) planner.close();
   });
   queueMicrotask(check);
   return { open: () => open(false), check, dialog };

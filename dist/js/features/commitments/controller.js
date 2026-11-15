@@ -1,12 +1,12 @@
-import { reorderCommitments, bindCommitmentReorder } from './reorder.js?v=683d01a271f7';
-import { commitmentTimelineDrag } from './timeline-drag.js?v=683d01a271f7';
-import { commitmentColors } from './colors.js?v=683d01a271f7';
+import { reorderCommitments, bindCommitmentReorder } from './reorder.js?v=a5c97504943d';
+import { commitmentTimelineDrag } from './timeline-drag.js?v=a5c97504943d';
+import { commitmentColors } from './colors.js?v=a5c97504943d';
 import {
   commitmentRecords,
   commitmentToken,
   importDeviceCommitments,
-} from './account-state.js?v=683d01a271f7';
-import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=683d01a271f7';
+} from './account-state.js?v=a5c97504943d';
+import { typeChips, categoryOptions, tagBadges } from '../notes/note-types.js?v=a5c97504943d';
 import {
   readAwakeHours,
   awakeMinutes,
@@ -15,11 +15,11 @@ import {
   assertCommitmentBudget,
   AWAKE_HOURS_EVENT,
   AWAKE_HOURS_KEY,
-} from '../settings/awake-hours.js?v=683d01a271f7';
-import { readTiming } from '../focus/timing.js?v=683d01a271f7';
-import { dayKey } from '../../shared/dates.js?v=683d01a271f7';
-import { bucket } from '../../shared/schedule.js?v=683d01a271f7';
-import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=683d01a271f7';
+} from '../settings/awake-hours.js?v=a5c97504943d';
+import { readTiming } from '../focus/timing.js?v=a5c97504943d';
+import { dayKey } from '../../shared/dates.js?v=a5c97504943d';
+import { bucket } from '../../shared/schedule.js?v=a5c97504943d';
+import { availableHours, dailySlotVisible } from '../settings/available-hours.js?v=a5c97504943d';
 import {
   COMMITMENT_STATE_KEY,
   DURATION_PRESETS,
@@ -33,14 +33,14 @@ import {
   acknowledgePenalty,
   changeItems,
   pendingCommitments,
-} from './game.js?v=683d01a271f7';
-import { node } from '../../shared/dom.js?v=683d01a271f7';
+} from './game.js?v=a5c97504943d';
+import { node } from '../../shared/dom.js?v=a5c97504943d';
 import {
   COMMITMENTS_KEY,
   SUGGESTIONS,
   validCommitments,
   practiceProgress,
-} from './model.js?v=683d01a271f7';
+} from './model.js?v=a5c97504943d';
 function button(text, action, kind = 'secondary') {
   const b = node('button', kind, text);
   b.type = 'button';
@@ -881,6 +881,10 @@ export function setupCommitments({
   });
   return {
     open,
+    getPlanningItems(today) {
+      if (unreadable) return { all: [], pending: [] };
+      return { all: items, pending: pendingCommitments(commitmentState, getState().days, today) };
+    },
     recordPractice(practice, start, end) {
       if (unreadable || !Number.isFinite(start) || !Number.isFinite(end)) return false;
       const item = items.find((v) => v.id === practice.id);
