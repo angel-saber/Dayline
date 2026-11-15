@@ -1,7 +1,7 @@
-import { node } from '../../shared/dom.js?v=57a5551e6697';
-import { offsetDay, parseDay, timeLabel } from '../../shared/dates.js?v=57a5551e6697';
-import { noteTasks } from '../notes/formatting/tasks.js?v=57a5551e6697';
-import { buildDayReview, calendarLabel, planningTimeLabel } from './day-review.js?v=57a5551e6697';
+import { node } from '../../shared/dom.js?v=73be664608f3';
+import { offsetDay, parseDay, timeLabel } from '../../shared/dates.js?v=73be664608f3';
+import { noteTasks } from '../notes/formatting/tasks.js?v=73be664608f3';
+import { buildDayReview, calendarLabel, planningTimeLabel } from './day-review.js?v=73be664608f3';
 
 const periods = ['Morning', 'Afternoon', 'Evening'];
 const periodOf = (note) =>
@@ -136,6 +136,10 @@ export function buildDayPlanner({
     status.textContent = message;
     undoButton.hidden = false;
     render(true);
+    if (changes.some(({ before, after }) => before && after && isOpen(before) && !isOpen(after)))
+      document.defaultView.dispatchEvent(
+        new document.defaultView.CustomEvent('dayline:effect', { detail: { kind: 'complete' } }),
+      );
   }
   const apply = (date, before, after, message) =>
     applyChanges([{ from: before?.calendarDay || date, to: date, before, after }], message);
