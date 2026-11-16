@@ -44,6 +44,7 @@ import { chooseRepeatScope } from '../features/repeating/scope.js?v=c2797d5cdbe9
 import { createRepeatCycle } from '../features/repeating/model.js?v=c2797d5cdbe9';
 import { openRepeatCycle } from '../features/repeating/view.js?v=c2797d5cdbe9';
 import { setupVisualizations } from '../features/visualization/controller.js?v=c2797d5cdbe9';
+import { validateDay } from '../features/accounts/sync.js?v=c2797d5cdbe9';
 import { canKeepEditor } from '../features/notes/editor-sync.js?v=c2797d5cdbe9';
 import { setupInspiration } from '../features/inspiration/view.js?v=c2797d5cdbe9';
 import { storyNote } from '../features/inspiration/model.js?v=c2797d5cdbe9';
@@ -471,20 +472,72 @@ function openListNote(item, scope = null, create = false) {
   }
   const dialog = node('dialog', 'planner-list-editor'),
     heading = node('h2', '', 'Edit note');
+  // Account sync normalizes note fields and their insertion order.
+  const noteVersion = (note) => (note ? JSON.stringify(validateDay(item.date, [note])[0]) : null);
   const owner = accounts?.accountId() || null;
+  const sameAccount = () => (accounts?.accountId() || null) === owner;
+  const saveStatus = node('p', 'field-hint');
+  saveStatus.setAttribute('role', 'status');
+  const recovery = node('div', 'inline');
+  recovery.hidden = true;
+  let failedDraft = null;
   let expected = create ? null : current,
     noteEditor,
     closed = false;
   function close() {
     if (closed) return;
-    closed = true;
     noteEditor?.flush();
+    if (failedDraft) {
+      if (!dialog.open) dialog.showModal();
+      return;
+    }
+    finish();
+  }
+  function finish() {
+    if (closed) return;
+    closed = true;
     noteEditor?.destroy();
     window.removeEventListener('dayline:account', close);
     dialog.close();
     dialog.remove();
     repaintListView();
   }
+  function showFailure(values, message) {
+    failedDraft = values;
+    saveStatus.textContent = message;
+    recovery.hidden = false;
+    saveCopy.hidden = !sameAccount();
+    return false;
+  }
+  const saveCopy = node('button', 'secondary', 'Save draft as a new note');
+  saveCopy.type = 'button';
+  saveCopy.addEventListener('click', () => {
+    noteEditor.flush();
+    if (!failedDraft || !sameAccount()) return;
+    const before = state.days;
+    const note = {
+      ...failedDraft,
+      id: crypto.randomUUID(),
+      done: false,
+      task: false,
+      ...(current.weekly ? { weekly: true, minute: 0 } : {}),
+    };
+    state.days = {
+      ...before,
+      [item.date]: [...(before[item.date] || []), note].sort((a, b) => a.minute - b.minute),
+    };
+    if (!persist()) {
+      state.days = before;
+      return;
+    }
+    undo = null;
+    toast('Draft saved as a new note.');
+    finish();
+  });
+  const discard = node('button', 'secondary', 'Discard unsaved draft');
+  discard.type = 'button';
+  discard.addEventListener('click', finish);
+  recovery.append(saveCopy, discard);
   noteEditor = createNoteEditor({
     entry: current,
     categories: categoryOptions(state.days, state.settings.tags),
@@ -493,12 +546,14 @@ function openListNote(item, scope = null, create = false) {
     label: 'Edit list note',
     onChange(values) {
       const latest = state.days[item.date]?.find((note) => note.id === current.id);
-      if (
-        (accounts?.accountId() || null) !== owner ||
-        (expected ? !latest || JSON.stringify(latest) !== JSON.stringify(expected) : !!latest)
-      ) {
-        toast('This note changed elsewhere. Close and reopen it before editing.');
-        return false;
+      if (!sameAccount()) {
+        return showFailure(values, 'Switch back to the original account to save this draft.');
+      }
+      if (noteVersion(latest) !== noteVersion(expected)) {
+        return showFailure(
+          values,
+          'This note changed elsewhere. Your draft is still open. Save it as a new note to keep both versions.',
+        );
       }
       if (!latest && !values.title.trim() && !values.text.trim() && !values.attachments?.length)
         return true;
@@ -529,15 +584,18 @@ function openListNote(item, scope = null, create = false) {
       state.days = next;
       if (!persist()) {
         state.days = before;
-        return false;
+        return showFailure(values, 'Saving failed. Your draft is still open.');
       }
+      failedDraft = null;
+      recovery.hidden = true;
+      saveStatus.textContent = '';
       expected = state.days[item.date].find((note) => note.id === current.id);
       undo = null;
       return true;
     },
     onDone: close,
   });
-  dialog.append(heading, noteEditor.element);
+  dialog.append(heading, saveStatus, recovery, noteEditor.element);
   document.body.append(dialog);
   dialog.addEventListener('cancel', (event) => {
     event.preventDefault();
