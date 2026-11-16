@@ -1,4 +1,4 @@
-import { node } from '../../shared/dom.js?v=73be664608f3';
+import { node } from '../../shared/dom.js?v=b97af5500a9f';
 export function chooseRepeatScope(action, choose) {
   const dialog = node('dialog', 'repeat-scope-dialog');
   dialog.setAttribute('aria-labelledby', 'repeat-scope-heading');

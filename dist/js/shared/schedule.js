@@ -1,5 +1,5 @@
-import { parseDay } from './dates.js?v=73be664608f3';
-export { dayKey, parseDay, offsetDay, timeLabel } from './dates.js?v=73be664608f3';
+import { parseDay } from './dates.js?v=b97af5500a9f';
+export { dayKey, parseDay, offsetDay, timeLabel } from './dates.js?v=b97af5500a9f';
 export const DEFAULT_SETTINGS = { interval: 60, notifications: false, sound: false, clock: '12' };
 export function slots(interval) {
   if (!Number.isInteger(interval) || interval < 1 || interval > 1440)
@@ -17,6 +17,38 @@ export function grouped(entries, interval) {
   const allDay = entries.filter((e) => e.allDay);
   if (allDay.length) result.unshift({ minute: 0, allDay: true, entries: allDay });
   return result;
+}
+export const DAY_PERIODS = [
+  { label: 'Morning', minute: 0 },
+  { label: 'Afternoon', minute: 720 },
+  { label: 'Evening', minute: 1020 },
+];
+export const untimedLabel = (entry) => DAY_PERIODS[entry.dayPeriod]?.label || 'All day';
+export const dailySlotKey = (entry, interval) =>
+  entry.allDay
+    ? DAY_PERIODS[entry.dayPeriod]
+      ? -2 - entry.dayPeriod
+      : -1
+    : bucket(entry.minute, interval);
+
+export function dailyGroups(entries, interval) {
+  const groups = grouped(
+    entries.filter((entry) => dailySlotKey(entry, interval) >= -1),
+    interval,
+  );
+  for (const [dayPeriod, { minute }] of DAY_PERIODS.entries()) {
+    const notes = entries.filter((entry) => entry.allDay && entry.dayPeriod === dayPeriod);
+    if (!notes.length) continue;
+    notes.sort((a, b) => (a.dayPlanOrder ?? Infinity) - (b.dayPlanOrder ?? Infinity));
+    const index = groups.findIndex((slot) => !slot.allDay && slot.minute >= minute);
+    groups.splice(index < 0 ? groups.length : index, 0, {
+      minute,
+      allDay: true,
+      dayPeriod,
+      entries: notes,
+    });
+  }
+  return groups;
 }
 // Stable insertion: occupied slots shift toward the space left by the source.
 // Notes sharing a bucket after an interval change always travel together when shifted.
@@ -42,8 +74,15 @@ export function moveEntry(entries, id, targetMinute, interval) {
 export function dropEntry(entries, id, targetMinute, interval, targetId = null, exact = false) {
   const moved = entries.find((e) => e.id === id);
   if (!moved) return entries;
-  if (targetMinute === -1)
-    return entries.map((e) => (e.id === id ? { ...e, allDay: true, remind: false } : e));
+  if (Number.isInteger(targetMinute) && targetMinute >= -4 && targetMinute < 0) {
+    const dayPeriod = targetMinute === -1 ? undefined : -2 - targetMinute;
+    const minute = DAY_PERIODS[dayPeriod]?.minute ?? moved.minute;
+    return entries.map((e) =>
+      e.id === id
+        ? { ...e, allDay: true, remind: false, dayPeriod, minute, dayPlanOrder: undefined }
+        : e,
+    );
+  }
   if (
     exact
       ? !Number.isInteger(targetMinute) || targetMinute < 0 || targetMinute > 1439

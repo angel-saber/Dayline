@@ -1,8 +1,9 @@
-import { minuteAtPosition } from './precise-time.js?v=73be664608f3';
-import { timeLabel } from '../../shared/dates.js?v=73be664608f3';
-import { node } from '../../shared/dom.js?v=73be664608f3';
+import { untimedLabel } from '../../shared/schedule.js?v=b97af5500a9f';
+import { minuteAtPosition } from './precise-time.js?v=b97af5500a9f';
+import { timeLabel } from '../../shared/dates.js?v=b97af5500a9f';
+import { node } from '../../shared/dom.js?v=b97af5500a9f';
 export function snapDropMinute(start, interval, y, rect) {
-  if (start === -1) return -1;
+  if (start < 0) return start;
   const raw = minuteAtPosition(start, interval, y, rect);
   const end = Math.min(1440, start + interval);
   const candidates = [start];
@@ -25,10 +26,10 @@ export function dropTimePreview(root) {
       if (!slot || !root.contains(slot)) return undefined;
       const start = Number(slot.dataset.minute);
       const rect = (slot.querySelector('.slot-time') || slot).getBoundingClientRect();
-      const minute = override ?? snapDropMinute(start, interval, y, rect);
+      const minute = start < 0 ? start : (override ?? snapDropMinute(start, interval, y, rect));
       overlay = node('div', 'drop-time-overlay');
       overlay.setAttribute('aria-live', 'polite');
-      if (start !== -1 && rect.height > 0) {
+      if (start >= 0 && rect.height > 0) {
         const end = Math.min(1440, start + interval);
         for (let m = Math.ceil(start / 15) * 15; m < end; m += 15) {
           const tick = node('span', 'drop-time-tick', timeLabel(m, clock));
@@ -39,10 +40,12 @@ export function dropTimePreview(root) {
       const label = node(
         'strong',
         'drop-time-lock',
-        minute === -1 ? 'All day' : 'Drop at ' + timeLabel(minute, clock),
+        minute < 0
+          ? untimedLabel({ dayPeriod: -2 - minute })
+          : 'Drop at ' + timeLabel(minute, clock),
       );
       label.style.top =
-        (start === -1
+        (start < 0
           ? 0
           : Math.max(0, ((minute - start) / Math.min(interval, 1440 - start)) * rect.height)) +
         'px';

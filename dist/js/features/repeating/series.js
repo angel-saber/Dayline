@@ -1,7 +1,7 @@
-import { offsetDay } from '../../shared/dates.js?v=73be664608f3';
-import { noteTasks } from '../notes/formatting/tasks.js?v=73be664608f3';
-import { noteTags } from '../notes/note-types.js?v=73be664608f3';
-import { validDate } from '../bulk/model.js?v=73be664608f3';
+import { offsetDay } from '../../shared/dates.js?v=b97af5500a9f';
+import { noteTasks } from '../notes/formatting/tasks.js?v=b97af5500a9f';
+import { noteTags } from '../notes/note-types.js?v=b97af5500a9f';
+import { validDate } from '../bulk/model.js?v=b97af5500a9f';
 export function validRepeat(value) {
   if (
     !value ||
@@ -32,6 +32,7 @@ export function changeRepeatNotes(days, date, id, action, scope = 'one') {
     'text',
     'minute',
     'allDay',
+    'dayPeriod',
     'remind',
     'format',
     'tasks',

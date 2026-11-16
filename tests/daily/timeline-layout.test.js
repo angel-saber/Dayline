@@ -88,3 +88,31 @@ test('a large note at 10:50 does not multiply its body height into empty space',
   assert.ok(adjacent.height < 840);
   assert.equal(adjacent.items[1].minute, 651);
 });
+
+test('Daily places untimed planner notes beside their period and retains genuine all-day notes', async () => {
+  const { dailyGroups, dailySlotKey, dropEntry } = await import('../../dist/js/shared/schedule.js');
+  const notes = [
+    { id: 'all', minute: 0, allDay: true },
+    { id: 'morning', minute: 0, allDay: true, dayPeriod: 0 },
+    { id: 'afternoon', minute: 720, allDay: true, dayPeriod: 1 },
+    { id: 'evening', minute: 1020, allDay: true, dayPeriod: 2 },
+    { id: 'timed', minute: 735, allDay: false, dayPeriod: 1 },
+  ];
+  const groups = dailyGroups(notes, 60);
+  assert.deepEqual(
+    groups
+      .filter(({ entries }) => entries.length)
+      .map((slot) => [dailySlotKey(slot, 60), slot.entries.map(({ id }) => id)]),
+    [
+      [-1, ['all']],
+      [-2, ['morning']],
+      [-3, ['afternoon']],
+      [720, ['timed']],
+      [-4, ['evening']],
+    ],
+  );
+  const moved = dropEntry(notes, 'morning', -4, 60).find(({ id }) => id === 'morning');
+  assert.equal(moved.dayPeriod, 2);
+  assert.equal(moved.allDay, true);
+  assert.equal(dailySlotKey(moved, 60), -4);
+});

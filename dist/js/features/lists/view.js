@@ -1,14 +1,15 @@
-import { renderFocusReports } from '../focus/reports.js?v=73be664608f3';
-import { renderGuidedReports } from '../activities/view.js?v=73be664608f3';
-import { node } from '../../shared/dom.js?v=73be664608f3';
-import { timeLabel, parseDay } from '../../shared/dates.js?v=73be664608f3';
-import { tagBadges } from '../notes/note-types.js?v=73be664608f3';
-import { commitmentColors } from '../commitments/colors.js?v=73be664608f3';
-import { renderNoteLines } from '../notes/render.js?v=73be664608f3';
-import { noteTasks } from '../notes/formatting/tasks.js?v=73be664608f3';
-import { attachmentList } from '../attachments/attachments.js?v=73be664608f3';
-import { orderedItems, itemKey } from './model.js?v=73be664608f3';
-import { bindListGestures } from './gestures.js?v=73be664608f3';
+import { untimedLabel } from '../../shared/schedule.js?v=b97af5500a9f';
+import { renderFocusReports } from '../focus/reports.js?v=b97af5500a9f';
+import { renderGuidedReports } from '../activities/view.js?v=b97af5500a9f';
+import { node } from '../../shared/dom.js?v=b97af5500a9f';
+import { timeLabel, parseDay } from '../../shared/dates.js?v=b97af5500a9f';
+import { tagBadges } from '../notes/note-types.js?v=b97af5500a9f';
+import { commitmentColors } from '../commitments/colors.js?v=b97af5500a9f';
+import { renderNoteLines } from '../notes/render.js?v=b97af5500a9f';
+import { noteTasks } from '../notes/formatting/tasks.js?v=b97af5500a9f';
+import { attachmentList } from '../attachments/attachments.js?v=b97af5500a9f';
+import { orderedItems, itemKey } from './model.js?v=b97af5500a9f';
+import { bindListGestures } from './gestures.js?v=b97af5500a9f';
 const statusFilters = new Map();
 const button = (text, action, cls = '') => {
   const b = node('button', cls, text);
@@ -74,7 +75,7 @@ export function cardList({ items, view, clock, actions, onEdit, onReschedule, on
       card.append(head);
       const stamp = entry.yearly
         ? `Q${entry.yearly.quarter} · Intention${entry.yearly.status === 'released' ? ' · Set aside' : ''}`
-        : `${entry.weekly ? 'Week of ' : ''}${parseDay(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}${entry.weekly ? '' : entry.allDay ? ' · All day' : ' · ' + timeLabel(entry.minute, clock)}`;
+        : `${entry.weekly ? 'Week of ' : ''}${parseDay(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}${entry.weekly ? '' : entry.allDay ? ' · ' + untimedLabel(entry) : ' · ' + timeLabel(entry.minute, clock)}`;
       const meta = node('div', 'list-card-meta');
       meta.append(node('span', '', stamp));
       const tags = tagBadges(entry);
