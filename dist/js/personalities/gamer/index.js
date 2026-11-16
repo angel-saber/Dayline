@@ -1,4 +1,4 @@
-import { renderScore } from './music.js?v=b97af5500a9f';
+import { renderScore } from './music.js?v=c2797d5cdbe9';
 // Approved Gamer copy. Saved user commitments and notes are never rewritten.
 export default {
   commitmentPalette: {

@@ -148,3 +148,34 @@ test('card list exposes full details safely, completion filters, swipe actions, 
     handle.dispatchEvent(key);
     assert.deepEqual(events.pop(), ['reorder', '2026-11-01/a', '2026-11-08/b', true]);
   }));
+
+test('expanded details survive list redraws and filters until explicitly closed', () =>
+  harness(({ window, document }) => {
+    const options = {
+      items: [
+        { date: '2026-11-15', entry: { id: 'expand', text: 'Details', minute: 600, done: false } },
+      ],
+      view: 'daily',
+      clock: '24',
+      actions: { resetOrder() {} },
+      onEdit() {},
+      onReschedule() {},
+    };
+    const redraw = () => document.body.replaceChildren(cardList(options));
+    const details = () => document.querySelector('.list-card-details');
+    redraw();
+    details().querySelector('summary').click();
+    assert.equal(details().hasAttribute('open'), true);
+    const filter = document.querySelector('select');
+    filter.value = 'done';
+    filter.dispatchEvent(new window.Event('change'));
+    assert.equal(details(), null);
+    filter.value = 'all';
+    filter.dispatchEvent(new window.Event('change'));
+    assert.equal(details().hasAttribute('open'), true);
+    redraw();
+    assert.equal(details().hasAttribute('open'), true);
+    details().querySelector('summary').click();
+    redraw();
+    assert.equal(details().hasAttribute('open'), false);
+  }));

@@ -1,4 +1,4 @@
-import { renderScore } from './music.js?v=b97af5500a9f';
+import { renderScore } from './music.js?v=c2797d5cdbe9';
 // Authored personality data only; never rewrite user notes or saved commitments.
 export default {
   commitmentPalette: {
