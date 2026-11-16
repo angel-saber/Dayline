@@ -1,4 +1,4 @@
-import { dropTimePreview } from '../daily/drop-time.js?v=73be664608f3';
+import { dropTimePreview } from '../daily/drop-time.js?v=b97af5500a9f';
 // Pointer capture keeps touch and mouse dragging alive after the drawer closes.
 export function commitmentTimelineDrag(
   handle,
@@ -17,7 +17,7 @@ export function commitmentTimelineDrag(
     root.querySelectorAll('.drop-target').forEach((el) => el.classList.remove('drop-target'));
     const slot = document.elementFromPoint(position.x, position.y)?.closest('.slot');
     target = slot && root.contains(slot) ? slot : null;
-    if (target?.dataset.minute === '-1') target = null;
+    if (Number(target?.dataset.minute) < 0) target = null;
     target?.classList.add('drop-target');
     lockedMinute = preview.show(target, position.y, interval(), clock());
   }

@@ -1,5 +1,5 @@
-import { node } from '../../shared/dom.js?v=73be664608f3';
-import { hourInput, inputMinute } from '../settings/available-hours.js?v=73be664608f3';
+import { node } from '../../shared/dom.js?v=b97af5500a9f';
+import { hourInput, inputMinute } from '../settings/available-hours.js?v=b97af5500a9f';
 export const NIGHT_ORDER_KEY = 'dayline.daily-order.v1';
 export function readNightOrder(storage = localStorage) {
   try {
@@ -19,15 +19,9 @@ export function orderDailySlots(slots, preference) {
   if (!preference.enabled) return slots;
   const timed = slots.filter((s) => !s.allDay).map((s) => s.minute);
   const start = Math.max(0, ...timed.filter((m) => m <= preference.start));
-  return slots
-    .slice()
-    .sort((a, b) =>
-      a.allDay
-        ? -1
-        : b.allDay
-          ? 1
-          : ((a.minute - start + 1440) % 1440) - ((b.minute - start + 1440) % 1440),
-    );
+  const order = (slot) =>
+    slot.allDay && slot.dayPeriod === undefined ? -1 : (slot.minute - start + 1440) % 1440;
+  return slots.slice().sort((a, b) => order(a) - order(b));
 }
 export function setupNightOrder({ root, onChange, toast, storage = localStorage }) {
   const card = node('section', 'settings-card');

@@ -1,5 +1,5 @@
-import { dropTimePreview } from './drop-time.js?v=73be664608f3';
-import { dropHover } from './drop-hover.js?v=73be664608f3';
+import { dropTimePreview } from './drop-time.js?v=b97af5500a9f';
+import { dropHover } from './drop-hover.js?v=b97af5500a9f';
 // One delegated pointer controller; never blocks vertical scrolling on note cards.
 export function attachGestures(
   root,
@@ -37,7 +37,7 @@ export function attachGestures(
     const valid = slot && root.contains(slot);
     if (valid) slot.classList.add('drop-target');
     active.target = preview.show(valid ? slot : null, y, interval(), clock());
-    const note = valid ? hit?.closest('.entry') : null;
+    const note = valid && Number(slot.dataset.minute) >= 0 ? hit?.closest('.entry') : null;
     hover.update(note && note.dataset.id !== active.id ? note.dataset.id : null);
     if (hover.targetId && note)
       active.target = preview.show(slot, y, interval(), clock(), Number(note.dataset.minute));
