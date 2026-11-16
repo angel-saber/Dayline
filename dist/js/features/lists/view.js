@@ -1,16 +1,17 @@
-import { untimedLabel } from '../../shared/schedule.js?v=b97af5500a9f';
-import { renderFocusReports } from '../focus/reports.js?v=b97af5500a9f';
-import { renderGuidedReports } from '../activities/view.js?v=b97af5500a9f';
-import { node } from '../../shared/dom.js?v=b97af5500a9f';
-import { timeLabel, parseDay } from '../../shared/dates.js?v=b97af5500a9f';
-import { tagBadges } from '../notes/note-types.js?v=b97af5500a9f';
-import { commitmentColors } from '../commitments/colors.js?v=b97af5500a9f';
-import { renderNoteLines } from '../notes/render.js?v=b97af5500a9f';
-import { noteTasks } from '../notes/formatting/tasks.js?v=b97af5500a9f';
-import { attachmentList } from '../attachments/attachments.js?v=b97af5500a9f';
-import { orderedItems, itemKey } from './model.js?v=b97af5500a9f';
-import { bindListGestures } from './gestures.js?v=b97af5500a9f';
+import { untimedLabel } from '../../shared/schedule.js?v=c2797d5cdbe9';
+import { renderFocusReports } from '../focus/reports.js?v=c2797d5cdbe9';
+import { renderGuidedReports } from '../activities/view.js?v=c2797d5cdbe9';
+import { node } from '../../shared/dom.js?v=c2797d5cdbe9';
+import { timeLabel, parseDay } from '../../shared/dates.js?v=c2797d5cdbe9';
+import { tagBadges } from '../notes/note-types.js?v=c2797d5cdbe9';
+import { commitmentColors } from '../commitments/colors.js?v=c2797d5cdbe9';
+import { renderNoteLines } from '../notes/render.js?v=c2797d5cdbe9';
+import { noteTasks } from '../notes/formatting/tasks.js?v=c2797d5cdbe9';
+import { attachmentList } from '../attachments/attachments.js?v=c2797d5cdbe9';
+import { orderedItems, itemKey } from './model.js?v=c2797d5cdbe9';
+import { bindListGestures } from './gestures.js?v=c2797d5cdbe9';
 const statusFilters = new Map();
+const expandedCards = new Map();
 const button = (text, action, cls = '') => {
   const b = node('button', cls, text);
   b.type = 'button';
@@ -24,6 +25,8 @@ export function cardList({ items, view, clock, actions, onEdit, onReschedule, on
   section.setAttribute('aria-label', `${view} note list`);
   const all = orderedItems(items, view),
     byKey = new Map(all.map((item) => [itemKey(item), item]));
+  if (!expandedCards.has(view)) expandedCards.set(view, new Set());
+  const expanded = expandedCards.get(view);
   const filter = node('select');
   filter.setAttribute('aria-label', 'Show notes by completion');
   for (const [value, label] of [
@@ -82,7 +85,14 @@ export function cardList({ items, view, clock, actions, onEdit, onReschedule, on
       if (tags) meta.append(tags);
       card.append(meta);
       const details = node('details', 'list-card-details');
-      details.append(node('summary', '', 'Details & actions'));
+      details.toggleAttribute('open', expanded.has(key));
+      const summary = node('summary', '', 'Details & actions');
+      summary.addEventListener('click', (event) => {
+        event.preventDefault();
+        if (details.toggleAttribute('open')) expanded.add(key);
+        else expanded.delete(key);
+      });
+      details.append(summary);
       const body = node('div', 'list-card-body');
       renderNoteLines(
         body,

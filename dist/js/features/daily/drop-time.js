@@ -1,7 +1,7 @@
-import { untimedLabel } from '../../shared/schedule.js?v=b97af5500a9f';
-import { minuteAtPosition } from './precise-time.js?v=b97af5500a9f';
-import { timeLabel } from '../../shared/dates.js?v=b97af5500a9f';
-import { node } from '../../shared/dom.js?v=b97af5500a9f';
+import { untimedLabel } from '../../shared/schedule.js?v=c2797d5cdbe9';
+import { minuteAtPosition } from './precise-time.js?v=c2797d5cdbe9';
+import { timeLabel } from '../../shared/dates.js?v=c2797d5cdbe9';
+import { node } from '../../shared/dom.js?v=c2797d5cdbe9';
 export function snapDropMinute(start, interval, y, rect) {
   if (start < 0) return start;
   const raw = minuteAtPosition(start, interval, y, rect);

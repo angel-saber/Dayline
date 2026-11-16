@@ -1,5 +1,5 @@
-import { createCelebrationSound } from './celebration-sound.js?v=b97af5500a9f';
-import { getPersonality } from './index.js?v=b97af5500a9f';
+import { createCelebrationSound } from './celebration-sound.js?v=c2797d5cdbe9';
+import { getPersonality } from './index.js?v=c2797d5cdbe9';
 const KEY = 'dayline.effects.v1';
 const SOUND_KEY = 'dayline.celebration-sound.v1';
 const LEVELS = ['full', 'subtle', 'off'];
