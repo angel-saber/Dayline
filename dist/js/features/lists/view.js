@@ -1,15 +1,15 @@
-import { untimedLabel } from '../../shared/schedule.js?v=c2797d5cdbe9';
-import { renderFocusReports } from '../focus/reports.js?v=c2797d5cdbe9';
-import { renderGuidedReports } from '../activities/view.js?v=c2797d5cdbe9';
-import { node } from '../../shared/dom.js?v=c2797d5cdbe9';
-import { timeLabel, parseDay } from '../../shared/dates.js?v=c2797d5cdbe9';
-import { tagBadges } from '../notes/note-types.js?v=c2797d5cdbe9';
-import { commitmentColors } from '../commitments/colors.js?v=c2797d5cdbe9';
-import { renderNoteLines } from '../notes/render.js?v=c2797d5cdbe9';
-import { noteTasks } from '../notes/formatting/tasks.js?v=c2797d5cdbe9';
-import { attachmentList } from '../attachments/attachments.js?v=c2797d5cdbe9';
-import { orderedItems, itemKey } from './model.js?v=c2797d5cdbe9';
-import { bindListGestures } from './gestures.js?v=c2797d5cdbe9';
+import { untimedLabel } from '../../shared/schedule.js?v=b2e9b49cec79';
+import { renderFocusReports } from '../focus/reports.js?v=b2e9b49cec79';
+import { renderGuidedReports } from '../activities/view.js?v=b2e9b49cec79';
+import { node } from '../../shared/dom.js?v=b2e9b49cec79';
+import { timeLabel, parseDay } from '../../shared/dates.js?v=b2e9b49cec79';
+import { tagBadges } from '../notes/note-types.js?v=b2e9b49cec79';
+import { commitmentColors } from '../commitments/colors.js?v=b2e9b49cec79';
+import { renderNoteLines } from '../notes/render.js?v=b2e9b49cec79';
+import { noteTasks } from '../notes/formatting/tasks.js?v=b2e9b49cec79';
+import { attachmentList } from '../attachments/attachments.js?v=b2e9b49cec79';
+import { orderedItems, itemKey } from './model.js?v=b2e9b49cec79';
+import { bindListGestures } from './gestures.js?v=b2e9b49cec79';
 const statusFilters = new Map();
 const expandedCards = new Map();
 const button = (text, action, cls = '') => {
@@ -45,6 +45,7 @@ export function cardList({ items, view, clock, actions, onEdit, onReschedule, on
       (item) => filter.value === 'all' || (filter.value === 'done') === !!item.entry.done,
     );
     if (!filtered.length) list.append(node('p', 'field-hint', 'No notes to show here.'));
+    filtered.sort((a, b) => Number(!!a.entry.done) - Number(!!b.entry.done));
     for (const item of filtered) {
       const { entry, date } = item,
         key = itemKey(item),

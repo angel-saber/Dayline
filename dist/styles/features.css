@@ -3555,6 +3555,7 @@ body.month-dragging .commitments-launch {
 }
 .planner-card-list {
   display: grid;
+  overflow-x: clip;
   gap: 10px;
   align-content: start;
 }
@@ -3566,6 +3567,20 @@ body.month-dragging .commitments-launch {
   touch-action: pan-y;
   min-width: 0;
 }
+.planner-note-card {
+  transform: translateX(var(--swipe, 0px));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .planner-note-card:not(.list-swiping) {
+    transition: transform 150ms ease-out;
+  }
+}
+
+.list-swiping {
+  user-select: none;
+}
+
 .list-card-header {
   display: grid;
   grid-template-columns: 32px minmax(0, 1fr) 36px;
