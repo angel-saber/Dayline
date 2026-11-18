@@ -3,29 +3,29 @@ import {
   writeNoteClipboard,
   readNoteClipboard,
   pasteNoteFragment,
-} from './clipboard.js?v=c2797d5cdbe9';
-import { node as element } from '../../shared/dom.js?v=c2797d5cdbe9';
+} from './clipboard.js?v=b2e9b49cec79';
+import { node as element } from '../../shared/dom.js?v=b2e9b49cec79';
 import {
   applyIndent,
   editIndents,
   indentLevel,
   MAX_INDENT,
-} from './formatting/indents.js?v=c2797d5cdbe9';
+} from './formatting/indents.js?v=b2e9b49cec79';
 import {
   prepareUploadFiles,
   reviewCompression,
-} from '../attachments/file-compression.js?v=c2797d5cdbe9';
-import { addFiles, attachmentList } from '../attachments/attachments.js?v=c2797d5cdbe9';
-import { typeChips, noteTags } from './note-types.js?v=c2797d5cdbe9';
-import { safeLink } from './formatting/links.js?v=c2797d5cdbe9';
-import { toggleBullets, editBullets, selectedLines } from './formatting/bullets.js?v=c2797d5cdbe9';
+} from '../attachments/file-compression.js?v=b2e9b49cec79';
+import { addFiles, attachmentList } from '../attachments/attachments.js?v=b2e9b49cec79';
+import { typeChips, noteTags } from './note-types.js?v=b2e9b49cec79';
+import { safeLink } from './formatting/links.js?v=b2e9b49cec79';
+import { toggleBullets, editBullets, selectedLines } from './formatting/bullets.js?v=b2e9b49cec79';
 import {
   HIGHLIGHTS,
   renderFormatted,
   editFormat,
   setLink,
-} from './formatting/format.js?v=c2797d5cdbe9';
-import { lineRange, noteTasks, editTasks } from './formatting/tasks.js?v=c2797d5cdbe9';
+} from './formatting/format.js?v=b2e9b49cec79';
+import { lineRange, noteTasks, editTasks } from './formatting/tasks.js?v=b2e9b49cec79';
 import {
   recognizeBullets,
   replaceText,
@@ -34,7 +34,7 @@ import {
   applyCheckbox,
   checkTask,
   selectionStyle,
-} from './editor-state.js?v=c2797d5cdbe9';
+} from './editor-state.js?v=b2e9b49cec79';
 
 const makeButton = (text, label, action) => {
   const el = element('button', '', text);

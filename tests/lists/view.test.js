@@ -127,9 +127,13 @@ test('card list exposes full details safely, completion filters, swipe actions, 
     };
     const title = cards[0].querySelector('.list-note-title');
     send(title, 'pointerdown', 100);
+    send(title, 'pointermove', 155);
+    assert.equal(cards[0].style.getPropertyValue('--swipe'), '55px');
     send(title, 'pointerup', 190);
     assert.deepEqual(events.pop(), ['complete', 'a']);
     send(title, 'pointerdown', 100);
+    send(title, 'pointermove', 40);
+    assert.equal(cards[0].style.getPropertyValue('--swipe'), '-60px');
     send(title, 'pointerup', 0);
     assert.deepEqual(events.pop(), ['remove', 'a']);
     const handle = cards[0].querySelector('.list-reorder');
@@ -178,4 +182,24 @@ test('expanded details survive list redraws and filters until explicitly closed'
     details().querySelector('summary').click();
     redraw();
     assert.equal(details().hasAttribute('open'), false);
+  }));
+
+test('List keeps completed cards below open cards even with saved manual ordering', () =>
+  harness(() => {
+    const items = [true, false, false, true].map((done, index) => ({
+      date: '2026-11-15',
+      entry: { id: String(index), text: 'Note', minute: index, done, listOrder: { daily: index } },
+    }));
+    const view = cardList({
+      items,
+      view: 'daily',
+      clock: '24',
+      actions: {},
+      onEdit() {},
+      onReschedule() {},
+    });
+    assert.deepEqual(
+      [...view.querySelectorAll('[data-card-key]')].map((card) => card.dataset.cardKey),
+      ['2026-11-15/1', '2026-11-15/2', '2026-11-15/0', '2026-11-15/3'],
+    );
   }));

@@ -1,5 +1,5 @@
-import { oceanLayer, vowelPhrase, darkPulse } from './soundscape.js?v=c2797d5cdbe9';
-import { scoreTools } from '../score-tools.js?v=c2797d5cdbe9';
+import { oceanLayer, vowelPhrase, darkPulse } from './soundscape.js?v=b2e9b49cec79';
+import { scoreTools } from '../score-tools.js?v=b2e9b49cec79';
 // Undertow: original oceanic electronica with wordless synthesized vocal refrains.
 export function renderScore(data, rate) {
   if (!data.length || rate <= 0) return;

@@ -4,7 +4,8 @@ export function bindListGestures(list, { complete, remove, reorder }) {
     frame;
   function clear() {
     cancelAnimationFrame(frame);
-    active?.row.classList.remove('list-dragging');
+    active?.row.classList.remove('list-dragging', 'list-swiping');
+    active?.row.style.removeProperty('--swipe');
     list
       .querySelectorAll('.list-before,.list-after')
       .forEach((row) => row.classList.remove('list-before', 'list-after'));
@@ -67,7 +68,18 @@ export function bindListGestures(list, { complete, remove, reorder }) {
   list.addEventListener('pointermove', (event) => {
     if (!active || active.id !== event.pointerId) return;
     active.lastY = event.clientY;
-    if (!active.drag) return;
+    if (!active.drag) {
+      const dx = event.clientX - active.x;
+      const dy = event.clientY - active.y;
+      if (!active.swiping && Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        active.swiping = true;
+        active.row.classList.add('list-swiping');
+        active.row.setPointerCapture?.(event.pointerId);
+      }
+      if (active.swiping)
+        active.row.style.setProperty('--swipe', `${Math.max(-110, Math.min(110, dx))}px`);
+      return;
+    }
     event.preventDefault();
     const row = targetAt(event.clientX, event.clientY);
     list
@@ -91,6 +103,7 @@ export function bindListGestures(list, { complete, remove, reorder }) {
       suppress = true;
       if (target) reorder(a.key, target, after);
     } else {
+      suppress = !!a.swiping;
       const dx = event.clientX - a.x,
         dy = event.clientY - a.y;
       if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.5) {
